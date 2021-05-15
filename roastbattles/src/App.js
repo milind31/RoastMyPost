@@ -1,12 +1,17 @@
 import './App.css';
+import React, { Component } from 'react';
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
 import firebase from 'firebase/app';
 import "firebase/auth";
 import "firebase/firestore";
 import "firebase/auth";
+import Home from './components/home';
+import NewUserForm from './components/new-user-form';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
+import SignIn from './components/signin-page';
 
 if (!firebase.apps.length) {
   firebase.initializeApp({
@@ -18,66 +23,27 @@ if (!firebase.apps.length) {
     appId: "1:831370750345:web:0b62cc194dea462cca5958",
     measurementId: "G-V8QZJXP8E7"
   });
-}else {
+}
+else {
   firebase.app(); // if already initialized, use that one
 }
 
-const auth = firebase.auth();
-const firestore = firebase.firestore();
-
-/*
-function AddUserInfo() {
-  return (
-    <h1>Welcome! Please add user info to begin!</h1>
-  )
-}
-*/
-
-function Home() {
-  return (
-    <h1>Welcome back!</h1>
-  )
-}
-
-function SignIn() {
-  const signInWithGoogle = () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider)
-      .then((result) => {
-        if (result.additionalUserInfo.isNewUser) {
-          //direct to form to add info
-        }
-        else {
-          //direct to home
-        }
-      })
+//routes
+class App extends Component {
+  render () {
+    return (
+      <div className="App">
+        <Router>
+        <div className="container">
+          <Switch>
+            <Route exact path="/signin" render={() => <SignIn/>}/>
+            <Route exact path="/" render={() => <Home/>}/>
+          </Switch>
+        </div>
+      </Router>
+      </div>
+    );
   }
-
-  return (
-    <div>
-      <h1>Sign in below!</h1>
-      <button onClick={signInWithGoogle}>Sign in with Google!</button>
-    </div>
-  )
-}
-
-function SignOut() {
-  return auth.currentUser && (
-    <button onClick={() => auth.signOut()}>Sign Out</button>
-  )
-}
-
-function App() {
-  const [user] = useAuthState(auth);
-  return (
-    <div className="App">
-      <section>
-        { user ? <Home/> : <SignIn/> }
-        <SignOut />
-      </section>
-    
-    </div>
-  );
 }
 
 export default App;
