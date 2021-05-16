@@ -5,6 +5,7 @@ import "firebase/auth";
 import "firebase/firestore";
 import "firebase/auth";
 
+
 export default class SignIn extends Component {
     constructor(){
         super()
@@ -39,7 +40,8 @@ export default class SignIn extends Component {
       render () {
         return (
             <div>
-                <h1>Welcome to RoastBattles!</h1>
+                <h1>Welcome to RoastMyPost!</h1>
+                <p>The best place to take your day out on a stranger!</p>
                 <button onClick={this.signInWithGoogle} type="button" class="login-with-google-btn" >
                     Sign in with Google
                 </button>

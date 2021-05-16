@@ -12,6 +12,28 @@ import NewUserForm from './components/new-user-form';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import SignIn from './components/signin-page';
+import CreatePost from './components/create-post';
+
+import { ThemeProvider as MuiThemeProvider } from '@material-ui/core/styles';
+import createMuiTheme from '@material-ui/core/styles/createMuiTheme';
+
+
+const theme = createMuiTheme({
+  palette: {
+    primary: {
+      light: '#ed6c09',
+      main: '#ed6c09',
+      dark: '#ed6c09',
+      contrastText: '#000',
+    },
+    secondary: {
+      light: '#f5f5f5',
+      main: '#f5f5f5',
+      dark: '#f5f5f5',
+      contrastText: '#fff',
+    },
+  },
+});
 
 if (!firebase.apps.length) {
   firebase.initializeApp({
@@ -32,16 +54,19 @@ else {
 class App extends Component {
   render () {
     return (
+      <MuiThemeProvider theme={theme}>
       <div className="App">
         <Router>
         <div className="container">
           <Switch>
             <Route exact path="/signin" render={() => <SignIn/>}/>
             <Route exact path="/" render={() => <Home/>}/>
+            <Route exact path="/create-post" render={() => <CreatePost/>}/>
           </Switch>
         </div>
       </Router>
       </div>
+      </MuiThemeProvider>
     );
   }
 }

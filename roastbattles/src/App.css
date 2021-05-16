@@ -1,6 +1,8 @@
 html {background-color: #242323;} 
 .App {
   text-align: center;
+  font-family: 'Roboto Mono', monospace;
+  color: #f5f5f5;
 }
 
 
@@ -52,6 +54,13 @@ h1 {
   font-size: 350%;
   color: #f5f5f5;
 }
+p {
+  margin-top: -20px;
+  margin-bottom: 40px;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 150%;
+  color: #f5f5f5;
+}
 
 /* login with google button */
 .login-with-google-btn {
@@ -87,4 +96,3 @@ h1 {
       0 2px 4px rgba(0, 0, 0, .25),
       0 0 0 3px #c8dafc;
   }
-  
