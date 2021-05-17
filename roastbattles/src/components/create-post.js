@@ -23,7 +23,10 @@ const styles = {
     }
 }
 
-//homepage
+//create post page
+//TODO:
+//REDIRECT BACK IF POST ALREADY EXISTS
+//FIGURE OUT FILE UPLOAD WITH BACKEND
 class CreatePost extends Component {
     constructor(props) {
         super(props);
@@ -102,13 +105,13 @@ class CreatePost extends Component {
 
     onChangeGuiltyPleasure(e) {
         this.setState({
-            selfRating: e.target.value
+            guiltyPleasure: e.target.value
         });
     }
 
     onChangeOtherInfo(e) {
         this.setState({
-            selfRating: e.target.value
+            otherInfo: e.target.value
         });
     }
 
@@ -128,14 +131,20 @@ class CreatePost extends Component {
         
         var user = firebase.auth().currentUser;
 
+        //add post in firestore
         firebase.firestore().collection("posts").doc(user.uid.toString()).set({post})
-        .then(() => {window.location = '/'})
+        .then(() => {
+            //change user's created post attribute to true
+            firebase.firestore().collection("users").doc(user.uid.toString()).set({
+                createdPost: true
+              })
+            .then(() => {window.location = '/'})
+        })
         .catch((err) => {console.log(err)})
     }
 
 
     render () {
-        //TODO: MAKE FILE UPLOAD REQUIRED!!
         const { classes } = this.props;
         return (
             <div>
