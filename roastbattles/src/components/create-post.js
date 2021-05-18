@@ -9,6 +9,7 @@ import firebase from 'firebase/app';
 import "firebase/auth";
 import "firebase/firestore";
 import "firebase/auth";
+import "firebase/storage";
 
 const styles = {
     form: {
@@ -40,6 +41,7 @@ class CreatePost extends Component {
         this.onChangeSelfRating = this.onChangeSelfRating.bind(this);
         this.onChangeGuiltyPleasure = this.onChangeGuiltyPleasure.bind(this);
         this.onChangeOtherInfo = this.onChangeOtherInfo.bind(this);
+        this.handleFileChange = this.handleFileChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
 
         this.state = {
@@ -51,12 +53,18 @@ class CreatePost extends Component {
             selfRating: '',
             guiltyPleasure: '',
             otherInfo: '',
+            file1: null,
+            file1URL: '',
         }
     }
 
     componentDidMount = () => {
         firebase.auth().onAuthStateChanged(this.handleAuthChange);
     }
+
+    handleFileChange(e) {
+        this.setState({file1: e.target.files[0]});
+      }
 
     handleAuthChange(user) {
         if (user) {
@@ -118,29 +126,76 @@ class CreatePost extends Component {
     onSubmit(e) {
         e.preventDefault();
         
-        const post = {
-            music: this.state.music,
-            age: this.state.age,
-            dayAsOtherPerson: this.state.dayAsOtherPerson,
-            hobbies: this.state.hobbies,
-            peeves: this.state.peeves,
-            selfRating: this.state.selfRating,
-            guiltyPleasure: this.state.guiltyPleasure,
-            otherInfo: this.state.otherInfo,
-        }
-        
         var user = firebase.auth().currentUser;
 
-        //add post in firestore
-        firebase.firestore().collection("posts").doc(user.uid.toString()).set({post})
-        .then(() => {
-            //change user's created post attribute to true
-            firebase.firestore().collection("users").doc(user.uid.toString()).set({
-                createdPost: true
-              })
-            .then(() => {window.location = '/'})
-        })
-        .catch((err) => {console.log(err)})
+        if (this.state.file1 !== null) {
+            //FOLLOWING CHUNK OF CODE TAKEN FROM FIREBASE DOCUMENTATION (https://firebase.google.com/docs/storage/web/upload-files#full_example)
+            
+            // Upload file and metadata to the object 'images/mountains.jpg'
+            var uploadTask = firebase.storage().ref().child('images/' + this.state.file1.name).put(this.state.file1);
+
+            // Listen for state changes, errors, and completion of the upload.
+            uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED, // or 'state_changed'
+            (snapshot) => {
+                // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                console.log('Upload is ' + progress + '% done');
+                switch (snapshot.state) {
+                case firebase.storage.TaskState.PAUSED: // or 'paused'
+                    console.log('Upload is paused');
+                    break;
+                case firebase.storage.TaskState.RUNNING: // or 'running'
+                    console.log('Upload is running');
+                    break;
+                }
+            },
+            (error) => {
+                // A full list of error codes is available at
+                // https://firebase.google.com/docs/storage/web/handle-errors
+                switch (error.code) {
+                  case 'storage/unauthorized':
+                    // User doesn't have permission to access the object
+                    break;
+                  case 'storage/canceled':
+                    // User canceled the upload
+                    break;
+            
+                  // ...
+            
+                  case 'storage/unknown':
+                    // Unknown error occurred, inspect error.serverResponse
+                    break;
+                }
+              }, 
+            () => {
+                // Upload completed successfully, now we can get the download URL
+                    uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                        const post = {
+                            music: this.state.music,
+                            age: this.state.age,
+                            dayAsOtherPerson: this.state.dayAsOtherPerson,
+                            hobbies: this.state.hobbies,
+                            peeves: this.state.peeves,
+                            selfRating: this.state.selfRating,
+                            guiltyPleasure: this.state.guiltyPleasure,
+                            otherInfo: this.state.otherInfo,
+                            file1URL: downloadURL
+                        }
+                
+                        //add post in firestore
+                        firebase.firestore().collection("posts").doc(user.uid.toString()).set({post})
+                        .then((docRef) => {
+                            //change user's created post attribute to true
+                            firebase.firestore().collection("users").doc(user.uid.toString()).update({
+                                createdPost: true
+                            })
+                            .then(() => {window.location = '/'})
+                        })
+                        .catch((err) => {console.log(err)})
+                });
+            }
+            );
+        }
     }
 
 
@@ -154,7 +209,11 @@ class CreatePost extends Component {
                 { /*file upload*/ }
                 <Form.Group>
                     <Form.Label>Upload images of yourself</Form.Label>
-                    <Form.File className={classes.fileUpload} id="exampleFormControlFile1" multiple/>
+                    <Form.File 
+                        onChange={this.handleFileChange} 
+                        className={classes.fileUpload} 
+                        id="exampleFormControlFile1" 
+                        multiple/>
                     <Form.Text className="text-muted">
                             Required: please upload 1-5 images
                     </Form.Text>
