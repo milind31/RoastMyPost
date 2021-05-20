@@ -20,7 +20,8 @@ const styles = {
         backgroundColor: '#ed6c09'
     },
     fileUpload: {
-        alignItems: 'center'
+        alignItems: 'center',
+        marginLeft: '38%'
     }
 }
 
@@ -43,6 +44,7 @@ class CreatePost extends Component {
         this.onChangeOtherInfo = this.onChangeOtherInfo.bind(this);
         this.handleFileChange = this.handleFileChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+        this.uploadImage = this.uploadImage.bind(this);
 
         this.state = {
             music: '',
@@ -53,8 +55,8 @@ class CreatePost extends Component {
             selfRating: '',
             guiltyPleasure: '',
             otherInfo: '',
-            file1: null,
-            file1URL: '',
+            files: null,
+            numberOfFiles: 0,
         }
     }
 
@@ -63,7 +65,7 @@ class CreatePost extends Component {
     }
 
     handleFileChange(e) {
-        this.setState({file1: e.target.files[0]});
+        this.setState({files: e.target.files, numberOfFiles: e.target.files.length});
       }
 
     handleAuthChange(user) {
@@ -123,80 +125,62 @@ class CreatePost extends Component {
         });
     }
 
-    onSubmit(e) {
+    onSubmit = async (e) =>{
         e.preventDefault();
-        
+
+        var fileURLS = [];
+        if (this.state.files !== null) {
+            // 3. Loop over all the files
+            for (var i = 0; i < this.state.numberOfFiles; i++) {
+                // 3A. Get a file to upload
+                const imageFile = this.state.files[i];
+
+                // 3B. handleFileUploadOnFirebaseStorage function is in above section
+                const downloadFileResponse = await this.uploadImage(imageFile);
+                
+                // 3C. Push the download url to URLs array
+                fileURLS.push(downloadFileResponse);
+            }
+            console.log(fileURLS);          
+        }
+
+        const post = {
+            music: this.state.music,
+            age: this.state.age,
+            dayAsOtherPerson: this.state.dayAsOtherPerson,
+            hobbies: this.state.hobbies,
+            peeves: this.state.peeves,
+            selfRating: this.state.selfRating,
+            guiltyPleasure: this.state.guiltyPleasure,
+            otherInfo: this.state.otherInfo,
+            fileURLS: fileURLS
+        }
+
         var user = firebase.auth().currentUser;
 
-        if (this.state.file1 !== null) {
-            //FOLLOWING CHUNK OF CODE TAKEN FROM FIREBASE DOCUMENTATION (https://firebase.google.com/docs/storage/web/upload-files#full_example)
-            
-            // Upload file and metadata to the object 'images/mountains.jpg'
-            var uploadTask = firebase.storage().ref().child('images/' + this.state.file1.name).put(this.state.file1);
-
-            // Listen for state changes, errors, and completion of the upload.
-            uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED, // or 'state_changed'
-            (snapshot) => {
-                // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-                var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                console.log('Upload is ' + progress + '% done');
-                switch (snapshot.state) {
-                case firebase.storage.TaskState.PAUSED: // or 'paused'
-                    console.log('Upload is paused');
-                    break;
-                case firebase.storage.TaskState.RUNNING: // or 'running'
-                    console.log('Upload is running');
-                    break;
-                }
-            },
-            (error) => {
-                // A full list of error codes is available at
-                // https://firebase.google.com/docs/storage/web/handle-errors
-                switch (error.code) {
-                  case 'storage/unauthorized':
-                    // User doesn't have permission to access the object
-                    break;
-                  case 'storage/canceled':
-                    // User canceled the upload
-                    break;
-            
-                  // ...
-            
-                  case 'storage/unknown':
-                    // Unknown error occurred, inspect error.serverResponse
-                    break;
-                }
-              }, 
-            () => {
-                // Upload completed successfully, now we can get the download URL
-                    uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                        const post = {
-                            music: this.state.music,
-                            age: this.state.age,
-                            dayAsOtherPerson: this.state.dayAsOtherPerson,
-                            hobbies: this.state.hobbies,
-                            peeves: this.state.peeves,
-                            selfRating: this.state.selfRating,
-                            guiltyPleasure: this.state.guiltyPleasure,
-                            otherInfo: this.state.otherInfo,
-                            file1URL: downloadURL
-                        }
-                
-                        //add post in firestore
-                        firebase.firestore().collection("posts").doc(user.uid.toString()).set({post})
-                        .then((docRef) => {
-                            //change user's created post attribute to true
-                            firebase.firestore().collection("users").doc(user.uid.toString()).update({
-                                createdPost: true
-                            })
-                            .then(() => {window.location = '/'})
-                        })
-                        .catch((err) => {console.log(err)})
-                });
-            }
-            );
-        }
+        //add post in firestore
+        firebase.firestore().collection("posts").doc(user.uid.toString()).set({post})
+        .then(() => {
+            //change user's created post attribute to true
+            firebase.firestore().collection("users").doc(user.uid.toString()).update({
+                createdPost: true
+            })
+            .then(() => {window.location = '/'})
+        })
+        .catch((err) => {console.log(err)})
     }
+
+    uploadImage = async (imageFile) => {
+        // 1. If no file, return
+        if (imageFile === "") return "";
+
+        // 2. Put the file into bucketName
+        const uploadTask = await firebase.storage().ref().child('images/' + imageFile.name).put(imageFile);
+        
+        // 3. Get download URL and return it as 
+        return uploadTask.ref.getDownloadURL().then((fileURL) => fileURL);
+    }
+    
 
 
     render () {
@@ -224,6 +208,7 @@ class CreatePost extends Component {
                             The following are optional; feel free to answer as many or as few as you would like
                     </Form.Label>
 
+                    { /*music*/ }
                     <Form.Group controlId="exampleForm.ControlTextarea1">
                         <Form.Control 
                         onChange={this.onChangeMusic} 
@@ -233,6 +218,7 @@ class CreatePost extends Component {
                         placeholder="What music do you currently have on rotation?" />
                     </Form.Group>
 
+                    { /*age*/ }
                     <Form.Group controlId="exampleForm.ControlTextarea1">
                         <Form.Control 
                         onChange={this.onChangeAge} 
@@ -241,6 +227,7 @@ class CreatePost extends Component {
                         placeholder="How old are you?" />
                     </Form.Group>
 
+                    { /*day as other person*/ }
                     <Form.Group controlId="exampleForm.ControlTextarea1">
                         <Form.Control 
                         onChange={this.onChangeDayAsOtherPerson} 
@@ -249,6 +236,7 @@ class CreatePost extends Component {
                         placeholder="If you could spend a day as anyone, dead or alive, who would it be?" />
                     </Form.Group>
 
+                    { /*hobbies*/ }
                     <Form.Group controlId="exampleForm.ControlTextarea1">
                         <Form.Control 
                         onChange={this.onChangeHobbies} 
@@ -258,6 +246,7 @@ class CreatePost extends Component {
                         placeholder="What do you enjoy doing in your spare time?" />
                     </Form.Group>
 
+                    { /*peeves*/ }
                     <Form.Group controlId="exampleForm.ControlTextarea1">
                         <Form.Control 
                         onChange={this.onChangePeeves}
@@ -267,6 +256,7 @@ class CreatePost extends Component {
                         placeholder="What pisses you off the most?" />
                     </Form.Group>
 
+                    { /*self rating*/ }
                     <Form.Group controlId="exampleForm.ControlTextarea1">
                         <Form.Control 
                         onChange={this.onChangeSelfRating} 
@@ -276,6 +266,7 @@ class CreatePost extends Component {
                         placeholder="Rate your looks on a scale from 1-10" />
                     </Form.Group>
 
+                    { /*guilty pleasure*/ }
                     <Form.Group controlId="exampleForm.ControlTextarea1">
                         <Form.Control 
                         onChange={this.onChangeGuiltyPleasure} 
@@ -285,6 +276,7 @@ class CreatePost extends Component {
                         placeholder="What is you guilty pleasure?" />
                     </Form.Group>
 
+                    { /*additional info*/ }
                     <Form.Group controlId="exampleForm.ControlTextarea1">
                         <Form.Control 
                         onChange={this.onChangeOtherInfo}

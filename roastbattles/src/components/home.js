@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Button from '@material-ui/core/Button';
 import withStyles from '@material-ui/core/styles/withStyles';
 import PropTypes from 'prop-types';
+import AppBar from '@material-ui/core/AppBar';
 
 import firebase from 'firebase/app';
 import "firebase/auth";
@@ -11,6 +12,11 @@ import "firebase/auth";
 const styles = {
     button: {
         margin: "10px",
+    },
+    signOutButton: {
+        position: "absolute",
+        top: "20px",
+        right: "20px"
     }
 }
 
@@ -48,8 +54,9 @@ class Home extends Component {
         return (
             <div>
                 <h1>Welcome!</h1>
-                <Button className={classes.button} color="secondary" variant="outlined" onClick={() => firebase.auth().signOut()}>Sign Out</Button>
-                {this.state.createdPost ? <Button  onClick={() => window.location = '/posts/' /*TODO: ADD POST ID THROUGH PROPS*/ } variant="outlined" color="primary">View Post</Button> : <Button onClick={() => window.location = '/create-post' }variant="outlined" color="primary">Create Post</Button>}
+                {this.state.createdPost ? <Button  onClick={() => window.location = '/posts/' /*TODO: ADD POST ID THROUGH PROPS*/ } variant="outlined" color="secondary">View My Post</Button> : <Button onClick={() => window.location = '/create-post' }variant="outlined" color="secondary">Create My Post</Button>}
+                <Button onClick={() => window.location = '/posts/' /*TODO: ADD POST ID THROUGH PROPS*/ } className={classes.button} variant="outlined" color="primary">Find Random Post</Button>
+                <Button className={classes.signOutButton} color="secondary" onClick={() => firebase.auth().signOut()}>Sign Out</Button>
             </div>
         )
   }
