@@ -25,7 +25,7 @@ class Home extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {createdPost: false};
+        this.state = {createdPost: false, userID: ''};
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
 
@@ -40,7 +40,7 @@ class Home extends Component {
             //user is logged in
             firebase.firestore().collection('users').doc(user.uid).get()
             .then((docData) => {
-                this.setState({createdPost: docData.data().createdPost})
+                this.setState({createdPost: docData.data().createdPost, userID: user.uid})
             })
         } else {
             //user is not logged in
@@ -54,7 +54,7 @@ class Home extends Component {
         return (
             <div>
                 <h1>Welcome!</h1>
-                {this.state.createdPost ? <Button  onClick={() => window.location = '/posts/' /*TODO: ADD POST ID THROUGH PROPS*/ } variant="outlined" color="secondary">View My Post</Button> : <Button onClick={() => window.location = '/create-post' }variant="outlined" color="secondary">Create My Post</Button>}
+                {this.state.createdPost ? <Button  onClick={() => window.location = `/posts/${this.state.userID}` } variant="outlined" color="secondary">View My Post</Button> : <Button onClick={() => window.location = '/create-post' }variant="outlined" color="secondary">Create My Post</Button>}
                 <Button onClick={() => window.location = '/posts/' /*TODO: ADD POST ID THROUGH PROPS*/ } className={classes.button} variant="outlined" color="primary">Find Random Post</Button>
                 <Button className={classes.signOutButton} color="secondary" onClick={() => firebase.auth().signOut()}>Sign Out</Button>
             </div>

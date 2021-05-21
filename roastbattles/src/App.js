@@ -8,6 +8,7 @@ import "firebase/firestore";
 import "firebase/auth";
 import Home from './components/home';
 import NewUserForm from './components/new-user-form';
+import ViewPost from './components/view-post';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
@@ -62,6 +63,7 @@ class App extends Component {
             <Route exact path="/signin" render={() => <SignIn/>}/>
             <Route exact path="/" render={() => <Home/>}/>
             <Route exact path="/create-post" render={() => <CreatePost/>}/>
+            <Route exact path={"/posts/:id"}  component={ViewPost}/>
           </Switch>
         </div>
       </Router>

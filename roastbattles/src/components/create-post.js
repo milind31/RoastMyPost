@@ -21,14 +21,10 @@ const styles = {
     },
     fileUpload: {
         alignItems: 'center',
-        marginLeft: '38%'
     }
 }
 
 //create post page
-//TODO:
-//REDIRECT BACK IF POST ALREADY EXISTS
-//FIGURE OUT FILE UPLOAD WITH BACKEND
 class CreatePost extends Component {
     constructor(props) {
         super(props);
