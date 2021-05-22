@@ -40,7 +40,8 @@ export default class SignIn extends Component {
       render () {
         return (
             <div>
-                <h1>Welcome to RoastMyPost!</h1>
+              <img style={{width:'15%', height:'15%'}} src="https://firebasestorage.googleapis.com/v0/b/roastbattles-85b35.appspot.com/o/roastlogo.png?alt=media&token=90d7f233-e25c-48c0-968a-e9cfa4597a6f"></img>
+               <h1>Welcome to RoastMyPost!</h1>
                 <p>The best place to take your day out on a stranger!</p>
                 <button onClick={this.signInWithGoogle} type="button" class="login-with-google-btn" >
                     Sign in with Google

@@ -3,8 +3,11 @@ import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import Avatar from '@material-ui/core/Avatar';
 import Grid from '@material-ui/core/Grid';
+import Carousel from 'react-bootstrap/Carousel';
 import withStyles from '@material-ui/core/styles/withStyles';
 import PropTypes from 'prop-types';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 
 import firebase from 'firebase/app';
@@ -45,6 +48,17 @@ const styles = {
     }
 }
 
+const Image = (props) => (
+    <Carousel.Item>
+        <img
+          className={props.imageURL}
+          src={props.imageURL}
+          alt="profileimage"
+          style={{width: '100%', height: '100%'}}
+        />
+    </Carousel.Item>
+)
+
 //homepage
 class ViewPost extends Component {
     constructor(props) {
@@ -60,43 +74,71 @@ class ViewPost extends Component {
             selfRating: '',
             guiltyPleasure: '',
             otherInfo: '',
-            files: "",
-            profileImage: null
+            files: [],
+            profileImage: null,
+            usersPost: true
         
         }
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
+        this.Images = this.Images.bind(this);
     }
 
     componentDidMount = () => {
         firebase.auth().onAuthStateChanged(this.handleAuthChange);
     }
 
+    Images() {
+        return this.state.files.map(imageURL => {
+          return <Image imageURL={imageURL}/>;
+        })
+    }
+
     handleAuthChange(user) {
         if (user) {
             this.setState({photoImage: user.photoURL})
-            firebase.firestore().collection('posts').doc(user.uid).get()
-            .then((docData) => {
-                console.log(docData.data().post);
-                this.setState({
-                    username: user.displayName,
-                    music: docData.data().post.music,
-                    age: docData.data().post.age,
-                    dayAsOtherPerson: docData.data().post.dayAsOtherPerson,
-                    hobbies: docData.data().post.hobbies,
-                    peeves: docData.data().post.peeves,
-                    selfRating: docData.data().post.selfRating,
-                    guiltyPleasure: docData.data().post.guiltyPleasure,
-                    otherInfo: docData.data().post.guiltyPleasure,
-                    files: docData.data().post.fileURLS,
+            if (this.props.match.params.id === user.uid) {
+                firebase.firestore().collection('posts').doc(user.uid).get()
+                .then((docData) => {
+                    console.log(docData.data().post.fileURLS);
+                    this.setState({
+                        username: user.displayName,
+                        music: docData.data().post.music,
+                        age: docData.data().post.age,
+                        dayAsOtherPerson: docData.data().post.dayAsOtherPerson,
+                        hobbies: docData.data().post.hobbies,
+                        peeves: docData.data().post.peeves,
+                        selfRating: docData.data().post.selfRating,
+                        guiltyPleasure: docData.data().post.guiltyPleasure,
+                        otherInfo: docData.data().post.otherInfo,
+                        files: docData.data().post.fileURLS,
+                    })
                 })
-            })
+            }
+            else {
+                firebase.firestore().collection('posts').doc(this.props.match.params.id).get()
+                .then((docData) => {
+                    console.log(docData.data().post.fileURLS);
+                    this.setState({
+                        username: this.props.match.params.id,
+                        music: docData.data().post.music,
+                        age: docData.data().post.age,
+                        dayAsOtherPerson: docData.data().post.dayAsOtherPerson,
+                        hobbies: docData.data().post.hobbies,
+                        peeves: docData.data().post.peeves,
+                        selfRating: docData.data().post.selfRating,
+                        guiltyPleasure: docData.data().post.guiltyPleasure,
+                        otherInfo: docData.data().post.otherInfo,
+                        files: docData.data().post.fileURLS,
+                        usersPost: false
+                    })
+                })
+            }
         } else {
             //user is not logged in
             window.location = '/signin';
         }
     }
-
 
     render () {
         const { classes } = this.props;
@@ -115,7 +157,10 @@ class ViewPost extends Component {
                         </Grid>
                     </Grid>
                     <br></br>
-                    <img className={classes.media} src={this.state.files[0]}></img>
+                    <Carousel>
+                        <this.Images/>
+                    </Carousel>
+                    {/*<img className={classes.media} src={this.state.files[0]}></img>*/}
                     <div className={classes.bio}>
                         { this.state.music !== '' && <p>Music currently on rotation: <strong>{this.state.music}</strong></p>}
                         { this.state.age !== '' && <p>Age: <strong>{this.state.age}</strong></p>}
@@ -126,7 +171,7 @@ class ViewPost extends Component {
                         { this.state.guiltyPleasure !== '' && <p>My guilty pleasure is: <strong>{this.state.guiltyPleasure}</strong></p>}
                         { this.state.otherInfo !== '' && <p>Bio: <strong>{this.state.otherInfo}</strong></p>}
                     </div>
-                    <Button color="primary" onClick={() => window.location = '/editpost/'}>Edit</Button>
+                    { this.state.usersPost ? <Button color="primary" onClick={() => window.location = '/editpost/'}>Edit</Button> : <Button color="primary" onClick={() => window.location = '/posts/YG5BKC9Q8xa78drGJsYMc9d5QBq1'}>Find New Post</Button>}
                 </Paper>
             </div>
         )

@@ -55,7 +55,7 @@ class Home extends Component {
             <div>
                 <h1>Welcome!</h1>
                 {this.state.createdPost ? <Button  onClick={() => window.location = `/posts/${this.state.userID}` } variant="outlined" color="secondary">View My Post</Button> : <Button onClick={() => window.location = '/create-post' }variant="outlined" color="secondary">Create My Post</Button>}
-                <Button onClick={() => window.location = '/posts/' /*TODO: ADD POST ID THROUGH PROPS*/ } className={classes.button} variant="outlined" color="primary">Find Random Post</Button>
+                <Button onClick={() => window.location = '/posts/ZAYY1HbEpfcJ5Jyoi6xVsD96EGI3' /*TODO: ADD POST ID THROUGH RANDOM DOCUMENT QUERY*/ } className={classes.button} variant="outlined" color="primary">Find Random Post</Button>
                 <Button className={classes.signOutButton} color="secondary" onClick={() => firebase.auth().signOut()}>Sign Out</Button>
             </div>
         )
