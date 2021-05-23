@@ -3,17 +3,17 @@ import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import Avatar from '@material-ui/core/Avatar';
 import Grid from '@material-ui/core/Grid';
-import Carousel from 'react-bootstrap/Carousel';
 import withStyles from '@material-ui/core/styles/withStyles';
 import PropTypes from 'prop-types';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
-
+import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
 
 import firebase from 'firebase/app';
 import "firebase/auth";
 import "firebase/firestore";
 import "firebase/auth";
+
+var Carousel = require('react-responsive-carousel').Carousel;
 
 const styles = {
     signOutButton: {
@@ -50,17 +50,6 @@ const styles = {
     }
 }
 
-const Image = (props) => (
-    <Carousel.Item>
-        <img
-          className={props.imageURL}
-          src={props.imageURL}
-          alt="profileimage"
-          style={{width: '100%', height: '100%'}}
-        />
-    </Carousel.Item>
-)
-
 //homepage
 class ViewPost extends Component {
     constructor(props) {
@@ -83,17 +72,10 @@ class ViewPost extends Component {
         }
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
-        this.Images = this.Images.bind(this);
     }
 
     componentDidMount = () => {
         firebase.auth().onAuthStateChanged(this.handleAuthChange);
-    }
-
-    Images() {
-        return this.state.files.map(imageURL => {
-          return <Image imageURL={imageURL}/>;
-        })
     }
 
     handleAuthChange(user) {
@@ -159,8 +141,10 @@ class ViewPost extends Component {
                         </Grid>
                     </Grid>
                     <br></br>
-                    <Carousel>
-                        <this.Images/>
+                    <Carousel showArrows={true} showThumbs={false} dynamicHeight={true} infiniteLoop={true} autoPlay={false}>
+                        {this.state.files.map((url, index) => (
+                        <img key={index} src={url} style={{height:'auto',width:'800px'}} />
+                        ))}
                     </Carousel>
                     {/*<img className={classes.media} src={this.state.files[0]}></img>*/}
                     <div className={classes.bio}>
