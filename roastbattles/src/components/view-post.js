@@ -7,6 +7,7 @@ import withStyles from '@material-ui/core/styles/withStyles';
 import PropTypes from 'prop-types';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
+import Nav from './navbar';
 
 import firebase from 'firebase/app';
 import "firebase/auth";
@@ -127,10 +128,9 @@ class ViewPost extends Component {
     render () {
         const { classes } = this.props;
         return (
-            <div>
-                <Button className={classes.signOutButton} color="secondary" onClick={() => firebase.auth().signOut()}>Sign Out</Button>
-                <a href='/'><img className={classes.homeButton} src="https://firebasestorage.googleapis.com/v0/b/roastbattles-85b35.appspot.com/o/roastlogo.png?alt=media&token=90d7f233-e25c-48c0-968a-e9cfa4597a6f"/></a>
-                <Paper className={classes.container}>
+           <div>
+               <Nav/>
+               <Paper className={classes.container}>
                     {/*<p>User ID : {this.props.match.params.id}</p>*/}
                     <Grid className={classes.container} container direction="row" alignItems="center">
                         <Grid className={classes.container} item>

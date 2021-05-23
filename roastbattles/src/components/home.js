@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Button from '@material-ui/core/Button';
 import withStyles from '@material-ui/core/styles/withStyles';
 import PropTypes from 'prop-types';
+import Nav from './navbar';
 import AppBar from '@material-ui/core/AppBar';
 
 import firebase from 'firebase/app';
@@ -53,10 +54,10 @@ class Home extends Component {
         const { classes } = this.props;
         return (
             <div>
+                <Nav/>
                 <h1>Welcome!</h1>
                 {this.state.createdPost ? <Button  onClick={() => window.location = `/posts/${this.state.userID}` } variant="outlined" color="secondary">View My Post</Button> : <Button onClick={() => window.location = '/create-post' }variant="outlined" color="secondary">Create My Post</Button>}
                 <Button onClick={() => window.location = '/posts/ZAYY1HbEpfcJ5Jyoi6xVsD96EGI3' /*TODO: ADD POST ID THROUGH RANDOM DOCUMENT QUERY*/ } className={classes.button} variant="outlined" color="primary">Find Random Post</Button>
-                <Button className={classes.signOutButton} color="secondary" onClick={() => firebase.auth().signOut()}>Sign Out</Button>
             </div>
         )
   }
