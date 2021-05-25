@@ -1,3 +1,4 @@
+/*
 import React, { Component } from 'react';
 
 import firebase from 'firebase/app';
@@ -12,3 +13,4 @@ function SignOut() {
     )
 }
 export default SignOut;
+*/

@@ -1,10 +1,15 @@
+//React
 import React, { Component } from 'react';
+
+//React Bootstrap
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
+
+//Material UI
 import { withStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
 
-
+//Firebase
 import firebase from 'firebase/app';
 import "firebase/auth";
 import "firebase/firestore";

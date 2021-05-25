@@ -1,4 +1,8 @@
+//React
 import React, { Component, Fragment } from 'react';
+import Nav from './navbar';
+
+//Material UI
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import Avatar from '@material-ui/core/Avatar';
@@ -6,13 +10,15 @@ import Grid from '@material-ui/core/Grid';
 import withStyles from '@material-ui/core/styles/withStyles';
 import PropTypes from 'prop-types';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
-import Nav from './navbar';
 
+//Firebase
 import firebase from 'firebase/app';
 import "firebase/auth";
 import "firebase/firestore";
 import "firebase/auth";
+
+//Carousel
+import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
 
 var Carousel = require('react-responsive-carousel').Carousel;
 
@@ -103,7 +109,6 @@ class ViewPost extends Component {
             else {
                 firebase.firestore().collection('posts').doc(this.props.match.params.id).get()
                 .then((docData) => {
-                    console.log(docData.data().post.fileURLS);
                     this.setState({
                         username: this.props.match.params.id,
                         music: docData.data().post.music,
