@@ -67,6 +67,9 @@ const styles = {
     },
     form: {
         backgroundColor: '#333131',
+    },
+    newPostButton: {
+        marginTop: '50px'
     }
 }
 
@@ -92,8 +95,8 @@ class ViewPost extends Component {
             //Determine if logged in user's post
             usersPost: true,
 
-            //Comment Form
-            comment: ''
+            //Comment Section
+            commentLeft: ''
         }
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
@@ -153,7 +156,7 @@ class ViewPost extends Component {
     onPostComment(e) {
         var user = firebase.auth().currentUser;
         firebase.firestore().collection("comments").add({
-            comment: this.state.comment,
+            comment: this.state.commentLeft,
             postOwner: this.props.match.params.id,
             commenter:  user.uid
         })
@@ -167,7 +170,7 @@ class ViewPost extends Component {
 
     onChangeComment(e) {
         this.setState({
-            comment: e.target.value,
+            commentLeft: e.target.value,
         });
     }
 
@@ -176,6 +179,8 @@ class ViewPost extends Component {
         return (
            <div>
                <Nav/>
+               
+               {/* Profile */}
                <Paper className={classes.container}>
                     {/*<p>User ID : {this.props.match.params.id}</p>*/}
                     <Grid className={classes.container} container direction="row" alignItems="center">
@@ -203,22 +208,30 @@ class ViewPost extends Component {
                         { this.state.guiltyPleasure !== '' && <p>My guilty pleasure is: <strong>{this.state.guiltyPleasure}</strong></p>}
                         { this.state.otherInfo !== '' && <p>Bio: <strong>{this.state.otherInfo}</strong></p>}
                     </div>
-                    { this.state.usersPost ? <Button color="primary" onClick={() => window.location = '/editpost/'}>Edit</Button> : <Button color="primary" onClick={() => window.location = '/posts/YG5BKC9Q8xa78drGJsYMc9d5QBq1'}>Find New Post</Button>}
+                    { this.state.usersPost && <Button color="primary" onClick={() => window.location = '/editpost/'}>Edit</Button>}
                 </Paper>
 
+
+                {/* Comment Section */}
                 <Paper className={classes.container}>
+                    {/* Header */}
                     <p className={classes.commentHeader}>Comments</p>
+
+                    {/* Comments */}
+                    
+
                     <Form className={classes.form} onSubmit={this.onPostComment}>
                         <Form.Group className={classes.container} controlId="exampleForm.ControlTextarea1">
                             <Form.Control 
                             onChange={this.onChangeComment} 
-                            value={this.state.comment} 
+                            value={this.state.commentLeft} 
                             as="textarea" rows={1}
                             placeholder="Leave comment here..." />
                         </Form.Group>
                         <SubmitButton variant="primary" type="submit">Post Comment</SubmitButton>
                     </Form>
                 </Paper>
+                { !!!this.state.usersPost && <Button className={classes.newPostButton} color="primary" onClick={() => window.location = '/posts/YG5BKC9Q8xa78drGJsYMc9d5QBq1'}>Find New Post</Button>}
             </div>
         )
   }

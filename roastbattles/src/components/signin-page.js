@@ -9,7 +9,7 @@ import "firebase/firestore";
 import "firebase/auth";
 
 //Redux
-import { userCreatedPost } from './actions/index';
+import { userCreatedPost, userHasNoPost } from './actions/index';
 import { connect } from 'react-redux';
 
 
@@ -43,6 +43,9 @@ class SignIn extends Component {
                     if (docData.data().createdPost === true){
                       this.props.userCreatedPost();
                     }
+                    else{
+                      this.props.userHasNoPost();
+                    }
                   })
                   this.props.history.push('/');
             }
@@ -67,7 +70,8 @@ const mapStateToProps = (state) => ({
 })
 
 const mapActionsToProps = {
-  userCreatedPost
+  userCreatedPost,
+  userHasNoPost
 }
 
 export default connect(mapStateToProps, mapActionsToProps)(withRouter(SignIn));

@@ -9,3 +9,9 @@ export const userLoggedOut = () => {
         type: 'USER_LOGGED_OUT'
     }
 }
+
+export const userHasNoPost = () => {
+    return {
+        type: 'USER_HAS_NO_POST'
+    }
+}

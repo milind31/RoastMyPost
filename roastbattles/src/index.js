@@ -1,16 +1,21 @@
+//React
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+
+//CSS
+import './index.css';
 import "bootstrap/dist/css/bootstrap.css";
+
+//Redux
 import { createStore } from 'redux';
 import combinedReducers from './reducers/index';
 import {Provider} from 'react-redux';
 
+//Redux Persist
 import { persistStore, persistReducer } from 'redux-persist'
 import storage from 'redux-persist/lib/storage' // defaults to localStorage for web
- 
 import { PersistGate } from 'redux-persist/integration/react'
 
  
@@ -25,8 +30,6 @@ const store = createStore(
   window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
 );
 
-
- 
 let persistor = persistStore(store)
 
 

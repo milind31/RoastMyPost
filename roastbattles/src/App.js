@@ -1,20 +1,19 @@
+//React
 import './App.css';
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import Home from './components/home';
+import ViewPost from './components/view-post';
+import SignIn from './components/signin-page';
+import CreatePost from './components/create-post';
 
+//Firebase
 import firebase from 'firebase/app';
 import "firebase/auth";
 import "firebase/firestore";
 import "firebase/auth";
-import Home from './components/home';
-import NewUserForm from './components/new-user-form';
-import ViewPost from './components/view-post';
 
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { useCollectionData } from 'react-firebase-hooks/firestore';
-import SignIn from './components/signin-page';
-import CreatePost from './components/create-post';
-
+//Material UI
 import { ThemeProvider as MuiThemeProvider } from '@material-ui/core/styles';
 import createMuiTheme from '@material-ui/core/styles/createMuiTheme';
 
