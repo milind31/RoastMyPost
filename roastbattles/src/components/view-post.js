@@ -2,6 +2,10 @@
 import React, { Component, Fragment } from 'react';
 import Nav from './navbar';
 
+//React Bootstrap
+import SubmitButton from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+
 //Material UI
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
@@ -54,6 +58,15 @@ const styles = {
         marginRight: '0',
         height: '55%',
         width: '55%'
+    },
+    commentHeader: {
+        float: 'left',
+        fontSize: '150%',
+        marginTop: '5%',
+        marginLeft: '0',
+    },
+    form: {
+        backgroundColor: '#333131',
     }
 }
 
@@ -63,6 +76,7 @@ class ViewPost extends Component {
         super(props);
 
         this.state = {
+            //Profile Info
             username: '', 
             music: '',
             age: '',
@@ -74,11 +88,17 @@ class ViewPost extends Component {
             otherInfo: '',
             files: [],
             profileImage: null,
-            usersPost: true
-        
+            
+            //Determine if logged in user's post
+            usersPost: true,
+
+            //Comment Form
+            comment: ''
         }
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
+        this.onPostComment = this.onPostComment.bind(this);
+        this.onChangeComment = this.onChangeComment.bind(this);
     }
 
     componentDidMount = () => {
@@ -130,6 +150,27 @@ class ViewPost extends Component {
         }
     }
 
+    onPostComment(e) {
+        var user = firebase.auth().currentUser;
+        firebase.firestore().collection("comments").add({
+            comment: this.state.comment,
+            postOwner: this.props.match.params.id,
+            commenter:  user.uid
+        })
+        .then((docRef) => {
+            console.log("Document written with ID: ", docRef.id);
+        })
+        .catch((error) => {
+            console.error("Error adding document: ", error);
+        });
+    }
+
+    onChangeComment(e) {
+        this.setState({
+            comment: e.target.value,
+        });
+    }
+
     render () {
         const { classes } = this.props;
         return (
@@ -163,6 +204,20 @@ class ViewPost extends Component {
                         { this.state.otherInfo !== '' && <p>Bio: <strong>{this.state.otherInfo}</strong></p>}
                     </div>
                     { this.state.usersPost ? <Button color="primary" onClick={() => window.location = '/editpost/'}>Edit</Button> : <Button color="primary" onClick={() => window.location = '/posts/YG5BKC9Q8xa78drGJsYMc9d5QBq1'}>Find New Post</Button>}
+                </Paper>
+
+                <Paper className={classes.container}>
+                    <p className={classes.commentHeader}>Comments</p>
+                    <Form className={classes.form} onSubmit={this.onPostComment}>
+                        <Form.Group className={classes.container} controlId="exampleForm.ControlTextarea1">
+                            <Form.Control 
+                            onChange={this.onChangeComment} 
+                            value={this.state.comment} 
+                            as="textarea" rows={1}
+                            placeholder="Leave comment here..." />
+                        </Form.Group>
+                        <SubmitButton variant="primary" type="submit">Post Comment</SubmitButton>
+                    </Form>
                 </Paper>
             </div>
         )
