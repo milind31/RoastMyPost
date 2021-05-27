@@ -61,15 +61,24 @@ const styles = {
     },
     commentHeader: {
         float: 'left',
-        fontSize: '150%',
+        fontSize: '200%',
         marginTop: '5%',
-        marginLeft: '0',
+        paddingLeft: '20px',
     },
     form: {
         backgroundColor: '#333131',
     },
     newPostButton: {
         marginTop: '50px'
+    },
+    comment: {
+        textAlign: 'left',
+        backgroundColor: '#333131',
+        color: 'white'
+    },
+    comments: {
+        paddingTop: '50px',
+        backgroundColor: '#333131',
     }
 }
 
@@ -96,12 +105,15 @@ class ViewPost extends Component {
             usersPost: true,
 
             //Comment Section
-            commentLeft: ''
+            commentLeft: '',
+            comments: []
         }
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
         this.onPostComment = this.onPostComment.bind(this);
         this.onChangeComment = this.onChangeComment.bind(this);
+        this.getComments = this.getComments.bind(this);
+        this.Comment = this.Comment.bind(this);
     }
 
     componentDidMount = () => {
@@ -147,6 +159,7 @@ class ViewPost extends Component {
                     })
                 })
             }
+            this.getComments();
         } else {
             //user is not logged in
             window.location = '/signin';
@@ -154,18 +167,35 @@ class ViewPost extends Component {
     }
 
     onPostComment(e) {
+        e.preventDefault();
+
         var user = firebase.auth().currentUser;
+
+        //add document to firestore
         firebase.firestore().collection("comments").add({
             comment: this.state.commentLeft,
             postOwner: this.props.match.params.id,
-            commenter:  user.uid
+            commenter:  user.uid,
+            timeStamp: firebase.firestore.FieldValue.serverTimestamp()
         })
         .then((docRef) => {
             console.log("Document written with ID: ", docRef.id);
+            
+            //update state
+            const comment = {
+                commentBody: this.state.commentLeft,
+                commenter:  user.uid,
+                postOwner: this.props.match.params.id,
+                timeStamp: "just now"
+            }
+            let comments = this.state.comments;
+            comments.push(comment);
+            this.setState({commentLeft: '', comments: comments});
         })
         .catch((error) => {
             console.error("Error adding document: ", error);
         });
+
     }
 
     onChangeComment(e) {
@@ -173,6 +203,38 @@ class ViewPost extends Component {
             commentLeft: e.target.value,
         });
     }
+
+    //Move to new file later
+    Comment = props => (
+        <div className={props.classes.comment}>
+            <p>{props.comment.commenter}</p>
+            <p style={{fontSize: '125%'}}>{props.comment.commentBody}</p>
+            <small>{props.comment.timeStamp}</small>
+            <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
+        </div>
+    )
+
+    //query for comments on this post from firestore
+    getComments() {
+        firebase.firestore().collection("comments").where("postOwner", "==", this.props.match.params.id).get()
+            .then((data) => {
+                let comments = []
+                data.forEach((doc) => {
+                    const comment = {
+                        commentBody: doc.data().comment,
+                        commenter: doc.data().commenter,
+                        postOwner: doc.data().postOwner,
+                        timeStamp: doc.data().timeStamp.toDate().toDateString()
+                    }
+                    comments.push(comment)
+                });
+                return comments
+            })
+            .then((comments) => {
+                this.setState({comments: comments});
+            })
+    }
+
 
     render () {
         const { classes } = this.props;
@@ -211,14 +273,17 @@ class ViewPost extends Component {
                     { this.state.usersPost && <Button color="primary" onClick={() => window.location = '/editpost/'}>Edit</Button>}
                 </Paper>
 
-
                 {/* Comment Section */}
                 <Paper className={classes.container}>
                     {/* Header */}
                     <p className={classes.commentHeader}>Comments</p>
 
                     {/* Comments */}
-                    
+                    <div className={classes.comments}>
+                    {this.state.comments.map((comment) => (
+                        <this.Comment comment={comment} classes={classes}></this.Comment>
+                        ))}
+                    </div>
 
                     <Form className={classes.form} onSubmit={this.onPostComment}>
                         <Form.Group className={classes.container} controlId="exampleForm.ControlTextarea1">
