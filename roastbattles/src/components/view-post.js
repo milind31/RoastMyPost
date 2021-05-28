@@ -12,6 +12,9 @@ import Paper from '@material-ui/core/Paper';
 import Avatar from '@material-ui/core/Avatar';
 import Grid from '@material-ui/core/Grid';
 import withStyles from '@material-ui/core/styles/withStyles';
+import WhatshotIcon from '@material-ui/icons/Whatshot';
+import DeleteIcon from '@material-ui/icons/Delete';
+import Tooltip from '@material-ui/core/Tooltip';
 import PropTypes from 'prop-types';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -104,6 +107,9 @@ class ViewPost extends Component {
             //Determine if logged in user's post
             usersPost: true,
 
+            //User's UID
+            uid: '',
+
             //Comment Section
             commentLeft: '',
             comments: []
@@ -113,6 +119,7 @@ class ViewPost extends Component {
         this.onPostComment = this.onPostComment.bind(this);
         this.onChangeComment = this.onChangeComment.bind(this);
         this.getComments = this.getComments.bind(this);
+        this.onDeleteComment = this.onDeleteComment.bind(this);
         this.Comment = this.Comment.bind(this);
     }
 
@@ -160,6 +167,7 @@ class ViewPost extends Component {
                 })
             }
             this.getComments();
+            this.setState({uid: user.uid});
         } else {
             //user is not logged in
             window.location = '/signin';
@@ -186,7 +194,8 @@ class ViewPost extends Component {
                 commentBody: this.state.commentLeft,
                 commenter:  user.uid,
                 postOwner: this.props.match.params.id,
-                timeStamp: "just now"
+                timeStamp: "just now",
+                id: docRef.id
             }
             let comments = this.state.comments;
             comments.push(comment);
@@ -195,7 +204,22 @@ class ViewPost extends Component {
         .catch((error) => {
             console.error("Error adding document: ", error);
         });
+    }
 
+    onDeleteComment(e, id) {
+        e.preventDefault();
+
+        firebase.firestore().collection("comments").doc(id).delete().then(() => {
+            console.log("Document successfully deleted!");
+        }).catch((error) => {
+            console.error("Error removing document: ", error);
+        });
+
+        let comments = this.state.comments;
+        comments = comments.filter(function( obj ) {
+            return obj.id !== id;
+        });
+        this.setState({comments: comments});
     }
 
     onChangeComment(e) {
@@ -207,9 +231,10 @@ class ViewPost extends Component {
     //Move to new file later
     Comment = props => (
         <div className={props.classes.comment}>
-            <p>{props.comment.commenter}</p>
+            <p><a href={"/posts/" + props.comment.commenter} style={{textDecoration:'none'}}>{props.comment.commenter} </a>{(props.comment.commenter === props.comment.postOwner) && <WhatshotIcon/>} </p>
             <p style={{fontSize: '125%'}}>{props.comment.commentBody}</p>
             <small>{props.comment.timeStamp}</small>
+            {this.state.uid === props.comment.commenter && <Tooltip title="Delete Post" arrow><Button color="primary" onClick={(e) => {this.onDeleteComment(e, props.comment.id)}}><DeleteIcon/></Button></Tooltip>}
             <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
         </div>
     )
@@ -220,11 +245,13 @@ class ViewPost extends Component {
             .then((data) => {
                 let comments = []
                 data.forEach((doc) => {
+                    console.log(doc.id);
                     const comment = {
                         commentBody: doc.data().comment,
                         commenter: doc.data().commenter,
                         postOwner: doc.data().postOwner,
-                        timeStamp: doc.data().timeStamp.toDate().toDateString()
+                        timeStamp: doc.data().timeStamp.toDate().toDateString(),
+                        id: doc.id
                     }
                     comments.push(comment)
                 });
@@ -247,7 +274,8 @@ class ViewPost extends Component {
                     {/*<p>User ID : {this.props.match.params.id}</p>*/}
                     <Grid className={classes.container} container direction="row" alignItems="center">
                         <Grid className={classes.container} item>
-                            <Avatar className={classes.profileImg} alt={this.state.username} src={this.state.photoImage} />
+                            {/* this is just wrong 
+                            <Avatar className={classes.profileImg} alt={this.state.username} src={this.state.photoImage} /> */}
                         </Grid>
                         <Grid className={classes.container} item>
                             <p className={classes.username}>{this.state.username}</p>
