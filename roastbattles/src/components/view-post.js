@@ -5,6 +5,7 @@ import Nav from './navbar';
 //React Bootstrap
 import SubmitButton from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
+import Col from 'react-bootstrap/Col';
 
 //Material UI
 import Button from '@material-ui/core/Button';
@@ -112,7 +113,9 @@ class ViewPost extends Component {
 
             //Comment Section
             commentLeft: '',
-            comments: []
+            comments: [],
+            commentsToShow: [],
+            numberOfCommentsToShow: 10
         }
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
@@ -120,6 +123,7 @@ class ViewPost extends Component {
         this.onChangeComment = this.onChangeComment.bind(this);
         this.getComments = this.getComments.bind(this);
         this.onDeleteComment = this.onDeleteComment.bind(this);
+        this.onChangeNumberOfComments = this.onChangeNumberOfComments.bind(this);
         this.Comment = this.Comment.bind(this);
     }
 
@@ -231,10 +235,25 @@ class ViewPost extends Component {
     //Move to new file later
     Comment = props => (
         <div className={props.classes.comment}>
-            <p><a href={"/posts/" + props.comment.commenter} style={{textDecoration:'none'}}>{props.comment.commenter} </a>{(props.comment.commenter === props.comment.postOwner) && <WhatshotIcon/>} </p>
+            <p>
+                <a href={"/posts/" + props.comment.commenter} 
+                    style={{textDecoration:'none'}}
+                    >{props.comment.commenter}
+                </a>
+                {(props.comment.commenter === props.comment.postOwner) && <WhatshotIcon/>} 
+            </p>
+
             <p style={{fontSize: '125%'}}>{props.comment.commentBody}</p>
+
             <small>{props.comment.timeStamp}</small>
-            {this.state.uid === props.comment.commenter && <Tooltip title="Delete Post" arrow><Button color="primary" onClick={(e) => {this.onDeleteComment(e, props.comment.id)}}><DeleteIcon/></Button></Tooltip>}
+
+            {this.state.uid === props.comment.commenter && 
+                <Tooltip title="Delete Post" arrow>
+                    <Button color="primary" onClick={(e) => {this.onDeleteComment(e, props.comment.id)}}>
+                        <DeleteIcon/>
+                    </Button>
+                </Tooltip>}
+                
             <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
         </div>
     )
@@ -260,6 +279,13 @@ class ViewPost extends Component {
             .then((comments) => {
                 this.setState({comments: comments});
             })
+    }
+
+    onChangeNumberOfComments(e) {
+        this.setState({
+            numberOfCommentsToShow: e.target.value
+        })
+        console.log(e.target.value);
     }
 
 
@@ -305,10 +331,23 @@ class ViewPost extends Component {
                 <Paper className={classes.container}>
                     {/* Header */}
                     <p className={classes.commentHeader}>Comments</p>
-
+                    <Form>
+                        <Form.Group className={classes.container}>
+                        <Form.Row style = {{float:'left', marginTop:'-8px', marginLeft:'10px'}} className={classes.container}>
+                            <Col xs={12} className={classes.container}>
+                                <Form.Control as="select" onChange={this.onChangeNumberOfComments} placeholder="Number of Comments Displayed">
+                                    <option value={10}>Top 10</option>
+                                    <option value={25}>Top 25</option>
+                                    <option value={Number.MAX_SAFE_INTEGER}>Show all</option>
+                                </Form.Control>
+                            </Col>
+                        </Form.Row>
+                        </Form.Group>
+                    </Form>
+                    
                     {/* Comments */}
                     <div className={classes.comments}>
-                    {this.state.comments.map((comment) => (
+                    {this.state.comments.slice(0, this.state.numberOfCommentsToShow).map((comment) => (
                         <this.Comment comment={comment} classes={classes}></this.Comment>
                         ))}
                     </div>
