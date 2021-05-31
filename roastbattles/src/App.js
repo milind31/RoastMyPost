@@ -16,6 +16,7 @@ import "firebase/auth";
 //Material UI
 import { ThemeProvider as MuiThemeProvider } from '@material-ui/core/styles';
 import createMuiTheme from '@material-ui/core/styles/createMuiTheme';
+import EditPost from './components/edit-post';
 
 
 const theme = createMuiTheme({
@@ -63,6 +64,7 @@ class App extends Component {
             <Route exact path="/" render={() => <Home/>}/>
             <Route exact path="/create-post" render={() => <CreatePost/>}/>
             <Route exact path={"/posts/:id"}  component={ViewPost}/>
+            <Route exact path={"/posts/:id/edit"}  component={EditPost}/>
           </Switch>
         </div>
       </Router>

@@ -1,5 +1,6 @@
 //React
 import React, { Component } from 'react';
+import { Fragment } from 'react';
 import Nav from './navbar';
 
 //Material UI
@@ -16,7 +17,6 @@ import "firebase/auth";
 
 //Redux
 import { connect } from 'react-redux';
-import { Fragment } from 'react';
 
 const styles = {
     button: {

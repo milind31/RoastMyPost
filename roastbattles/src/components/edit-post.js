@@ -1,12 +1,19 @@
 //React
 import React, { Component } from 'react';
+import Nav from './navbar';
 
 //React Bootstrap
-import Button from 'react-bootstrap/Button';
+import SubmitButton from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Image from 'react-bootstrap/Image';
 
 //Material UI
 import { withStyles } from '@material-ui/styles';
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import Button from '@material-ui/core/Button';
 import PropTypes from 'prop-types';
 
 //Firebase
@@ -26,11 +33,14 @@ const styles = {
     },
     fileUpload: {
         alignItems: 'center',
+    },
+    container: {
+        background: "#333131"
     }
 }
 
 //create post page
-class CreatePost extends Component {
+class EditPost extends Component {
     constructor(props) {
         super(props);
 
@@ -44,6 +54,7 @@ class CreatePost extends Component {
         this.onChangeGuiltyPleasure = this.onChangeGuiltyPleasure.bind(this);
         this.onChangeOtherInfo = this.onChangeOtherInfo.bind(this);
         this.handleFileChange = this.handleFileChange.bind(this);
+        this.onDeleteImage = this.onDeleteImage.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.uploadImage = this.uploadImage.bind(this);
 
@@ -56,7 +67,8 @@ class CreatePost extends Component {
             selfRating: '',
             guiltyPleasure: '',
             otherInfo: '',
-            files: null,
+            files: [],
+            filesUploaded: false,
             numberOfFiles: 0,
         }
     }
@@ -66,12 +78,31 @@ class CreatePost extends Component {
     }
 
     handleFileChange(e) {
-        this.setState({files: e.target.files, numberOfFiles: e.target.files.length});
-      }
+        this.setState({files: e.target.files, filesUploaded: true, numberOfFiles: e.target.files.length});
+    }
 
     handleAuthChange(user) {
         if (user) {
             //user is logged in
+            if (user.uid !== this.props.match.params.id) {
+                window.location = '/';
+            }
+            else {
+                firebase.firestore().collection('posts').doc(user.uid).get()
+                .then((docData) => {
+                    this.setState({
+                        music: docData.data().music,
+                        age: docData.data().age,
+                        dayAsOtherPerson: docData.data().dayAsOtherPerson,
+                        hobbies: docData.data().hobbies,
+                        peeves: docData.data().peeves,
+                        selfRating: docData.data().selfRating,
+                        guiltyPleasure: docData.data().guiltyPleasure,
+                        otherInfo: docData.data().otherInfo,
+                        files: docData.data().fileURLS,
+                    })
+                })
+            }
         } else {
             //user is not logged in
             window.location = '/signin';
@@ -132,7 +163,7 @@ class CreatePost extends Component {
         var fileURLS = [];
         if (this.state.files !== null) {
             // 3. Loop over all the files
-            for (var i = 0; i < this.state.numberOfFiles; i++) {
+            for (var i = 0; i < this.state.files.length; i++) {
                 // 3A. Get a file to upload
                 const imageFile = this.state.files[i];
 
@@ -158,13 +189,7 @@ class CreatePost extends Component {
             guiltyPleasure: this.state.guiltyPleasure,
             otherInfo: this.state.otherInfo,
             fileURLS: fileURLS})
-        .then(() => {
-            //change user's created post attribute to true
-            firebase.firestore().collection("users").doc(user.uid.toString()).update({
-                createdPost: true
-            })
-            .then(() => {window.location = '/'})
-        })
+        .then(() => {window.location = '/'})
         .catch((err) => {console.log(err)})
     }
 
@@ -179,18 +204,50 @@ class CreatePost extends Component {
         return uploadTask.ref.getDownloadURL().then((fileURL) => fileURL);
     }
     
+    imageThumbnails = props => (
+        <div style={{marginTop:'-75px'}}>
+                    <Container>
+                    <Row>
+                        {this.state.files.length !== 0 && this.state.files.map((url, index) => (
+                            <Col xs={6} md={4}>
+                                <Image thumbnail src={url}></Image>
+                                <Button color="primary"onClick={(e) => {this.onDeleteImage(e, url)}}><DeleteForeverIcon/></Button>
+                            </Col>
+                        ))}
+                    </Row>
+                    </Container>
+                </div>
+    )
+
+    onDeleteImage(e, url) {
+        let files = this.state.files;
+        files = files.filter(function(item) {
+            return item !== url
+        })
+
+        var user = firebase.auth().currentUser;
+
+        //update post in firestore
+        firebase.firestore().collection("posts").doc(user.uid.toString()).update({fileURLS: files})
+        .then(() => {window.location = '/'})
+        .catch((err) => {console.log(err)})
+    
+        //save to state
+        this.setState({files: files});
+    }
 
 
     render () {
         const { classes } = this.props;
         return (
             <div>
-                <h1>Create post...</h1>
+                <Nav/>
+                <h1>Edit post...</h1>
                 <Form className={classes.form}  onSubmit={this.onSubmit}>
 
                 { /*file upload*/ }
                 <Form.Group>
-                    <Form.Label>Upload images of yourself</Form.Label>
+                    <Form.Label>Upload new images of yourself</Form.Label>
                     <Form.File 
                         onChange={this.handleFileChange} 
                         className={classes.fileUpload} 
@@ -200,6 +257,18 @@ class CreatePost extends Component {
                             Required: please upload 1-5 images
                     </Form.Text>
                 </Form.Group>
+                
+                {!this.state.filesUploaded && (
+                    <div>
+                        <Form.Label>
+                                Currently uploaded images:
+                        </Form.Label>
+                        <this.imageThumbnails/>
+                    </div>
+                    )
+                }
+
+                <br/>
 
                     { /*optional fields*/ }
                     <Form.Label>
@@ -285,9 +354,9 @@ class CreatePost extends Component {
                     </Form.Group>
                     
                     { /*submit*/ }
-                    <Button variant="primary" type="submit">
+                    <SubmitButton variant="primary" type="submit">
                         Submit
-                    </Button>
+                    </SubmitButton>
 
                     </Form>
             </div>
@@ -295,9 +364,9 @@ class CreatePost extends Component {
   }
 }
 
-CreatePost.propTypes = {
+EditPost.propTypes = {
     classes: PropTypes.object.isRequired
 }
 
 
-export default withStyles(styles)(CreatePost);
+export default withStyles(styles)(EditPost);

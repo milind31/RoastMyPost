@@ -10,8 +10,8 @@ import Col from 'react-bootstrap/Col';
 //Material UI
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
-import Avatar from '@material-ui/core/Avatar';
-import Grid from '@material-ui/core/Grid';
+/*import Avatar from '@material-ui/core/Avatar';
+import Grid from '@material-ui/core/Grid';*/
 import withStyles from '@material-ui/core/styles/withStyles';
 import WhatshotIcon from '@material-ui/icons/Whatshot';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -62,6 +62,11 @@ const styles = {
         marginRight: '0',
         height: '55%',
         width: '55%'
+    },
+    header: {
+        float: 'left',
+        padding: '23px',
+        paddingTop: '50px'
     },
     commentHeader: {
         float: 'left',
@@ -137,18 +142,18 @@ class ViewPost extends Component {
             if (this.props.match.params.id === user.uid) {
                 firebase.firestore().collection('posts').doc(user.uid).get()
                 .then((docData) => {
-                    console.log(docData.data().post.fileURLS);
+                    console.log(docData.data().fileURLS);
                     this.setState({
                         username: user.displayName,
-                        music: docData.data().post.music,
-                        age: docData.data().post.age,
-                        dayAsOtherPerson: docData.data().post.dayAsOtherPerson,
-                        hobbies: docData.data().post.hobbies,
-                        peeves: docData.data().post.peeves,
-                        selfRating: docData.data().post.selfRating,
-                        guiltyPleasure: docData.data().post.guiltyPleasure,
-                        otherInfo: docData.data().post.otherInfo,
-                        files: docData.data().post.fileURLS,
+                        music: docData.data().music,
+                        age: docData.data().age,
+                        dayAsOtherPerson: docData.data().dayAsOtherPerson,
+                        hobbies: docData.data().hobbies,
+                        peeves: docData.data().peeves,
+                        selfRating: docData.data().selfRating,
+                        guiltyPleasure: docData.data().guiltyPleasure,
+                        otherInfo: docData.data().otherInfo,
+                        files: docData.data().fileURLS,
                     })
                 })
             }
@@ -157,15 +162,15 @@ class ViewPost extends Component {
                 .then((docData) => {
                     this.setState({
                         username: this.props.match.params.id,
-                        music: docData.data().post.music,
-                        age: docData.data().post.age,
-                        dayAsOtherPerson: docData.data().post.dayAsOtherPerson,
-                        hobbies: docData.data().post.hobbies,
-                        peeves: docData.data().post.peeves,
-                        selfRating: docData.data().post.selfRating,
-                        guiltyPleasure: docData.data().post.guiltyPleasure,
-                        otherInfo: docData.data().post.otherInfo,
-                        files: docData.data().post.fileURLS,
+                        music: docData.data().music,
+                        age: docData.data().age,
+                        dayAsOtherPerson: docData.data().dayAsOtherPerson,
+                        hobbies: docData.data().hobbies,
+                        peeves: docData.data().peeves,
+                        selfRating: docData.data().selfRating,
+                        guiltyPleasure: docData.data().guiltyPleasure,
+                        otherInfo: docData.data().otherInfo,
+                        files: docData.data().fileURLS,
                         usersPost: false
                     })
                 })
@@ -297,17 +302,8 @@ class ViewPost extends Component {
                
                {/* Profile */}
                <Paper className={classes.container}>
-                    {/*<p>User ID : {this.props.match.params.id}</p>*/}
-                    <Grid className={classes.container} container direction="row" alignItems="center">
-                        <Grid className={classes.container} item>
-                            {/* this is just wrong 
-                            <Avatar className={classes.profileImg} alt={this.state.username} src={this.state.photoImage} /> */}
-                        </Grid>
-                        <Grid className={classes.container} item>
-                            <p className={classes.username}>{this.state.username}</p>
-                        </Grid>
-                    </Grid>
-                    <br></br>
+                    <h1 className={classes.header}>User #{this.props.match.params.id.replace(/\D/g, "") /* REGEX IS ONLY TEMPORARY (...unless) */}</h1>
+                    <div className={classes.container} style={{paddingBottom:'75px'}}/>
                     <Carousel showArrows={true} showThumbs={false} dynamicHeight={true} infiniteLoop={true} autoPlay={false}>
                         {this.state.files.map((url, index) => (
                         <img key={index} src={url} style={{height:'auto',width:'800px'}} />
@@ -324,7 +320,7 @@ class ViewPost extends Component {
                         { this.state.guiltyPleasure !== '' && <p>My guilty pleasure is: <strong>{this.state.guiltyPleasure}</strong></p>}
                         { this.state.otherInfo !== '' && <p>Bio: <strong>{this.state.otherInfo}</strong></p>}
                     </div>
-                    { this.state.usersPost && <Button color="primary" onClick={() => window.location = '/editpost/'}>Edit</Button>}
+                    { this.state.usersPost && <Button color="primary" onClick={() => window.location = `/posts/${this.props.match.params.id}/edit`}>Edit</Button>}
                 </Paper>
 
                 {/* Comment Section */}
