@@ -133,6 +133,7 @@ class ViewPost extends Component {
         this.getComments = this.getComments.bind(this);
         this.onDeleteComment = this.onDeleteComment.bind(this);
         this.onChangeNumberOfComments = this.onChangeNumberOfComments.bind(this);
+        this.getNewPost = this.getNewPost.bind(this);
         this.Comment = this.Comment.bind(this);
     }
 
@@ -305,6 +306,40 @@ class ViewPost extends Component {
         console.log(e.target.value);
     }
 
+    getNewPost(e) {
+        e.preventDefault();
+
+        var db = firebase.firestore();
+        var users = db.collection("users");
+
+        var key = users.doc().id;
+
+        console.log("key", key);
+        users.where(firebase.firestore.FieldPath.documentId(), '>=', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
+        .then(snapshot => {
+            if(snapshot.size > 0) {
+                snapshot.forEach(doc => {
+                    window.location = '/posts/' + doc.id;
+                });
+            }
+            else {
+                var user = users.where(firebase.firestore.FieldPath.documentId(), '<', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
+                .then(snapshot => {
+                    snapshot.forEach(doc => {
+                        window.location = '/posts/' + doc.id;
+                    });
+                })
+                .catch(err => {
+                    console.log('Error getting random post', err);
+                    //COULDN'T FIND POST, PLEASE TRY AGAIN ERROR
+                });
+            }
+        })
+        .catch(err => {
+            console.log('Error getting random post', err);
+            //COULDN'T FIND POST, PLEASE TRY AGAIN ERROR
+        });
+    }
 
     render () {
         const { classes } = this.props;
@@ -371,7 +406,7 @@ class ViewPost extends Component {
                         <SubmitButton variant="primary" type="submit">Post Comment</SubmitButton>
                     </Form>
                 </Paper>
-                { !!!this.state.usersPost && <Button className={classes.newPostButton} color="primary" onClick={() => window.location = '/posts/YG5BKC9Q8xa78drGJsYMc9d5QBq1'}>Find New Post</Button>}
+                { !!!this.state.usersPost && <Button className={classes.newPostButton} color="primary" onClick={this.getNewPost}>Find New Post</Button>}
             </div>
         )
   }
