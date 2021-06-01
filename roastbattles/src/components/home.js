@@ -19,6 +19,9 @@ import "firebase/auth";
 import { connect } from 'react-redux';
 
 const styles = {
+    header: {
+        paddingTop: '20px'
+    },
     button: {
         margin: "10px",
     },
@@ -61,9 +64,8 @@ class Home extends Component {
 
         return (
             <div>
-            <div>
                 <Nav/>
-                <h1>Welcome!</h1>
+                <h1 className={classes.header}>Welcome!</h1>
                 {
                     this.props.createdPost ? 
                     <Button 
@@ -85,17 +87,14 @@ class Home extends Component {
                     color="primary"
                     >Find Random Post
                 </Button>
-            </div>
-                <Fragment>
-                    <Button 
+                <Button 
                     onClick={() => window.location = '/saved' /*TODO: ADD POST ID THROUGH RANDOM DOCUMENT QUERY*/ } 
                     className={classes.savedPostsButton} 
                     variant="outlined" 
                     color="secondary"
-                    >Check in on Saved Posts
-                    </Button>
-                </Fragment>
-            </div>
+                    >Saved Posts
+                </Button>
+                </div>
         )
   }
 }

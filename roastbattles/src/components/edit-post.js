@@ -160,23 +160,27 @@ class EditPost extends Component {
     onSubmit = async (e) =>{
         e.preventDefault();
 
-        var fileURLS = [];
-        if (this.state.files !== null) {
-            // 3. Loop over all the files
-            for (var i = 0; i < this.state.files.length; i++) {
-                // 3A. Get a file to upload
-                const imageFile = this.state.files[i];
-
-                // 3B. handleFileUploadOnFirebaseStorage function is in above section
-                const downloadFileResponse = await this.uploadImage(imageFile);
-                
-                // 3C. Push the download url to URLs array
-                fileURLS.push(downloadFileResponse);
-            }
-            console.log(fileURLS);          
-        }
-
         var user = firebase.auth().currentUser;
+        var fileURLS = [];
+        if (this.state.filesUploaded){
+            if (this.state.files !== []) {
+                // 3. Loop over all the files
+                for (var i = 0; i < this.state.files.length; i++) {
+                    // 3A. Get a file to upload
+                    const imageFile = this.state.files[i];
+
+                    // 3B. handleFileUploadOnFirebaseStorage function is in above section
+                    const downloadFileResponse = await this.uploadImage(imageFile);
+                    
+                    // 3C. Push the download url to URLs array
+                    fileURLS.push(downloadFileResponse);
+                }
+                console.log(fileURLS);          
+            }
+        }
+        else{
+            fileURLS = this.state.files
+        }
 
         //add post in firestore
         firebase.firestore().collection("posts").doc(user.uid.toString()).set({
@@ -229,7 +233,7 @@ class EditPost extends Component {
 
         //update post in firestore
         firebase.firestore().collection("posts").doc(user.uid.toString()).update({fileURLS: files})
-        .then(() => {window.location = '/'})
+        .then(() => {})
         .catch((err) => {console.log(err)})
     
         //save to state
