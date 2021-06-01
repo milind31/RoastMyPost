@@ -88,6 +88,10 @@ const styles = {
     comments: {
         paddingTop: '50px',
         backgroundColor: '#333131',
+    },
+    scoringButtons: {
+        backgroundColor: '#333131',
+        float: 'right'
     }
 }
 
@@ -138,7 +142,7 @@ class ViewPost extends Component {
 
     handleAuthChange(user) {
         if (user) {
-            this.setState({photoImage: user.photoURL})
+            this.setState({uid: user.uid})
             if (this.props.match.params.id === user.uid) {
                 firebase.firestore().collection('posts').doc(user.uid).get()
                 .then((docData) => {
@@ -245,12 +249,20 @@ class ViewPost extends Component {
                     style={{textDecoration:'none'}}
                     >{props.comment.commenter}
                 </a>
-                {(props.comment.commenter === props.comment.postOwner) && <WhatshotIcon/>} 
+                {(props.comment.commenter === props.comment.postOwner) && <WhatshotIcon/>}
+                <p style={{float:'right', paddingRight: '20px'}}>Score: 3.42</p>
             </p>
 
             <p style={{fontSize: '125%'}}>{props.comment.commentBody}</p>
 
             <small>{props.comment.timeStamp}</small>
+            {(props.comment.commenter !== this.state.uid) && (<Fragment style={{marginBottom: '-10px'}}>
+                                                                        <Button style={{float: 'right', marginBottom: '20px'}} color="secondary">4</Button> 
+                                                                        <Button style={{float: 'right', marginBottom: '20px'}} color="primary">3</Button>
+                                                                        <Button style={{float: 'right', marginBottom: '20px'}} color="secondary">2</Button>
+                                                                        <Button style={{float: 'right', marginBottom: '20px'}} color="secondary">1</Button>
+                                                                  </Fragment>
+                                                                )} 
 
             {this.state.uid === props.comment.commenter && 
                 <Tooltip title="Delete Post" arrow>
