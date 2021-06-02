@@ -15,6 +15,7 @@ import Grid from '@material-ui/core/Grid';*/
 import withStyles from '@material-ui/core/styles/withStyles';
 import WhatshotIcon from '@material-ui/icons/Whatshot';
 import DeleteIcon from '@material-ui/icons/Delete';
+import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
 import Tooltip from '@material-ui/core/Tooltip';
 import PropTypes from 'prop-types';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -92,6 +93,9 @@ const styles = {
     scoringButtons: {
         backgroundColor: '#333131',
         float: 'right'
+    },
+    saveButton: {
+        float: 'right'
     }
 }
 
@@ -124,7 +128,10 @@ class ViewPost extends Component {
             commentLeft: '',
             comments: [],
             commentsToShow: [],
-            numberOfCommentsToShow: 10
+            numberOfCommentsToShow: 10,
+
+            //Saving
+            postSaved: false
         }
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
@@ -134,6 +141,8 @@ class ViewPost extends Component {
         this.onDeleteComment = this.onDeleteComment.bind(this);
         this.onChangeNumberOfComments = this.onChangeNumberOfComments.bind(this);
         this.getNewPost = this.getNewPost.bind(this);
+        this.savePost = this.savePost.bind(this);
+        this.unsavePost = this.unsavePost.bind(this);
         this.Comment = this.Comment.bind(this);
     }
 
@@ -182,6 +191,13 @@ class ViewPost extends Component {
             }
             this.getComments();
             this.setState({uid: user.uid});
+            firebase.firestore().collection('saves').where("saver", "==", user.uid).where("postOwner", "==", this.props.match.params.id).get()
+                .then((docData) => {
+                    console.log(docData);
+                    if (docData.size > 0){
+                        this.setState({postSaved: true});
+                    }
+                })
         } else {
             //user is not logged in
             window.location = '/signin';
@@ -258,12 +274,12 @@ class ViewPost extends Component {
 
             <small>{props.comment.timeStamp}</small>
             {(props.comment.commenter !== this.state.uid) && (<Fragment style={{marginBottom: '-10px'}}>
-                                                                        <Button style={{float: 'right', marginBottom: '20px'}} color="secondary">4</Button> 
-                                                                        <Button style={{float: 'right', marginBottom: '20px'}} color="primary">3</Button>
-                                                                        <Button style={{float: 'right', marginBottom: '20px'}} color="secondary">2</Button>
-                                                                        <Button style={{float: 'right', marginBottom: '20px'}} color="secondary">1</Button>
-                                                                  </Fragment>
-                                                                )} 
+                                                                    <Button style={{float: 'right', marginBottom: '20px'}} color="secondary">4</Button> 
+                                                                    <Button style={{float: 'right', marginBottom: '20px'}} color="primary">3</Button>
+                                                                    <Button style={{float: 'right', marginBottom: '20px'}} color="secondary">2</Button>
+                                                                    <Button style={{float: 'right', marginBottom: '20px'}} color="secondary">1</Button>
+                                                             </Fragment>
+                                                             )} 
 
             {this.state.uid === props.comment.commenter && 
                 <Tooltip title="Delete Post" arrow>
@@ -341,6 +357,61 @@ class ViewPost extends Component {
         });
     }
 
+    savePost(e){
+        e.preventDefault();
+
+        var user = firebase.auth().currentUser;
+
+        //add document to firestore
+        firebase.firestore().collection("saves").add({
+            saver: user.uid,
+            postOwner: this.props.match.params.id,
+            timeStamp: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then((docRef) => {
+            //update state
+            this.setState({postSaved: true});
+        })
+        .catch((error) => {
+            console.error("Error adding save document: ", error);
+        });
+    }
+
+    unsavePost(e){
+        e.preventDefault();
+
+        var user = firebase.auth().currentUser;
+
+        //add document to firestore
+        firebase.firestore().collection('saves').where("saver", "==", user.uid).where("postOwner", "==", this.props.match.params.id).get().then(function(querySnapshot) {
+            querySnapshot.forEach(function(doc) {
+              doc.ref.delete();
+            })
+        })
+        .then(() => {
+            console.log("Save document successfully deleted");
+            this.setState({postSaved: false});
+        })
+        .catch((err) => {console.log("Error unsaving post", err)});
+        
+    }
+
+    SavedButton = props => (
+        <div className={props.classes.container}>
+            <Button color="primary" className={props.classes.saveButton} onClick={this.unsavePost}>
+                <BookmarkBorderIcon/>
+            </Button>
+        </div>
+    )
+
+    UnsavedButton = props => (
+        <div className={props.classes.container}>
+            <Button color="secondary" className={props.classes.saveButton} onClick={this.savePost}>
+                <BookmarkBorderIcon/>
+            </Button>
+        </div>
+    )
+
     render () {
         const { classes } = this.props;
         return (
@@ -350,6 +421,7 @@ class ViewPost extends Component {
                {/* Profile */}
                <Paper className={classes.container}>
                     <h1 className={classes.header}>User #{this.props.match.params.id.replace(/\D/g, "") /* REGEX IS ONLY TEMPORARY (...unless) */}</h1>
+                    {!this.state.usersPost && (this.state.postSaved ? <this.SavedButton classes={classes}/> : <this.UnsavedButton classes={classes}/>) }
                     <div className={classes.container} style={{paddingBottom:'75px'}}/>
                     <Carousel showArrows={true} showThumbs={false} dynamicHeight={true} infiniteLoop={true} autoPlay={false}>
                         {this.state.files.map((url, index) => (

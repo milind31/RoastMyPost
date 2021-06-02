@@ -38,9 +38,10 @@ class Home extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {createdPost: false, userID: ''};
+        this.state = {createdPost: false, uid: ''};
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
+        this.getNewPost = this.getNewPost.bind(this);
 
     }
 
@@ -51,11 +52,46 @@ class Home extends Component {
     handleAuthChange(user) {
         if (user) {
             //user is logged in
-            this.setState({userID: user.uid})
+            this.setState({uid: user.uid})
         } else {
             //user is not logged in
             window.location = '/signin';
         }
+    }
+
+    getNewPost(e) {
+        e.preventDefault();
+
+        var db = firebase.firestore();
+        var users = db.collection("users");
+
+        var key = users.doc().id;
+
+        console.log("key", key);
+        users.where(firebase.firestore.FieldPath.documentId(), '>=', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
+        .then(snapshot => {
+            if(snapshot.size > 0) {
+                snapshot.forEach(doc => {
+                    window.location = '/posts/' + doc.id;
+                });
+            }
+            else {
+                var user = users.where(firebase.firestore.FieldPath.documentId(), '<', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
+                .then(snapshot => {
+                    snapshot.forEach(doc => {
+                        window.location = '/posts/' + doc.id;
+                    });
+                })
+                .catch(err => {
+                    console.log('Error getting random post', err);
+                    //COULDN'T FIND POST, PLEASE TRY AGAIN ERROR
+                });
+            }
+        })
+        .catch(err => {
+            console.log('Error getting random post', err);
+            //COULDN'T FIND POST, PLEASE TRY AGAIN ERROR
+        });
     }
 
 
@@ -69,7 +105,7 @@ class Home extends Component {
                 {
                     this.props.createdPost ? 
                     <Button 
-                        onClick={() => window.location = `/posts/${this.state.userID}` } 
+                        onClick={() => window.location = `/posts/${this.state.uid}` } 
                         variant="outlined" color="secondary"
                         >View My Post
                     </Button> 
@@ -81,7 +117,7 @@ class Home extends Component {
                     </Button>
                 }
                 <Button 
-                    onClick={() => window.location = '/posts/ZAYY1HbEpfcJ5Jyoi6xVsD96EGI3' /*TODO: ADD POST ID THROUGH RANDOM DOCUMENT QUERY*/ } 
+                    onClick={this.getNewPost} 
                     className={classes.button} 
                     variant="outlined" 
                     color="primary"
