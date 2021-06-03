@@ -56,7 +56,7 @@ class SavedPosts extends Component {
                 const save = {
                     postOwner: doc.data().postOwner,
                     saver: doc.data().saver,
-                    timeStamp: doc.data().timeStamp.toDate().toDateString()
+                    timeStamp: doc.data().timeStamp.toDate()
                 }
                 saves.push(save)
             });
@@ -72,7 +72,7 @@ class SavedPosts extends Component {
         <div>
             <a href={"/posts/" + props.save.postOwner} >{props.save.postOwner}</a>
             <br/>
-            <small>Saved on {props.save.timeStamp}</small>
+            <small>Saved on {props.save.timeStamp.toDateString()}</small>
         </div>
     )
 
@@ -84,7 +84,7 @@ class SavedPosts extends Component {
                 <h1 className={classes.header}>Saved Posts</h1>
                 {this.state.saves.length > 0 
                     ? 
-                    (this.state.saves.map((save) => (
+                    (this.state.saves.sort(function(a,b){return a.timeStamp - b.timeStamp}).map((save) => (
                         <this.Save save={save} classes={classes}></this.Save>))
                     )
                     :

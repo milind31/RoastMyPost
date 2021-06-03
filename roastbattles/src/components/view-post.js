@@ -131,7 +131,10 @@ class ViewPost extends Component {
             numberOfCommentsToShow: 10,
 
             //Saving
-            postSaved: false
+            postSaved: false,
+
+            //Loading
+            loading: true
         }
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
@@ -143,6 +146,7 @@ class ViewPost extends Component {
         this.getNewPost = this.getNewPost.bind(this);
         this.savePost = this.savePost.bind(this);
         this.unsavePost = this.unsavePost.bind(this);
+        this.scoreComment = this.scoreComment.bind(this);
         this.Comment = this.Comment.bind(this);
     }
 
@@ -225,7 +229,8 @@ class ViewPost extends Component {
                 commenter:  user.uid,
                 postOwner: this.props.match.params.id,
                 timeStamp: "just now",
-                id: docRef.id
+                id: docRef.id,
+                userScore: 0
             }
             let comments = this.state.comments;
             comments.push(comment);
@@ -234,6 +239,27 @@ class ViewPost extends Component {
         .catch((error) => {
             console.error("Error adding document: ", error);
         });
+    }
+
+    scoreComment(e, score, id) {
+        e.preventDefault();
+
+        var user = firebase.auth().currentUser;
+
+
+        let comments = this.state.comments;
+        let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === id));
+        comments[index].userScore = score;
+        this.setState({comments: comments})
+
+        //add document to firestore
+        firebase.firestore().collection("scores").add({
+            user: user.uid,
+            comment: comments[index].id,
+            score: score
+        })
+
+        console.log("score", score);
     }
 
     onDeleteComment(e, id) {
@@ -272,12 +298,36 @@ class ViewPost extends Component {
 
             <p style={{fontSize: '125%'}}>{props.comment.commentBody}</p>
 
-            <small>{props.comment.timeStamp}</small>
+            <small>{props.comment.timeStamp.toDateString()}</small>
             {(props.comment.commenter !== this.state.uid) && (<Fragment style={{marginBottom: '-10px'}}>
-                                                                    <Button style={{float: 'right', marginBottom: '20px'}} color="secondary">4</Button> 
-                                                                    <Button style={{float: 'right', marginBottom: '20px'}} color="primary">3</Button>
-                                                                    <Button style={{float: 'right', marginBottom: '20px'}} color="secondary">2</Button>
-                                                                    <Button style={{float: 'right', marginBottom: '20px'}} color="secondary">1</Button>
+                                                                    <Button 
+                                                                        style={{float: 'right', marginBottom: '20px'}} 
+                                                                        onClick={(e) => {this.scoreComment(e, 4, props.comment.id)}} 
+                                                                        color={props.comment.userScore === 0 ? "secondary" : "primary"}
+                                                                        disabled={props.comment.userScore !== 0 && props.comment.userScore !== 4}
+                                                                        >4
+                                                                    </Button> 
+                                                                        <Button 
+                                                                        style={{float: 'right', marginBottom: '20px'}} 
+                                                                        onClick={(e) => {this.scoreComment(e, 3, props.comment.id)}} 
+                                                                        color={props.comment.userScore === 0 ? "secondary" : "primary"}
+                                                                        disabled={props.comment.userScore !== 0 && props.comment.userScore !== 3}
+                                                                        >3
+                                                                    </Button>
+                                                                    <Button 
+                                                                        style={{float: 'right', marginBottom: '20px'}} 
+                                                                        onClick={(e) => {this.scoreComment(e, 2, props.comment.id)}} 
+                                                                        color={props.comment.userScore === 0 ? "secondary" : "primary"}
+                                                                        disabled={props.comment.userScore !== 0 && props.comment.userScore !== 2}
+                                                                        >2
+                                                                    </Button>
+                                                                    <Button 
+                                                                        style={{float: 'right', marginBottom: '20px'}} 
+                                                                        onClick={(e) => {this.scoreComment(e, 1, props.comment.id)}} 
+                                                                        color={props.comment.userScore === 0 ? "secondary" : "primary"}
+                                                                        disabled={props.comment.userScore !== 0 && props.comment.userScore !== 1}
+                                                                        >1
+                                                                    </Button>
                                                              </Fragment>
                                                              )} 
 
@@ -294,31 +344,49 @@ class ViewPost extends Component {
 
     //query for comments on this post from firestore
     getComments() {
+        var user = firebase.auth().currentUser;
         firebase.firestore().collection("comments").where("postOwner", "==", this.props.match.params.id).get()
             .then((data) => {
-                let comments = []
+                var comments = [];
                 data.forEach((doc) => {
                     console.log(doc.id);
-                    const comment = {
-                        commentBody: doc.data().comment,
-                        commenter: doc.data().commenter,
-                        postOwner: doc.data().postOwner,
-                        timeStamp: doc.data().timeStamp.toDate().toDateString(),
-                        id: doc.id
-                    }
-                    comments.push(comment)
-                });
+                    firebase.firestore().collection("scores").where("comment", "==", doc.id).where("user", "==", user.uid).get()
+                    .then((data) => {
+                        var score = 0
+                        if (data.size > 0){
+                            data.forEach((doc) => {
+                                score = doc.data().score;
+                            })
+                        }
+                        return score;
+                    })
+                    .then((score) => {
+                        const comment = {
+                            commentBody: doc.data().comment,
+                            commenter: doc.data().commenter,
+                            postOwner: doc.data().postOwner,
+                            timeStamp: doc.data().timeStamp.toDate(),
+                            id: doc.id,
+                            userScore: score
+                        }
+                        comments.push(comment);
+                    })
+                })
                 return comments
             })
             .then((comments) => {
-                this.setState({comments: comments});
+                this.setState({comments: comments}, () => {console.log(comments)});
             })
+            .then(() => {return});
     }
 
     onChangeNumberOfComments(e) {
+        e.preventDefault();
+
         this.setState({
             numberOfCommentsToShow: e.target.value
         })
+        console.log(this.state.comments)
         console.log(e.target.value);
     }
 
@@ -453,7 +521,7 @@ class ViewPost extends Component {
                                 <Form.Control as="select" onChange={this.onChangeNumberOfComments} placeholder="Number of Comments Displayed">
                                     <option value={10}>Top 10</option>
                                     <option value={25}>Top 25</option>
-                                    <option value={Number.MAX_SAFE_INTEGER}>Show all</option>
+                                    <option value={Number.MAX_SAFE_INTEGER}>Show all ({this.state.comments.length})</option>
                                 </Form.Control>
                             </Col>
                         </Form.Row>
@@ -472,7 +540,7 @@ class ViewPost extends Component {
                             <Form.Control 
                             onChange={this.onChangeComment} 
                             value={this.state.commentLeft} 
-                            as="textarea" rows={1}
+                            as="textarea" rows={2}
                             placeholder="Leave comment here..." />
                         </Form.Group>
                         <SubmitButton variant="primary" type="submit">Post Comment</SubmitButton>
