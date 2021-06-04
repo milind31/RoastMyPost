@@ -6,6 +6,8 @@ import Nav from './navbar';
 import SubmitButton from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Col from 'react-bootstrap/Col';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
 
 //Material UI
 import Button from '@material-ui/core/Button';
@@ -16,7 +18,6 @@ import withStyles from '@material-ui/core/styles/withStyles';
 import WhatshotIcon from '@material-ui/icons/Whatshot';
 import DeleteIcon from '@material-ui/icons/Delete';
 import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
-import Tooltip from '@material-ui/core/Tooltip';
 import PropTypes from 'prop-types';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -132,6 +133,7 @@ class ViewPost extends Component {
             comments: [],
             commentsToShow: [],
             numberOfCommentsToShow: 10,
+            commentDeleteDialogueOpen: false,
 
             //Saving
             postSaved: false,
@@ -309,7 +311,6 @@ class ViewPost extends Component {
             </p>
 
             <p style={{fontSize: '125%'}}>{props.comment.commentBody}</p>
-
             <small>{props.comment.timeStamp.toString()}</small>
             {(props.comment.commenter !== this.state.uid) && (<Fragment className={props.classes.scoreBar}>
                                                                     <Button 
@@ -343,12 +344,18 @@ class ViewPost extends Component {
                                                              </Fragment>
                                                              )} 
 
-            {this.state.uid === props.comment.commenter && 
-                <Tooltip title="Delete Post" arrow>
-                    <Button color="primary" onClick={(e) => {this.onDeleteComment(e, props.comment.id)}}>
-                        <DeleteIcon/>
-                    </Button>
-                </Tooltip>}
+            {this.state.uid === props.comment.commenter &&
+            <OverlayTrigger
+                placement='top'
+                overlay={
+                <div style={{borderRadius: "5px", backgroundColor:'black'}}>
+                    <p style={{marginBottom:'0px'}}>Delete Post</p>
+                </div>
+                }
+            ><Button color="primary" style={{backgroundColor:'transparent'}} onClick={() => this.setState({commentDeleteDialogueOpen: true})}>
+                <DeleteIcon/>
+            </Button>
+          </OverlayTrigger>}
                 
             <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
         </div>
@@ -559,6 +566,7 @@ class ViewPost extends Component {
                     
                     {/* Comments */}
                     <div className={classes.comments}>
+                    {this.state.comments.length === 0 && <div className={classes.container}><p>No comments yet :(</p><br/><p>Be the first to leave one below!</p></div>}
                     {this.state.comments.slice(0, this.state.numberOfCommentsToShow).map((comment) => (
                         <this.Comment comment={comment} classes={classes}></this.Comment>
                         ))}
