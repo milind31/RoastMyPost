@@ -90,6 +90,9 @@ const styles = {
         paddingTop: '50px',
         backgroundColor: '#333131',
     },
+    scoreBar: {
+        marginBottom: '-10px',
+    },
     scoringButtons: {
         backgroundColor: '#333131',
         float: 'right'
@@ -140,13 +143,15 @@ class ViewPost extends Component {
         this.handleAuthChange = this.handleAuthChange.bind(this);
         this.onPostComment = this.onPostComment.bind(this);
         this.onChangeComment = this.onChangeComment.bind(this);
-        this.getComments = this.getComments.bind(this);
         this.onDeleteComment = this.onDeleteComment.bind(this);
         this.onChangeNumberOfComments = this.onChangeNumberOfComments.bind(this);
         this.getNewPost = this.getNewPost.bind(this);
         this.savePost = this.savePost.bind(this);
         this.unsavePost = this.unsavePost.bind(this);
         this.scoreComment = this.scoreComment.bind(this);
+        this.getSavedStatus = this.getSavedStatus.bind(this); //used as helper function to getCommentsAndSavedStatus()
+        this.getCommentsAndSavedStatus = this.getCommentsAndSavedStatus.bind(this);
+        this.getPostInfo = this.getPostInfo.bind(this);
         this.Comment = this.Comment.bind(this);
     }
 
@@ -156,55 +161,51 @@ class ViewPost extends Component {
 
     handleAuthChange(user) {
         if (user) {
-            this.setState({uid: user.uid})
-            if (this.props.match.params.id === user.uid) {
-                firebase.firestore().collection('posts').doc(user.uid).get()
-                .then((docData) => {
-                    console.log(docData.data().fileURLS);
-                    this.setState({
-                        username: user.displayName,
-                        music: docData.data().music,
-                        age: docData.data().age,
-                        dayAsOtherPerson: docData.data().dayAsOtherPerson,
-                        hobbies: docData.data().hobbies,
-                        peeves: docData.data().peeves,
-                        selfRating: docData.data().selfRating,
-                        guiltyPleasure: docData.data().guiltyPleasure,
-                        otherInfo: docData.data().otherInfo,
-                        files: docData.data().fileURLS,
-                    })
-                })
-            }
-            else {
-                firebase.firestore().collection('posts').doc(this.props.match.params.id).get()
-                .then((docData) => {
-                    this.setState({
-                        username: this.props.match.params.id,
-                        music: docData.data().music,
-                        age: docData.data().age,
-                        dayAsOtherPerson: docData.data().dayAsOtherPerson,
-                        hobbies: docData.data().hobbies,
-                        peeves: docData.data().peeves,
-                        selfRating: docData.data().selfRating,
-                        guiltyPleasure: docData.data().guiltyPleasure,
-                        otherInfo: docData.data().otherInfo,
-                        files: docData.data().fileURLS,
-                        usersPost: false
-                    })
-                })
-            }
-            this.getComments();
             this.setState({uid: user.uid});
-            firebase.firestore().collection('saves').where("saver", "==", user.uid).where("postOwner", "==", this.props.match.params.id).get()
-                .then((docData) => {
-                    console.log(docData);
-                    if (docData.size > 0){
-                        this.setState({postSaved: true});
-                    }
-                })
+            this.getPostInfo(user);
+            this.getCommentsAndSavedStatus();
         } else {
             //user is not logged in
             window.location = '/signin';
+        }
+    }
+
+    getPostInfo(user) {
+        if (this.props.match.params.id === user.uid) {
+            firebase.firestore().collection('posts').doc(user.uid).get()
+            .then((docData) => {
+                console.log(docData.data().fileURLS);
+                this.setState({
+                    username: user.displayName,
+                    music: docData.data().music,
+                    age: docData.data().age,
+                    dayAsOtherPerson: docData.data().dayAsOtherPerson,
+                    hobbies: docData.data().hobbies,
+                    peeves: docData.data().peeves,
+                    selfRating: docData.data().selfRating,
+                    guiltyPleasure: docData.data().guiltyPleasure,
+                    otherInfo: docData.data().otherInfo,
+                    files: docData.data().fileURLS,
+                })
+            })
+        }
+        else {
+            firebase.firestore().collection('posts').doc(this.props.match.params.id).get()
+            .then((docData) => {
+                this.setState({
+                    username: this.props.match.params.id,
+                    music: docData.data().music,
+                    age: docData.data().age,
+                    dayAsOtherPerson: docData.data().dayAsOtherPerson,
+                    hobbies: docData.data().hobbies,
+                    peeves: docData.data().peeves,
+                    selfRating: docData.data().selfRating,
+                    guiltyPleasure: docData.data().guiltyPleasure,
+                    otherInfo: docData.data().otherInfo,
+                    files: docData.data().fileURLS,
+                    usersPost: false
+                })
+            })
         }
     }
 
@@ -218,6 +219,8 @@ class ViewPost extends Component {
             comment: this.state.commentLeft,
             postOwner: this.props.match.params.id,
             commenter:  user.uid,
+            totalScore: 0,
+            numScores: 0,
             timeStamp: firebase.firestore.FieldValue.serverTimestamp()
         })
         .then((docRef) => {
@@ -230,7 +233,9 @@ class ViewPost extends Component {
                 postOwner: this.props.match.params.id,
                 timeStamp: "just now",
                 id: docRef.id,
-                userScore: 0
+                userScore: 0,
+                totalScore: 0,
+                numScores: 0,
             }
             let comments = this.state.comments;
             comments.push(comment);
@@ -250,14 +255,21 @@ class ViewPost extends Component {
         let comments = this.state.comments;
         let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === id));
         comments[index].userScore = score;
+        comments[index].totalScore += score;
+        comments[index].numScores += 1;
         this.setState({comments: comments})
+
+        firebase.firestore().collection("comments").doc(id).update({
+            totalScore: comments[index].totalScore,
+            numScores: comments[index].numScores
+        })
 
         //add document to firestore
         firebase.firestore().collection("scores").add({
             user: user.uid,
             comment: comments[index].id,
             score: score
-        })
+        });
 
         console.log("score", score);
     }
@@ -293,13 +305,13 @@ class ViewPost extends Component {
                     >{props.comment.commenter}
                 </a>
                 {(props.comment.commenter === props.comment.postOwner) && <WhatshotIcon/>}
-                <p style={{float:'right', paddingRight: '20px'}}>Score: 3.42</p>
+                <p style={{float:'right', paddingRight: '20px'}}>Score: {isNaN(props.comment.totalScore / props.comment.numScores) ? "-" : (props.comment.totalScore / props.comment.numScores).toFixed(2)}</p>
             </p>
 
             <p style={{fontSize: '125%'}}>{props.comment.commentBody}</p>
 
-            <small>{props.comment.timeStamp.toDateString()}</small>
-            {(props.comment.commenter !== this.state.uid) && (<Fragment style={{marginBottom: '-10px'}}>
+            <small>{props.comment.timeStamp.toString()}</small>
+            {(props.comment.commenter !== this.state.uid) && (<Fragment className={props.classes.scoreBar}>
                                                                     <Button 
                                                                         style={{float: 'right', marginBottom: '20px'}} 
                                                                         onClick={(e) => {this.scoreComment(e, 4, props.comment.id)}} 
@@ -342,8 +354,23 @@ class ViewPost extends Component {
         </div>
     )
 
+    getSavedStatus() {
+        var user = firebase.auth().currentUser;
+
+        firebase.firestore().collection('saves').where("saver", "==", user.uid).where("postOwner", "==", this.props.match.params.id).get()
+        .then((docData) => {
+            console.log(docData);
+            if (docData.size > 0){
+                this.setState({postSaved: true});
+            }
+            else{
+                this.setState({postSaved: false});
+            }
+        })
+    }
+
     //query for comments on this post from firestore
-    getComments() {
+    getCommentsAndSavedStatus() {
         var user = firebase.auth().currentUser;
         firebase.firestore().collection("comments").where("postOwner", "==", this.props.match.params.id).get()
             .then((data) => {
@@ -367,6 +394,8 @@ class ViewPost extends Component {
                             postOwner: doc.data().postOwner,
                             timeStamp: doc.data().timeStamp.toDate(),
                             id: doc.id,
+                            totalScore: doc.data().totalScore,
+                            numScores: doc.data().numScores,
                             userScore: score
                         }
                         comments.push(comment);
@@ -375,7 +404,7 @@ class ViewPost extends Component {
                 return comments
             })
             .then((comments) => {
-                this.setState({comments: comments}, () => {console.log(comments)});
+                this.setState({comments: comments}, () => {this.getSavedStatus()});
             })
             .then(() => {return});
     }
@@ -546,6 +575,7 @@ class ViewPost extends Component {
                         <SubmitButton variant="primary" type="submit">Post Comment</SubmitButton>
                     </Form>
                 </Paper>
+
                 { !!!this.state.usersPost && <Button className={classes.newPostButton} color="primary" onClick={this.getNewPost}>Find New Post</Button>}
             </div>
         )
