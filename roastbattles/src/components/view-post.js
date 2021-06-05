@@ -12,11 +12,13 @@ import Tooltip from 'react-bootstrap/Tooltip';
 //Material UI
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
+import Backdrop from '@material-ui/core/Backdrop';
 /*import Avatar from '@material-ui/core/Avatar';
 import Grid from '@material-ui/core/Grid';*/
 import withStyles from '@material-ui/core/styles/withStyles';
 import WhatshotIcon from '@material-ui/icons/Whatshot';
 import DeleteIcon from '@material-ui/icons/Delete';
+import ReplyIcon from '@material-ui/icons/Reply';
 import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
 import PropTypes from 'prop-types';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -32,7 +34,7 @@ import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a lo
 
 var Carousel = require('react-responsive-carousel').Carousel;
 
-const styles = {
+const styles = ((theme) => ({
     signOutButton: {
         position: "absolute",
         top: "20px",
@@ -100,8 +102,12 @@ const styles = {
     },
     saveButton: {
         float: 'right'
-    }
-}
+    },
+    backdrop: {
+        zIndex: theme.zIndex.drawer + 1, 
+        color: '#fff',
+    },
+}))
 
 //homepage
 class ViewPost extends Component {
@@ -134,6 +140,7 @@ class ViewPost extends Component {
             commentsToShow: [],
             numberOfCommentsToShow: 10,
             commentDeleteDialogueOpen: false,
+            replyMode: false,
 
             //Saving
             postSaved: false,
@@ -154,6 +161,8 @@ class ViewPost extends Component {
         this.getSavedStatus = this.getSavedStatus.bind(this); //used as helper function to getCommentsAndSavedStatus()
         this.getCommentsAndSavedStatus = this.getCommentsAndSavedStatus.bind(this);
         this.getPostInfo = this.getPostInfo.bind(this);
+        this.handleClickReply = this.handleClickReply.bind(this);
+        this.handleCancelReply = this.handleCancelReply.bind(this);
         this.Comment = this.Comment.bind(this);
     }
 
@@ -298,6 +307,20 @@ class ViewPost extends Component {
         });
     }
 
+    handleClickReply(e) {
+        e.preventDefault();
+        this.setState({
+            replyMode: true
+        })
+    }
+
+    handleCancelReply(e) {
+        e.preventDefault();
+        this.setState({
+            replyMode: false
+        })
+    }
+
     //Move to new file later
     Comment = props => (
         <div className={props.classes.comment}>
@@ -356,7 +379,9 @@ class ViewPost extends Component {
                 <DeleteIcon/>
             </Button>
           </OverlayTrigger>}
-                
+          <Button color="primary" style={{backgroundColor:'transparent'}} onClick={this.handleClickReply}>
+                <ReplyIcon/>
+          </Button>
             <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
         </div>
     )
@@ -522,7 +547,22 @@ class ViewPost extends Component {
            <div>
                <Nav/>
                
-               {/* Profile */}
+               {this.state.replyMode &&
+                <Backdrop open={this.state.replyMode} className={classes.backdrop}>
+                    <Form className={classes.form} style={{borderRadius: '5px', width: "25%", padding: '10px'}}>
+                        <Form.Group className={classes.container} controlId="exampleForm.ControlTextarea1">
+                            <Form.Control size="sm"
+                            as="textarea" rows={3}
+                            placeholder="Leave response here..." />
+                        </Form.Group>
+                        <SubmitButton variant="primary" style={{float: "right", margin: "5px"}} type="submit">Reply</SubmitButton>
+                        <SubmitButton variant="secondary" style={{float: "right", margin: "5px"}} type="submit" onClick={this.handleCancelReply}>Cancel</SubmitButton>
+
+                    </Form>
+                </Backdrop>
+                }
+
+                <div>
                <Paper className={classes.container}>
                     <h1 className={classes.header}>User #{this.props.match.params.id.replace(/\D/g, "") /* REGEX IS ONLY TEMPORARY (...unless) */}</h1>
                     {!this.state.usersPost && (this.state.postSaved ? <this.SavedButton classes={classes}/> : <this.UnsavedButton classes={classes}/>) }
@@ -546,9 +586,7 @@ class ViewPost extends Component {
                     { this.state.usersPost && <Button color="primary" onClick={() => window.location = `/posts/${this.props.match.params.id}/edit`}>Edit</Button>}
                 </Paper>
 
-                {/* Comment Section */}
                 <Paper className={classes.container}>
-                    {/* Header */}
                     <p className={classes.commentHeader}>Comments</p>
                     <Form>
                         <Form.Group className={classes.container}>
@@ -564,7 +602,6 @@ class ViewPost extends Component {
                         </Form.Group>
                     </Form>
                     
-                    {/* Comments */}
                     <div className={classes.comments}>
                     {this.state.comments.length === 0 && <div className={classes.container}><p>No comments yet :(</p><br/><p>Be the first to leave one below!</p></div>}
                     {this.state.comments.slice(0, this.state.numberOfCommentsToShow).map((comment) => (
@@ -576,8 +613,9 @@ class ViewPost extends Component {
                         <Form.Group className={classes.container} controlId="exampleForm.ControlTextarea1">
                             <Form.Control 
                             onChange={this.onChangeComment} 
+                            size = "sm"
                             value={this.state.commentLeft} 
-                            as="textarea" rows={2}
+                            as="textarea" rows={3}
                             placeholder="Leave comment here..." />
                         </Form.Group>
                         <SubmitButton variant="primary" type="submit">Post Comment</SubmitButton>
@@ -586,6 +624,7 @@ class ViewPost extends Component {
 
                 { !!!this.state.usersPost && <Button className={classes.newPostButton} color="primary" onClick={this.getNewPost}>Find New Post</Button>}
             </div>
+        </div>
         )
   }
 }
