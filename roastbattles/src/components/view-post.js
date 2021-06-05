@@ -141,6 +141,8 @@ class ViewPost extends Component {
             numberOfCommentsToShow: 10,
             commentDeleteDialogueOpen: false,
             replyMode: false,
+            replyID: '',
+            reply: '',
 
             //Saving
             postSaved: false,
@@ -152,6 +154,7 @@ class ViewPost extends Component {
         this.handleAuthChange = this.handleAuthChange.bind(this);
         this.onPostComment = this.onPostComment.bind(this);
         this.onChangeComment = this.onChangeComment.bind(this);
+        this.onChangeReply = this.onChangeReply.bind(this);
         this.onDeleteComment = this.onDeleteComment.bind(this);
         this.onChangeNumberOfComments = this.onChangeNumberOfComments.bind(this);
         this.getNewPost = this.getNewPost.bind(this);
@@ -163,6 +166,8 @@ class ViewPost extends Component {
         this.getPostInfo = this.getPostInfo.bind(this);
         this.handleClickReply = this.handleClickReply.bind(this);
         this.handleCancelReply = this.handleCancelReply.bind(this);
+        this.submitReply = this.submitReply.bind(this);
+        this.onDeleteComment = this.onDeleteComment.bind(this);
         this.Comment = this.Comment.bind(this);
     }
 
@@ -232,6 +237,7 @@ class ViewPost extends Component {
             commenter:  user.uid,
             totalScore: 0,
             numScores: 0,
+            replies: [],
             timeStamp: firebase.firestore.FieldValue.serverTimestamp()
         })
         .then((docRef) => {
@@ -247,6 +253,7 @@ class ViewPost extends Component {
                 userScore: 0,
                 totalScore: 0,
                 numScores: 0,
+                replies: [],
             }
             let comments = this.state.comments;
             comments.push(comment);
@@ -307,20 +314,6 @@ class ViewPost extends Component {
         });
     }
 
-    handleClickReply(e) {
-        e.preventDefault();
-        this.setState({
-            replyMode: true
-        })
-    }
-
-    handleCancelReply(e) {
-        e.preventDefault();
-        this.setState({
-            replyMode: false
-        })
-    }
-
     //Move to new file later
     Comment = props => (
         <div className={props.classes.comment}>
@@ -375,11 +368,11 @@ class ViewPost extends Component {
                     <p style={{marginBottom:'0px'}}>Delete Post</p>
                 </div>
                 }
-            ><Button color="primary" style={{backgroundColor:'transparent'}} onClick={() => this.setState({commentDeleteDialogueOpen: true})}>
+            ><Button color="primary" style={{backgroundColor:'transparent'}} onClick={(e) => {this.onDeleteComment(e, props.comment.id)}}>
                 <DeleteIcon/>
             </Button>
           </OverlayTrigger>}
-          <Button color="primary" style={{backgroundColor:'transparent'}} onClick={this.handleClickReply}>
+          <Button color="primary" style={{backgroundColor:'transparent'}} onClick={(e) => {this.handleClickReply(e, props.comment.id)}}>
                 <ReplyIcon/>
           </Button>
             <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
@@ -428,7 +421,8 @@ class ViewPost extends Component {
                             id: doc.id,
                             totalScore: doc.data().totalScore,
                             numScores: doc.data().numScores,
-                            userScore: score
+                            userScore: score,
+                            replies: doc.data().replies,
                         }
                         comments.push(comment);
                     })
@@ -541,6 +535,45 @@ class ViewPost extends Component {
         </div>
     )
 
+    handleClickReply(e, id) {
+        e.preventDefault();
+        this.setState({
+            replyMode: true,
+            replyID: id,
+        })
+    }
+
+    handleCancelReply(e) {
+        e.preventDefault();
+        this.setState({
+            replyMode: false,
+            replyID: '',
+            reply: ''
+        })
+    }
+
+    submitReply(e, id) {
+        e.preventDefault();
+        const reply = {
+            body: this.state.reply.toString(),
+            replyUserID: this.state.uid.toString(),
+            timeStamp: Date.now()
+        }
+        firebase.firestore().collection("comments").doc(id).update({
+            replies: firebase.firestore.FieldValue.arrayUnion(reply)
+        })
+        this.setState({
+            replyMode: false,
+            replyID: '',
+            reply: ''
+        })
+    }
+
+    onChangeReply(e) {
+        e.preventDefault();
+        this.setState({reply: e.target.value})
+    }
+
     render () {
         const { classes } = this.props;
         return (
@@ -549,10 +582,12 @@ class ViewPost extends Component {
                
                {this.state.replyMode &&
                 <Backdrop open={this.state.replyMode} className={classes.backdrop}>
-                    <Form className={classes.form} style={{borderRadius: '5px', width: "25%", padding: '10px'}}>
+                    <Form className={classes.form} style={{borderRadius: '5px', width: "25%", padding: '10px'}} onSubmit={(e) => {this.submitReply(e, this.state.replyID)}}>
                         <Form.Group className={classes.container} controlId="exampleForm.ControlTextarea1">
-                            <Form.Control size="sm"
-                            as="textarea" rows={3}
+                            <Form.Control 
+                            onChange={this.onChangeReply}
+                            value={this.state.reply} 
+                            size="sm" as="textarea" rows={3}
                             placeholder="Leave response here..." />
                         </Form.Group>
                         <SubmitButton variant="primary" style={{float: "right", margin: "5px"}} type="submit">Reply</SubmitButton>
