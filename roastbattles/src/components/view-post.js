@@ -314,6 +314,33 @@ class ViewPost extends Component {
         });
     }
 
+    Reply = props => (
+        <div className={props.classes.comment} style={{marginLeft: '10px'}}>
+            <p>
+                <a href={"/posts/" + props.reply.replyUserID} 
+                    style={{textDecoration:'none'}}
+                    >{props.reply.replyUserID}
+                </a>
+                {(props.reply.replyUserID === props.postOwner) && <WhatshotIcon/>}
+            </p>
+            <p style={{fontSize: '125%'}}>{props.reply.body}</p>
+            <small>{props.reply.timeStamp}</small>
+            {this.state.uid === props.reply.replyUserID &&
+            <OverlayTrigger
+                placement='top'
+                overlay={
+                <div style={{fontSize: "12px", borderRadius: "5px", backgroundColor:'black'}}>
+                    <p style={{marginBottom:'0px'}}>Delete Reply</p>
+                </div>
+                }
+            ><Button color="primary" style={{backgroundColor:'transparent'}} onClick={(e) => {console.log(e.target)}}>
+                <DeleteIcon/>
+            </Button>
+            </OverlayTrigger>}
+          <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
+        </div>
+    )
+
     //Move to new file later
     Comment = props => (
         <div className={props.classes.comment}>
@@ -364,7 +391,7 @@ class ViewPost extends Component {
             <OverlayTrigger
                 placement='top'
                 overlay={
-                <div style={{borderRadius: "5px", backgroundColor:'black'}}>
+                <div style={{fontSize: "12px", borderRadius: "5px", backgroundColor:'black'}}>
                     <p style={{marginBottom:'0px'}}>Delete Post</p>
                 </div>
                 }
@@ -372,10 +399,21 @@ class ViewPost extends Component {
                 <DeleteIcon/>
             </Button>
           </OverlayTrigger>}
-          <Button color="primary" style={{backgroundColor:'transparent'}} onClick={(e) => {this.handleClickReply(e, props.comment.id)}}>
+          <OverlayTrigger
+                placement='top'
+                overlay={
+                <div style={{fontSize: "12px", borderRadius: "5px", backgroundColor:'black'}}>
+                    <p style={{marginBottom:'0px'}}>Reply</p>
+                </div>
+                }
+            ><Button color="primary" style={{marginLeft: '-25px', backgroundColor:'transparent'}} onClick={(e) => {this.handleClickReply(e, props.comment.id)}}>
                 <ReplyIcon/>
-          </Button>
+            </Button>
+          </OverlayTrigger>
             <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
+            {props.comment.replies.map((reply) => (
+                <this.Reply reply={reply} postOwner={props.comment.postOwner} classes={props.classes}></this.Reply>
+            ))}
         </div>
     )
 
@@ -554,19 +592,30 @@ class ViewPost extends Component {
 
     submitReply(e, id) {
         e.preventDefault();
+
+        var time = Date.now();
+        var timeStamp = new Date(time)
+
         const reply = {
             body: this.state.reply.toString(),
             replyUserID: this.state.uid.toString(),
-            timeStamp: Date.now()
+            timeStamp: timeStamp.toDateString()
         }
+
         firebase.firestore().collection("comments").doc(id).update({
             replies: firebase.firestore.FieldValue.arrayUnion(reply)
         })
+
+        let comments = this.state.comments;
+        let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === id));
+        comments[index].replies.push(reply);
         this.setState({
             replyMode: false,
             replyID: '',
-            reply: ''
+            reply: '',
+            comments: comments
         })
+        console.log(comments);
     }
 
     onChangeReply(e) {

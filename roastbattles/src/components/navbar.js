@@ -9,6 +9,8 @@ import "firebase/auth";
 import withStyles from '@material-ui/core/styles/withStyles';
 import PropTypes from 'prop-types';
 import Button from '@material-ui/core/Button';
+import BookmarksIcon from '@material-ui/icons/Bookmarks';
+import NotificationsIcon from '@material-ui/icons/Notifications';
 
 //Redux
 import { userLoggedOut } from './actions/index';
@@ -22,10 +24,12 @@ const styles = {
         width: "3%",
         height: "auto"
     },
-    signOutButton: {
+    topRight: {
         position: "absolute",
         top: "20px",
-        right: "20px"
+        right: "20px",
+        padding: "0px",
+        margin: "0px"
     },
 }
 
@@ -45,7 +49,11 @@ class Nav extends Component {
         const { classes } = this.props;
         return (
             <div>
-                <Button className={classes.signOutButton} color="secondary" onClick={() => this.onSignOut()}>Sign Out</Button>
+                <div className={classes.topRight}>
+                    <Button color="secondary" ><NotificationsIcon/></Button>
+                    <Button color="primary" onClick={() => window.location = '/saved'}><BookmarksIcon/></Button>
+                    <Button color="secondary" onClick={() => this.onSignOut()}>Sign Out</Button>
+                </div>
                 <a href='/'><img className={classes.homeButton} src="https://firebasestorage.googleapis.com/v0/b/roastbattles-85b35.appspot.com/o/roastlogo.png?alt=media&token=90d7f233-e25c-48c0-968a-e9cfa4597a6f"/></a>
             </div>
             );

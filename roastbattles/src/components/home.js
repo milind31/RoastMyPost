@@ -123,13 +123,6 @@ class Home extends Component {
                     color="primary"
                     >Find Random Post
                 </Button>
-                <Button 
-                    onClick={() => window.location = '/saved' /*TODO: ADD POST ID THROUGH RANDOM DOCUMENT QUERY*/ } 
-                    className={classes.savedPostsButton} 
-                    variant="outlined" 
-                    color="secondary"
-                    >Saved Posts
-                </Button>
                 </div>
         )
   }
