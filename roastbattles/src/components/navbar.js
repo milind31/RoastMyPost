@@ -20,10 +20,8 @@ import { connect } from 'react-redux';
 const styles = {
     homeButton: {
         position: "absolute",
-        top: "20px",
-        left: "20px",
-        width: "3%",
-        height: "auto"
+        top: "10px",
+        left: "10px",
     },
     topRight: {
         position: "absolute",
@@ -55,7 +53,7 @@ class Nav extends Component {
                     <Button color="primary" onClick={() => window.location = '/saved'}><BookmarksIcon/></Button>
                     <Button color="secondary" onClick={() => this.onSignOut()}>Sign Out</Button>
                 </div>
-                <a href='/'><img className={classes.homeButton} src="https://firebasestorage.googleapis.com/v0/b/roastbattles-85b35.appspot.com/o/roastlogo.png?alt=media&token=90d7f233-e25c-48c0-968a-e9cfa4597a6f"/></a>
+                <a href='/'><img className={classes.homeButton} src="https://firebasestorage.googleapis.com/v0/b/roastbattles-85b35.appspot.com/o/roastlogosmall.png?alt=media&token=6762f1df-27ea-4d4a-a559-ff87678cac04"/></a>
             </div>
             );
     }
