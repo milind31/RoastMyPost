@@ -168,6 +168,7 @@ class ViewPost extends Component {
         this.handleCancelReply = this.handleCancelReply.bind(this);
         this.submitReply = this.submitReply.bind(this);
         this.onDeleteComment = this.onDeleteComment.bind(this);
+        this.onDeleteReply = this.onDeleteReply.bind(this);
         this.Comment = this.Comment.bind(this);
     }
 
@@ -333,7 +334,7 @@ class ViewPost extends Component {
                     <p style={{marginBottom:'0px'}}>Delete Reply</p>
                 </div>
                 }
-            ><Button color="primary" style={{backgroundColor:'transparent'}} onClick={(e) => {console.log(e.target)}}>
+            ><Button color="primary" style={{backgroundColor:'transparent'}} onClick={(e) => {this.onDeleteReply(e, props.commentID, props.reply)}}>
                 <DeleteIcon/>
             </Button>
             </OverlayTrigger>}
@@ -412,7 +413,7 @@ class ViewPost extends Component {
           </OverlayTrigger>
             <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
             {props.comment.replies.map((reply) => (
-                <this.Reply reply={reply} postOwner={props.comment.postOwner} classes={props.classes}></this.Reply>
+                <this.Reply reply={reply} postOwner={props.comment.postOwner} commentID={props.comment.id} classes={props.classes}></this.Reply>
             ))}
         </div>
     )
@@ -616,6 +617,21 @@ class ViewPost extends Component {
             comments: comments
         })
         console.log(comments);
+    }
+
+    onDeleteReply(e, commentID, reply) {
+        e.preventDefault();
+
+        firebase.firestore().collection("comments").doc(commentID).update({
+            replies: firebase.firestore.FieldValue.arrayRemove(reply)
+        })
+
+        let comments = this.state.comments;
+        let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === commentID));
+        comments[index].replies = comments[index].replies.filter(function( r ) {
+            return r !== reply;
+        });
+        this.setState({comments: comments});
     }
 
     onChangeReply(e) {
