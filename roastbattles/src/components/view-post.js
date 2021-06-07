@@ -35,7 +35,9 @@ import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a lo
 //Global Definitions
 var Carousel = require('react-responsive-carousel').Carousel;
 const INITIAL_NUMBER_OF_REPLIES = 5;
-const NUMBER_OF_REPLIES_TO_ADD = 5;
+const NUMBER_OF_REPLIES_TO_ADD  = 5;
+const POST_COMMENT              = 'POST_COMMENT';
+const COMMENT_REPLY             = 'COMMENT_REPLY';
 
 
 const styles = ((theme) => ({
@@ -266,38 +268,45 @@ class ViewPost extends Component {
             let comments = this.state.comments;
             comments.push(comment);
             this.setState({commentLeft: '', comments: comments});
+
+            //send notification
+            if (user.uid !== this.props.match.params.id){
+                this.sendNotification(POST_COMMENT, this.props.match.params.id, user.uid);
+            }
         })
         .catch((error) => {
             console.error("Error adding document: ", error);
         });
     }
 
-    scoreComment(e, score, id) {
+    scoreComment(e, score, id, userScore) {
         e.preventDefault();
+        if (userScore === 0) {
 
-        var user = firebase.auth().currentUser;
+            var user = firebase.auth().currentUser;
 
 
-        let comments = this.state.comments;
-        let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === id));
-        comments[index].userScore = score;
-        comments[index].totalScore += score;
-        comments[index].numScores += 1;
-        this.setState({comments: comments})
+            let comments = this.state.comments;
+            let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === id));
+            comments[index].userScore = score;
+            comments[index].totalScore += score;
+            comments[index].numScores += 1;
+            this.setState({comments: comments})
 
-        firebase.firestore().collection("comments").doc(id).update({
-            totalScore: comments[index].totalScore,
-            numScores: comments[index].numScores
-        })
+            firebase.firestore().collection("comments").doc(id).update({
+                totalScore: comments[index].totalScore,
+                numScores: comments[index].numScores
+            })
 
-        //add document to firestore
-        firebase.firestore().collection("scores").add({
-            user: user.uid,
-            comment: comments[index].id,
-            score: score
-        });
+            //add document to firestore
+            firebase.firestore().collection("scores").add({
+                user: user.uid,
+                comment: comments[index].id,
+                score: score
+            });
 
-        console.log("score", score);
+            console.log("score", score);
+        }
     }
 
     onDeleteComment(e, id) {
@@ -366,28 +375,28 @@ class ViewPost extends Component {
             {(props.comment.commenter !== this.state.uid) && (<Fragment className={props.classes.scoreBar}>
                                                                     <Button 
                                                                         style={{float: 'right', marginBottom: '20px'}} 
-                                                                        onClick={(e) => {this.scoreComment(e, 4, props.comment.id)}} 
+                                                                        onClick={(e) => {this.scoreComment(e, 4, props.comment.id, props.comment.userScore)}} 
                                                                         color={props.comment.userScore === 0 ? "secondary" : "primary"}
                                                                         disabled={props.comment.userScore !== 0 && props.comment.userScore !== 4}
                                                                         >4
                                                                     </Button> 
                                                                         <Button 
                                                                         style={{float: 'right', marginBottom: '20px'}} 
-                                                                        onClick={(e) => {this.scoreComment(e, 3, props.comment.id)}} 
+                                                                        onClick={(e) => {this.scoreComment(e, 3, props.comment.id, props.comment.userScore)}} 
                                                                         color={props.comment.userScore === 0 ? "secondary" : "primary"}
                                                                         disabled={props.comment.userScore !== 0 && props.comment.userScore !== 3}
                                                                         >3
                                                                     </Button>
                                                                     <Button 
                                                                         style={{float: 'right', marginBottom: '20px'}} 
-                                                                        onClick={(e) => {this.scoreComment(e, 2, props.comment.id)}} 
+                                                                        onClick={(e) => {this.scoreComment(e, 2, props.comment.id, props.comment.userScore)}} 
                                                                         color={props.comment.userScore === 0 ? "secondary" : "primary"}
                                                                         disabled={props.comment.userScore !== 0 && props.comment.userScore !== 2}
                                                                         >2
                                                                     </Button>
                                                                     <Button 
                                                                         style={{float: 'right', marginBottom: '20px'}} 
-                                                                        onClick={(e) => {this.scoreComment(e, 1, props.comment.id)}} 
+                                                                        onClick={(e) => {this.scoreComment(e, 1, props.comment.id, props.comment.userScore)}} 
                                                                         color={props.comment.userScore === 0 ? "secondary" : "primary"}
                                                                         disabled={props.comment.userScore !== 0 && props.comment.userScore !== 1}
                                                                         >1
@@ -647,6 +656,10 @@ class ViewPost extends Component {
             comments: comments
         })
         console.log(comments);
+
+        if (this.state.uid !== id){
+            this.sendNotification(COMMENT_REPLY, id, this.state.uid);
+        }
     }
 
     onDeleteReply(e, commentID, reply) {
@@ -667,6 +680,18 @@ class ViewPost extends Component {
     onChangeReply(e) {
         e.preventDefault();
         this.setState({reply: e.target.value})
+    }
+
+    sendNotification(type, to, from) {
+        firebase.firestore().collection("notifications").add({
+            comment: type === POST_COMMENT ? true : false,
+            reply:  type === COMMENT_REPLY ? true : false,
+            to: to,
+            from: from,
+            timeStamp: firebase.firestore.FieldValue.serverTimestamp(),
+        })
+        .then(() => {})
+        .catch((err) => {console.log(err)});
     }
 
     render () {

@@ -9,6 +9,7 @@ import "firebase/auth";
 import withStyles from '@material-ui/core/styles/withStyles';
 import PropTypes from 'prop-types';
 import Button from '@material-ui/core/Button';
+import Badge from '@material-ui/core/Badge';
 import BookmarksIcon from '@material-ui/icons/Bookmarks';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 
@@ -50,7 +51,7 @@ class Nav extends Component {
         return (
             <div>
                 <div className={classes.topRight}>
-                    <Button color="secondary" ><NotificationsIcon/></Button>
+                    <Button color="secondary" ><Badge badgeContent={1} color="primary"><NotificationsIcon/></Badge></Button>
                     <Button color="primary" onClick={() => window.location = '/saved'}><BookmarksIcon/></Button>
                     <Button color="secondary" onClick={() => this.onSignOut()}>Sign Out</Button>
                 </div>
