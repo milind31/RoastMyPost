@@ -32,7 +32,11 @@ import "firebase/auth";
 //Carousel
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
 
+//Global Definitions
 var Carousel = require('react-responsive-carousel').Carousel;
+const INITIAL_NUMBER_OF_REPLIES = 5;
+const NUMBER_OF_REPLIES_TO_ADD = 5;
+
 
 const styles = ((theme) => ({
     signOutButton: {
@@ -169,7 +173,9 @@ class ViewPost extends Component {
         this.submitReply = this.submitReply.bind(this);
         this.onDeleteComment = this.onDeleteComment.bind(this);
         this.onDeleteReply = this.onDeleteReply.bind(this);
+        this.onShowMoreReplies = this.onShowMoreReplies.bind(this);
         this.Comment = this.Comment.bind(this);
+        this.Reply = this.Reply.bind(this);
     }
 
     componentDidMount = () => {
@@ -255,6 +261,7 @@ class ViewPost extends Component {
                 totalScore: 0,
                 numScores: 0,
                 replies: [],
+                numRepliesToShow: INITIAL_NUMBER_OF_REPLIES,
             }
             let comments = this.state.comments;
             comments.push(comment);
@@ -412,11 +419,33 @@ class ViewPost extends Component {
             </Button>
           </OverlayTrigger>
             <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
-            {props.comment.replies.map((reply) => (
+            {props.comment.replies.slice(0, props.comment.numRepliesToShow).map((reply) => (
                 <this.Reply reply={reply} postOwner={props.comment.postOwner} commentID={props.comment.id} classes={props.classes}></this.Reply>
             ))}
+            {props.comment.replies.length > 0 && props.comment.numRepliesToShow < props.comment.replies.length && <Button style={{margin: '0 auto', display: "flex"}} color="primary" onClick={(e) => {this.onShowMoreReplies(e, props.comment.id)}}>Show more replies</Button>}
+            {props.comment.replies.length > INITIAL_NUMBER_OF_REPLIES && props.comment.numRepliesToShow >= props.comment.replies.length && <Button style={{margin: '0 auto', display: "flex"}} color="primary" onClick={(e) => {this.onHideReplies(e, props.comment.id)}}>Hide replies</Button>}
         </div>
     )
+
+    onShowMoreReplies(e, commentID) {
+        e.preventDefault();
+
+        let comments = this.state.comments;
+        let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === commentID));
+
+        comments[index].numRepliesToShow += NUMBER_OF_REPLIES_TO_ADD;
+        this.setState(this.state);
+    }
+
+    onHideReplies(e, commentID) {
+        e.preventDefault();
+
+        let comments = this.state.comments;
+        let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === commentID));
+
+        comments[index].numRepliesToShow = INITIAL_NUMBER_OF_REPLIES;
+        this.setState(this.state);
+    }
 
     getSavedStatus() {
         var user = firebase.auth().currentUser;
@@ -462,6 +491,7 @@ class ViewPost extends Component {
                             numScores: doc.data().numScores,
                             userScore: score,
                             replies: doc.data().replies,
+                            numRepliesToShow: INITIAL_NUMBER_OF_REPLIES
                         }
                         comments.push(comment);
                     })
