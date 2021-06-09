@@ -21,8 +21,6 @@ const useStyles = makeStyles((theme) => ({
 export default function Loading() {
 const classes = useStyles();
     return ( 
-        <Backdrop className={classes.backdrop} open={true}>
-            <CircularProgress size={50} className={classes.container}/>
-        </Backdrop>
+        <CircularProgress size={50} className={classes.container}/>
     );
 }
