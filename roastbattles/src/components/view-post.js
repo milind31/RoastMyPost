@@ -1,6 +1,7 @@
 //React
 import React, { Component, Fragment } from 'react';
 import Nav from './navbar';
+import Loading from './loading';
 
 //React Bootstrap
 import SubmitButton from 'react-bootstrap/Button';
@@ -154,7 +155,7 @@ class ViewPost extends Component {
             postSaved: false,
 
             //Loading
-            loading: true
+            loading: true,
         }
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
@@ -189,6 +190,7 @@ class ViewPost extends Component {
             this.setState({uid: user.uid});
             this.getPostInfo(user);
             this.getCommentsAndSavedStatus();
+            this.setState({loading: false});
         } else {
             //user is not logged in
             window.location = '/signin';
@@ -371,7 +373,7 @@ class ViewPost extends Component {
             </p>
 
             <p style={{fontSize: '125%'}}>{props.comment.commentBody}</p>
-            <small>{props.comment.timeStamp.toString()}</small>
+            <small style={{paddingRight: '10px'}}>{props.comment.timeStamp.toString()}</small>
             {(props.comment.commenter !== this.state.uid) && (<Fragment className={props.classes.scoreBar}>
                                                                     <Button 
                                                                         style={{float: 'right', marginBottom: '20px'}} 
@@ -412,7 +414,7 @@ class ViewPost extends Component {
                     <p style={{marginBottom:'0px'}}>Delete Post</p>
                 </div>
                 }
-            ><Button color="primary" style={{backgroundColor:'transparent'}} onClick={(e) => {this.onDeleteComment(e, props.comment.id)}}>
+            ><Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={(e) => {this.onDeleteComment(e, props.comment.id)}}>
                 <DeleteIcon/>
             </Button>
           </OverlayTrigger>}
@@ -423,7 +425,7 @@ class ViewPost extends Component {
                     <p style={{marginBottom:'0px'}}>Reply</p>
                 </div>
                 }
-            ><Button color="primary" style={{marginLeft: '-25px', backgroundColor:'transparent'}} onClick={(e) => {this.handleClickReply(e, props.comment.id)}}>
+            ><Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={(e) => {this.handleClickReply(e, props.comment.id)}}>
                 <ReplyIcon/>
             </Button>
           </OverlayTrigger>
@@ -698,6 +700,8 @@ class ViewPost extends Component {
         const { classes } = this.props;
         return (
            <div>
+               {this.state.loading ? (<Loading/>) : (
+               <div>
                <Nav/>
                
                {this.state.replyMode &&
@@ -779,6 +783,8 @@ class ViewPost extends Component {
 
                 { !!!this.state.usersPost && <Button className={classes.newPostButton} color="primary" onClick={this.getNewPost}>Find New Post</Button>}
             </div>
+            </div>
+            )}
         </div>
         )
   }

@@ -9,6 +9,7 @@ import "firebase/auth";
 //Material UI
 import withStyles from '@material-ui/core/styles/withStyles';
 import PropTypes from 'prop-types';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
 
 
@@ -26,7 +27,7 @@ class SavedPosts extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {saves: []}
+        this.state = {saves: [], loading: true}
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
         this.getSaves = this.getSaves.bind(this);
@@ -64,7 +65,7 @@ class SavedPosts extends Component {
         })
         .then((saves) => {
             console.log(saves);
-            this.setState({saves: saves});
+            this.setState({saves: saves, loading: false});
         })
     }
 
@@ -90,9 +91,13 @@ class SavedPosts extends Component {
                     :
                     (
                     <div>
+                        { this.state.loading ? (<CircularProgress />) : (
+                        <div>
                         <p>No posts saved 😢</p>
                         <br/>
                         <p>Click the save icon <BookmarkBorderIcon/> on a post to save it. It will show up here!</p>
+                        </div>
+                        )}
                     </div>
                     )
                 }

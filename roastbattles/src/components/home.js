@@ -38,7 +38,7 @@ class Home extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {createdPost: false, uid: ''};
+        this.state = {createdPost: false, uid: '', loading: true};
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
         this.getNewPost = this.getNewPost.bind(this);
@@ -52,7 +52,7 @@ class Home extends Component {
     handleAuthChange(user) {
         if (user) {
             //user is logged in
-            this.setState({uid: user.uid})
+            this.setState({uid: user.uid, loading: false})
         } else {
             //user is not logged in
             window.location = '/signin';
