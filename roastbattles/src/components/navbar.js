@@ -13,6 +13,9 @@ import Badge from '@material-ui/core/Badge';
 import BookmarksIcon from '@material-ui/icons/Bookmarks';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 
+//React Bootstrap
+import Dropdown from 'react-bootstrap/Dropdown';
+
 //Redux
 import { userLoggedOut } from './actions/index';
 import { connect } from 'react-redux';
@@ -36,7 +39,43 @@ class Nav extends Component {
     constructor(props) {
         super(props);
 
+        this.state = {userID: '', notifcations: []}
+
+
+        this.handleAuthChange = this.handleAuthChange.bind(this);
         this.onSignOut = this.onSignOut.bind(this);
+    }
+
+    componentDidMount = () => {
+        firebase.auth().onAuthStateChanged(this.handleAuthChange);
+        console.log(this.state.notifcations);
+    }
+
+    handleAuthChange(user) {
+        if (user) {
+            firebase.firestore().collection("notifications").where("to", "==", user.uid).get()
+            .then((data) => {
+                var notifications = [];
+                data.forEach((doc) => {
+                    console.log(doc.id)
+                    const notification = { 
+                        comment: doc.data().comment,
+                        reply: doc.data().reply,
+                        from: doc.data().from,
+                        to: doc.data().to,
+                        timeStamp: doc.data().timeStamp.toDate(),
+                    }
+                    notifications.push(notification);
+                })
+                return notifications
+            })
+            .then((notifications) => {
+                this.setState({notifications: notifications}, () => {/* figure this out... */});
+            })
+        } else {
+            //user is not logged in
+            window.location = '/signin';
+        }
     }
 
     onSignOut() {
@@ -44,12 +83,33 @@ class Nav extends Component {
         this.props.userLoggedOut();
     }
 
+    CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
+        <Button color="secondary"
+            ref={ref}
+            onClick={(e) => {
+                e.preventDefault();
+                onClick(e);
+            }} 
+        ><Badge badgeContent={1} color="primary"><NotificationsIcon/></Badge>
+            {children}
+        </Button>
+      ));
+
     render() {
         const { classes } = this.props;
         return (
             <div>
                 <div className={classes.topRight}>
-                    <Button color="secondary" ><Badge badgeContent={1} color="primary"><NotificationsIcon/></Badge></Button>
+                    <Dropdown style={{float:'left', margin: '0px', padding: '0px'}}>
+                        <Dropdown.Toggle  as={this.CustomToggle} id="dropdown-basic">
+                        </Dropdown.Toggle>
+
+                        <Dropdown.Menu>
+                            {this.state.notifcations.map((notification) => (
+                                <Dropdown.Item href="notification">{notification.comment ? "Comment" : "Reply"} from {notification.from}</Dropdown.Item>
+                            ))}
+                        </Dropdown.Menu>
+                    </Dropdown>
                     <Button color="primary" onClick={() => window.location = '/saved'}><BookmarksIcon/></Button>
                     <Button color="secondary" onClick={() => this.onSignOut()}>Sign Out</Button>
                 </div>
