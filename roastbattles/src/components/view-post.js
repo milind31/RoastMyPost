@@ -149,6 +149,7 @@ class ViewPost extends Component {
             commentDeleteDialogueOpen: false,
             replyMode: false,
             replyID: '',
+            replyCommentOwnerID: '',
             reply: '',
 
             //Saving
@@ -425,7 +426,7 @@ class ViewPost extends Component {
                     <p style={{marginBottom:'0px'}}>Reply</p>
                 </div>
                 }
-            ><Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={(e) => {this.handleClickReply(e, props.comment.id)}}>
+            ><Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={(e) => {this.handleClickReply(e, props.comment.id, props.comment.commenter)}}>
                 <ReplyIcon/>
             </Button>
           </OverlayTrigger>
@@ -615,11 +616,12 @@ class ViewPost extends Component {
         </div>
     )
 
-    handleClickReply(e, id) {
+    handleClickReply(e, id, ownerID) {
         e.preventDefault();
         this.setState({
             replyMode: true,
             replyID: id,
+            replyCommentOwnerID: ownerID
         })
     }
 
@@ -628,11 +630,12 @@ class ViewPost extends Component {
         this.setState({
             replyMode: false,
             replyID: '',
+            replyCommentOwnerID: '',
             reply: ''
         })
     }
 
-    submitReply(e, id) {
+    submitReply(e, id, ownerID) {
         e.preventDefault();
 
         var time = Date.now();
@@ -650,17 +653,22 @@ class ViewPost extends Component {
 
         let comments = this.state.comments;
         let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === id));
+        console.log(comments[index])
         comments[index].replies.push(reply);
+        console.log(ownerID);
         this.setState({
             replyMode: false,
             replyID: '',
+            replyCommentOwnerID: '',
             reply: '',
             comments: comments
         })
         console.log(comments);
 
-        if (this.state.uid !== id){
-            this.sendNotification(COMMENT_REPLY, id, this.state.uid);
+        var user = firebase.auth().currentUser;
+
+        if (user.uid !== ownerID){
+            this.sendNotification(COMMENT_REPLY, ownerID, this.state.uid);
         }
     }
 
@@ -690,6 +698,7 @@ class ViewPost extends Component {
             reply:  type === COMMENT_REPLY ? true : false,
             to: to,
             from: from,
+            post: this.props.match.params.id,
             timeStamp: firebase.firestore.FieldValue.serverTimestamp(),
         })
         .then(() => {})
@@ -706,7 +715,7 @@ class ViewPost extends Component {
                
                {this.state.replyMode &&
                 <Backdrop open={this.state.replyMode} className={classes.backdrop}>
-                    <Form className={classes.form} style={{borderRadius: '5px', width: "25%", padding: '10px'}} onSubmit={(e) => {this.submitReply(e, this.state.replyID)}}>
+                    <Form className={classes.form} style={{borderRadius: '5px', width: "25%", padding: '10px'}} onSubmit={(e) => {this.submitReply(e, this.state.replyID, this.state.replyCommentOwnerID)}}>
                         <Form.Group className={classes.container} controlId="exampleForm.ControlTextarea1">
                             <Form.Control 
                             onChange={this.onChangeReply}
