@@ -33,13 +33,15 @@ import "firebase/auth";
 //Carousel
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
 
+//Toast
+import toast, { Toaster } from 'react-hot-toast';
+
 //Global Definitions
 var Carousel = require('react-responsive-carousel').Carousel;
 const INITIAL_NUMBER_OF_REPLIES = 5;
 const NUMBER_OF_REPLIES_TO_ADD  = 5;
 const POST_COMMENT              = 'POST_COMMENT';
 const COMMENT_REPLY             = 'COMMENT_REPLY';
-
 
 const styles = ((theme) => ({
     signOutButton: {
@@ -55,7 +57,8 @@ const styles = ((theme) => ({
         height: "auto"
     },
     container: {
-        background: "#333131"
+        background: "#333131",
+        padding: '15px 30px 15px 30px'
     },
     username: {
         fontSize: '150%',
@@ -157,6 +160,12 @@ class ViewPost extends Component {
 
             //Loading
             loading: true,
+
+            //Toasts
+            commentPostedToast: false,
+            postSavedToast: false,
+            replyToast: false,
+            commentDeletedToast: false,
         }
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
@@ -270,7 +279,7 @@ class ViewPost extends Component {
             }
             let comments = this.state.comments;
             comments.push(comment);
-            this.setState({commentLeft: '', comments: comments});
+            this.setState({commentLeft: '', commentPostedToast: true, comments: comments});
 
             //send notification
             if (user.uid !== this.props.match.params.id){
@@ -712,7 +721,6 @@ class ViewPost extends Component {
                {this.state.loading ? (<Loading/>) : (
                <div>
                <Nav/>
-               
                {this.state.replyMode &&
                 <Backdrop open={this.state.replyMode} className={classes.backdrop}>
                     <Form className={classes.form} style={{borderRadius: '5px', width: "25%", padding: '10px'}} onSubmit={(e) => {this.submitReply(e, this.state.replyID, this.state.replyCommentOwnerID)}}>
@@ -730,8 +738,8 @@ class ViewPost extends Component {
                 </Backdrop>
                 }
 
-                <div>
-               <Paper className={classes.container}>
+               <div style={{padding: '75px 0px 100px 0px'}}>
+               <Paper className={classes.container} >
                     <h1 className={classes.header}>User #{this.props.match.params.id.replace(/\D/g, "") /* REGEX IS ONLY TEMPORARY (...unless) */}</h1>
                     {!this.state.usersPost && (this.state.postSaved ? <this.SavedButton classes={classes}/> : <this.UnsavedButton classes={classes}/>) }
                     <div className={classes.container} style={{paddingBottom:'75px'}}/>

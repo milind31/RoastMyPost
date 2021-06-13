@@ -101,6 +101,7 @@ class Home extends Component {
         return (
             <div>
                 <Nav/>
+                <div style={{paddingTop:'200px'}}>
                 <h1 className={classes.header}>Welcome!</h1>
                 {
                     this.props.createdPost ? 
@@ -124,6 +125,7 @@ class Home extends Component {
                     >Find Random Post
                 </Button>
                 </div>
+            </div>
         )
   }
 }

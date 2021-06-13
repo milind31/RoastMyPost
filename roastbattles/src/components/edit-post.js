@@ -244,9 +244,9 @@ class EditPost extends Component {
     render () {
         const { classes } = this.props;
         return (
-            <div>
+            <div style={{paddingBottom: '500px'}}>
                 <Nav/>
-                <h1>Edit post...</h1>
+                <h1 style={{paddingTop:'125px'}}>Edit post...</h1>
                 <Form className={classes.form}  onSubmit={this.onSubmit}>
 
                 { /*file upload*/ }

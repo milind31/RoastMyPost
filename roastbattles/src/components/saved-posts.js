@@ -18,7 +18,7 @@ const styles = {
         background: "#333131"
     },
     header: {
-        marginTop: '-75px',
+        marginTop: '175px',
         paddingBottom: '20px'
     }
 }
