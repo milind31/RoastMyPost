@@ -344,7 +344,7 @@ class ViewPost extends Component {
     }
 
     Reply = props => (
-        <div className={props.classes.comment} style={{marginLeft: '10px'}}>
+        <div className={props.classes.comment} style={{marginLeft: '25px'}}>
             <p>
                 <a href={"/posts/" + props.reply.replyUserID} 
                     style={{textDecoration:'none'}}
