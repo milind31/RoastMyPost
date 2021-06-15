@@ -39,6 +39,10 @@ const styles = {
     }
 }
 
+
+//TODO: REDIRECT
+//REDIRECT TO EDIT IF POST NOT CREATED
+
 //create post page
 class EditPost extends Component {
     constructor(props) {
@@ -54,7 +58,7 @@ class EditPost extends Component {
         this.onChangeGuiltyPleasure = this.onChangeGuiltyPleasure.bind(this);
         this.onChangeOtherInfo = this.onChangeOtherInfo.bind(this);
         this.handleFileChange = this.handleFileChange.bind(this);
-        this.onDeleteImage = this.onDeleteImage.bind(this);
+        this.onDeleteFileFromThumbnail = this.onDeleteFileFromThumbnail.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.uploadImage = this.uploadImage.bind(this);
 
@@ -67,8 +71,11 @@ class EditPost extends Component {
             selfRating: '',
             guiltyPleasure: '',
             otherInfo: '',
-            files: [],
-            filesUploaded: false,
+
+            //files
+            fileURLS: [],
+            newFiles: [],
+            newFileNames: [], 
             numberOfFiles: 0,
         }
     }
@@ -78,7 +85,16 @@ class EditPost extends Component {
     }
 
     handleFileChange(e) {
-        this.setState({files: e.target.files, filesUploaded: true, numberOfFiles: e.target.files.length});
+        let numFiles = this.state.numberOfFiles + e.target.files.length;
+        if (numFiles <= 5){
+            let newFileNames = this.state.newFileNames;
+            let newFiles = this.state.newFiles;
+            for (let i = 0; i < e.target.files.length; i++){
+                newFileNames.push(e.target.files[i].name);
+                newFiles.push(e.target.files[i]);
+            }
+            this.setState({newFiles: newFiles, newFileNames: newFileNames, numberOfFiles: numFiles});
+        }
     }
 
     handleAuthChange(user) {
@@ -99,7 +115,8 @@ class EditPost extends Component {
                         selfRating: docData.data().selfRating,
                         guiltyPleasure: docData.data().guiltyPleasure,
                         otherInfo: docData.data().otherInfo,
-                        files: docData.data().fileURLS,
+                        fileURLS: docData.data().fileURLS,
+                        numberOfFiles: docData.data().fileURLS.length,
                     })
                 })
             }
@@ -161,13 +178,13 @@ class EditPost extends Component {
         e.preventDefault();
 
         var user = firebase.auth().currentUser;
-        var fileURLS = [];
-        if (this.state.filesUploaded){
+        var fileURLS = this.state.fileURLS;
+        if (this.state.newFiles.length > 0){
             if (this.state.files !== []) {
                 // 3. Loop over all the files
-                for (var i = 0; i < this.state.files.length; i++) {
+                for (var i = 0; i < this.state.newFiles.length; i++) {
                     // 3A. Get a file to upload
-                    const imageFile = this.state.files[i];
+                    const imageFile = this.state.newFiles[i];
 
                     // 3B. handleFileUploadOnFirebaseStorage function is in above section
                     const downloadFileResponse = await this.uploadImage(imageFile);
@@ -179,7 +196,7 @@ class EditPost extends Component {
             }
         }
         else{
-            fileURLS = this.state.files
+            fileURLS = this.state.fileURLS
         }
 
         //add post in firestore
@@ -212,10 +229,10 @@ class EditPost extends Component {
         <div style={{marginTop:'-75px'}}>
                     <Container>
                     <Row>
-                        {this.state.files.length !== 0 && this.state.files.map((url, index) => (
+                        {this.state.fileURLS.length !== 0 && this.state.fileURLS.map((url, index) => (
                             <Col xs={6} md={4}>
-                                <Image thumbnail src={url}></Image>
-                                <Button color="primary"onClick={(e) => {this.onDeleteImage(e, url)}}><DeleteForeverIcon/></Button>
+                                <Image thumbnail  src={url}></Image>
+                                <Button color="primary"onClick={(e) => {this.onDeleteFileFromThumbnail(e, url)}}><DeleteForeverIcon/></Button>
                             </Col>
                         ))}
                     </Row>
@@ -223,21 +240,27 @@ class EditPost extends Component {
                 </div>
     )
 
-    onDeleteImage(e, url) {
-        let files = this.state.files;
-        files = files.filter(function(item) {
+    onDeleteFileFromThumbnail(e, url) {
+        let fileURLS = this.state.fileURLS;
+        fileURLS = fileURLS.filter(function(item) {
             return item !== url
         })
 
         var user = firebase.auth().currentUser;
+        var newNumberOfFiles = this.state.numberOfFiles - 1;
 
-        //update post in firestore
-        firebase.firestore().collection("posts").doc(user.uid.toString()).update({fileURLS: files})
-        .then(() => {})
-        .catch((err) => {console.log(err)})
-    
         //save to state
-        this.setState({files: files});
+        this.setState({fileURLS: fileURLS, numberOfFiles: newNumberOfFiles});
+    }
+
+    onDeleteNewFile(e, fileName) {
+        e.preventDefault();
+
+        var newFileNames = this.state.newFileNames.filter(function(element) { return element !== fileName });
+        var newFiles = this.state.newFiles.filter(function(element) { return element.name !== fileName });
+        var newNumberOfFiles  = this.state.numberOfFiles - 1;
+
+        this.setState({newFileNames: newFileNames, newFiles: newFiles, numberOfFiles: newNumberOfFiles});
     }
 
 
@@ -252,19 +275,22 @@ class EditPost extends Component {
                 { /*file upload*/ }
                 <Form.Group>
                     <Form.Label>Upload new images of yourself</Form.Label>
+                    <p style={{marginTop: '-50px'}}>     </p>
+                    <div style={{display: 'inline-block'}}>
                     <Form.File 
                         onChange={this.handleFileChange} 
                         className={classes.fileUpload} 
                         id="exampleFormControlFile1" 
                         multiple/>
-                    <Form.Text className="text-muted">
+                    </div>
+                    <Form.Text style={{paddingTop: '10px'}} className="text-muted">
                             Required: please upload 1-5 images
                     </Form.Text>
                 </Form.Group>
                 
                 {!this.state.filesUploaded && (
                     <div>
-                        <Form.Label>
+                        <Form.Label style={{paddingBottom: '20px'}}>
                                 Currently uploaded images:
                         </Form.Label>
                         <this.imageThumbnails/>
@@ -272,89 +298,123 @@ class EditPost extends Component {
                     )
                 }
 
+                {this.state.newFiles.length > 0 && (
+                    <div>
+                    <strong>Newly uploaded files:</strong>
+                    {this.state.newFileNames.map((fileName) => 
+                        <div>
+                        <p style={{display: 'inline-block'}}>{fileName}</p>
+                        <Button color="secondary" onClick={(e) => this.onDeleteNewFile(e, fileName)}><DeleteForeverIcon></DeleteForeverIcon></Button>
+                        </div>
+                    )}
+                    </div>
+                )}
+
                 <br/>
 
-                    { /*optional fields*/ }
-                    <Form.Label>
-                            The following are optional; feel free to answer as many or as few as you would like
-                    </Form.Label>
+                { /*optional fields*/ }
+                    <div></div>
 
                     { /*music*/ }
                     <Form.Group controlId="exampleForm.ControlTextarea1">
+                        <Form.Label style={{float:'left'}}>
+                            What music do you currently have on rotation?
+                        </Form.Label>
                         <Form.Control 
                         onChange={this.onChangeMusic} 
                         value={this.state.music} 
                         as="textarea" 
                         rows={1} 
-                        placeholder="What music do you currently have on rotation?" />
+                        placeholder="" />
                     </Form.Group>
 
                     { /*age*/ }
                     <Form.Group controlId="exampleForm.ControlTextarea1">
+                        <Form.Label style={{float:'left'}}>
+                            How old are you?
+                        </Form.Label>
                         <Form.Control 
                         onChange={this.onChangeAge} 
                         value={this.state.age} 
                         as="textarea" rows={1} 
-                        placeholder="How old are you?" />
+                        placeholder="" />
                     </Form.Group>
 
                     { /*day as other person*/ }
                     <Form.Group controlId="exampleForm.ControlTextarea1">
+                        <Form.Label style={{float:'left'}}>
+                            If you could spend a day as anyone, dead or alive, who would it be?
+                        </Form.Label>
                         <Form.Control 
                         onChange={this.onChangeDayAsOtherPerson} 
                         value={this.state.dayAsOtherPerson} 
                         as="textarea" rows={1} 
-                        placeholder="If you could spend a day as anyone, dead or alive, who would it be?" />
+                        placeholder="" />
                     </Form.Group>
 
                     { /*hobbies*/ }
                     <Form.Group controlId="exampleForm.ControlTextarea1">
+                        <Form.Label style={{float:'left'}}>
+                            What do you enjoy doing in your spare time?
+                        </Form.Label>
                         <Form.Control 
                         onChange={this.onChangeHobbies} 
                         value={this.state.hobbies} 
                         as="textarea" 
                         rows={1} 
-                        placeholder="What do you enjoy doing in your spare time?" />
+                        placeholder="" />
                     </Form.Group>
 
                     { /*peeves*/ }
                     <Form.Group controlId="exampleForm.ControlTextarea1">
+                        <Form.Label style={{float:'left'}}>
+                            What pisses you off the most?
+                        </Form.Label>
                         <Form.Control 
                         onChange={this.onChangePeeves}
                         value={this.state.peeves} 
                         as="textarea" 
                         rows={1} 
-                        placeholder="What pisses you off the most?" />
+                        placeholder="" />
                     </Form.Group>
 
                     { /*self rating*/ }
                     <Form.Group controlId="exampleForm.ControlTextarea1">
+                        <Form.Label style={{float:'left'}}>
+                            Rate your looks on a scale from 1-10
+                        </Form.Label>
                         <Form.Control 
                         onChange={this.onChangeSelfRating} 
                         value={this.state.selfRating} 
                         as="textarea" 
                         rows={1} 
-                        placeholder="Rate your looks on a scale from 1-10" />
+                        placeholder="" />
                     </Form.Group>
 
                     { /*guilty pleasure*/ }
                     <Form.Group controlId="exampleForm.ControlTextarea1">
+                        <Form.Label style={{float:'left'}}>
+                            What is you guilty pleasure?
+                        </Form.Label>
                         <Form.Control 
                         onChange={this.onChangeGuiltyPleasure} 
                         value={this.state.guiltyPleasure} 
                         as="textarea" 
                         rows={1} 
-                        placeholder="What is you guilty pleasure?" />
+                        placeholder="" />
                     </Form.Group>
 
                     { /*additional info*/ }
                     <Form.Group controlId="exampleForm.ControlTextarea1">
+                        <Form.Label style={{float:'left'}}>
+                            Anything else you want to let people know...
+                        </Form.Label>
                         <Form.Control 
                         onChange={this.onChangeOtherInfo}
                         value={this.state.otherInfo}  
                         as="textarea" 
                         rows={3} 
-                        placeholder="Anything else you want to let people know..." />
+                        placeholder="" />
                     </Form.Group>
                     
                     { /*submit*/ }

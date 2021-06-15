@@ -35,6 +35,9 @@ const styles = {
 //TODO: ERROR HANDLING
 //IF MORE THAN 5 FILES UPLOADED, DISPLAY ERROR MESSAGE
 
+//TODO: REDIRECT
+//REDIRECT TO EDIT IF POST NOT CREATED
+
 //create post page
 class CreatePost extends Component {
     constructor(props) {
@@ -231,8 +234,7 @@ class CreatePost extends Component {
                         onChange={this.handleFileChange} 
                         className={classes.fileUpload} 
                         id="exampleFormControlFile1" 
-                        feedback={"uploaded"}
-                        multiple={5}/>
+                        multiple/>
                     </div>
                     <Form.Text style={{paddingTop: '10px'}} className="text-muted">
                             Required: please upload 1-5 images
