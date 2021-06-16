@@ -106,6 +106,8 @@ class CreatePost extends Component {
     handleAuthChange(user) {
         if (user) {
             //user is logged in
+            //TODO: IF USER CREATED POST (GET FROM REDUX)
+            //THEN SEND TO THEIR POST
         } else {
             //user is not logged in
             window.location = '/signin';

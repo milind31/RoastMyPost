@@ -2,6 +2,7 @@
 import React, { Component, Fragment } from 'react';
 import Nav from './navbar';
 import Loading from './loading';
+import PostNotFound from './post-not-found';
 
 //React Bootstrap
 import SubmitButton from 'react-bootstrap/Button';
@@ -159,7 +160,9 @@ class ViewPost extends Component {
             postSaved: false,
 
             //Loading
-            loading: true,
+            postNotFound: false,
+            contentLoading: true,
+            saveStatusLoading: true,
 
             //Toasts
             commentPostedToast: false,
@@ -200,7 +203,7 @@ class ViewPost extends Component {
             this.setState({uid: user.uid});
             this.getPostInfo(user);
             this.getCommentsAndSavedStatus();
-            this.setState({loading: false});
+            this.setState({contentLoading: false});
         } else {
             //user is not logged in
             window.location = '/signin';
@@ -242,6 +245,9 @@ class ViewPost extends Component {
                     files: docData.data().fileURLS,
                     usersPost: false
                 })
+            })
+            .catch(() => {
+                this.setState({postNotFound: true})
             })
         }
     }
@@ -480,6 +486,7 @@ class ViewPost extends Component {
             else{
                 this.setState({postSaved: false});
             }
+            this.setState({saveStatusLoading: false});
         })
     }
 
@@ -718,7 +725,7 @@ class ViewPost extends Component {
         const { classes } = this.props;
         return (
            <div>
-               {this.state.loading ? (<Loading/>) : (
+               {this.state.postNotFound ? (<PostNotFound/>) : (this.state.contentLoading || this.state.saveStatusLoading ? (<Loading/>) : (
                <div>
                <Nav/>
                {this.state.replyMode &&
@@ -745,7 +752,7 @@ class ViewPost extends Component {
                     <div className={classes.container} style={{paddingBottom:'75px'}}/>
                     <Carousel showArrows={true} showThumbs={false} dynamicHeight={true} infiniteLoop={true} autoPlay={false}>
                         {this.state.files.map((url, index) => (
-                        <img key={index} src={url} style={{height:'auto',width:'800px'}} />
+                        <img key={index} src={url} style={{height:'auto',width:'800px'}}/>
                         ))}
                     </Carousel>
                     {/*<img className={classes.media} src={this.state.files[0]}></img>*/}
@@ -801,7 +808,7 @@ class ViewPost extends Component {
                 { !!!this.state.usersPost && <Button className={classes.newPostButton} color="primary" onClick={this.getNewPost}>Find New Post</Button>}
             </div>
             </div>
-            )}
+            ))}
         </div>
         )
   }
