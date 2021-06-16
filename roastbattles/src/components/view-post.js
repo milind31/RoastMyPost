@@ -34,8 +34,9 @@ import "firebase/auth";
 //Carousel
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
 
-//Toast
-import toast, { Toaster } from 'react-hot-toast';
+//Toasts
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 //Global Definitions
 var Carousel = require('react-responsive-carousel').Carousel;
@@ -44,6 +45,10 @@ const NUMBER_OF_REPLIES_TO_ADD  = 5;
 const POST_COMMENT              = 'POST_COMMENT';
 const COMMENT_REPLY             = 'COMMENT_REPLY';
 
+//Configure toasts
+toast.configure();
+
+//Styling
 const styles = ((theme) => ({
     signOutButton: {
         position: "absolute",
@@ -287,6 +292,17 @@ class ViewPost extends Component {
             comments.push(comment);
             this.setState({commentLeft: '', commentPostedToast: true, comments: comments});
 
+            toast.success('Comment Posted!', {
+                style: { fontFamily: 'Roboto Mono, monospace', width:'75%', height:'50%', textAlign:'left' },
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            });
+
             //send notification
             if (user.uid !== this.props.match.params.id){
                 this.sendNotification(POST_COMMENT, this.props.match.params.id, user.uid);
@@ -341,6 +357,17 @@ class ViewPost extends Component {
             return obj.id !== id;
         });
         this.setState({comments: comments});
+
+        toast.success('Comment Deleted!', {
+            style: { fontFamily: 'Roboto Mono, monospace', width:'75%', height:'50%', textAlign:'left' },
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+        });
     }
 
     onChangeComment(e) {
@@ -364,7 +391,7 @@ class ViewPost extends Component {
             <OverlayTrigger
                 placement='top'
                 overlay={
-                <div style={{fontSize: "12px", borderRadius: "5px", backgroundColor:'black'}}>
+                <div style={{fontSize: "12px", padding: '4px', borderRadius: "5px", backgroundColor:'black'}}>
                     <p style={{marginBottom:'0px'}}>Delete Reply</p>
                 </div>
                 }
@@ -424,20 +451,20 @@ class ViewPost extends Component {
 
             {this.state.uid === props.comment.commenter &&
             <OverlayTrigger
-                placement='top'
-                overlay={
-                <div style={{fontSize: "12px", borderRadius: "5px", backgroundColor:'black'}}>
-                    <p style={{marginBottom:'0px'}}>Delete Post</p>
-                </div>
-                }
-            ><Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={(e) => {this.onDeleteComment(e, props.comment.id)}}>
+            placement='top'
+            overlay={
+            <div style={{fontSize: "12px", padding: '4px', borderRadius: "5px", backgroundColor:'black'}}>
+                <p style={{marginBottom:'0px'}}>Delete Post</p>
+            </div>
+            }
+        ><Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={(e) => {this.onDeleteComment(e, props.comment.id)}}>
                 <DeleteIcon/>
             </Button>
           </OverlayTrigger>}
           <OverlayTrigger
                 placement='top'
                 overlay={
-                <div style={{fontSize: "12px", borderRadius: "5px", backgroundColor:'black'}}>
+                <div style={{fontSize: "12px", padding: '4px', borderRadius: "5px", backgroundColor:'black'}}>
                     <p style={{marginBottom:'0px'}}>Reply</p>
                 </div>
                 }
@@ -591,6 +618,17 @@ class ViewPost extends Component {
         .then((docRef) => {
             //update state
             this.setState({postSaved: true});
+
+            toast.success('Post Saved!', {
+                style: { fontFamily: 'Roboto Mono, monospace', width:'75%', height:'50%', textAlign:'left' },
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            });
         })
         .catch((error) => {
             console.error("Error adding save document: ", error);
@@ -611,6 +649,17 @@ class ViewPost extends Component {
         .then(() => {
             console.log("Save document successfully deleted");
             this.setState({postSaved: false});
+
+            toast.success('Post Unsaved!', {
+                style: { fontFamily: 'Roboto Mono, monospace', width:'75%', height:'50%', textAlign:'left' },
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            });
         })
         .catch((err) => {console.log("Error unsaving post", err)});
         
@@ -679,7 +728,17 @@ class ViewPost extends Component {
             reply: '',
             comments: comments
         })
-        console.log(comments);
+        
+        toast.success('Reply Posted!', {
+            style: { fontFamily: 'Roboto Mono, monospace', width:'75%', height:'50%', textAlign:'left' },
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+        });
 
         var user = firebase.auth().currentUser;
 
@@ -701,6 +760,17 @@ class ViewPost extends Component {
             return r !== reply;
         });
         this.setState({comments: comments});
+
+        toast.success('Reply Deleted!', {
+            style: { fontFamily: 'Roboto Mono, monospace', width:'75%', height:'50%', textAlign:'left' },
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+        });
     }
 
     onChangeReply(e) {

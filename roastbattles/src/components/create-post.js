@@ -19,6 +19,13 @@ import "firebase/firestore";
 import "firebase/auth";
 import "firebase/storage";
 
+//Toasts
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+//Configure toasts
+toast.configure();
+
 const styles = {
     form: {
         backgroundColor: '#242323',
@@ -87,6 +94,19 @@ class CreatePost extends Component {
                 fileList.push(e.target.files[i]);
             }
             this.setState({fileList: fileList, fileNames: fileNames, numberOfFiles: numFiles});
+        }
+        else{
+            toast.error('You cannot upload more than 5 images! Please delete images before trying again', {
+                style: { fontFamily: 'Roboto Mono, monospace', textAlign:'left' },
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            });
+            e.target.value = null;
         }
       }
 

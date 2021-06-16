@@ -23,6 +23,13 @@ import "firebase/firestore";
 import "firebase/auth";
 import "firebase/storage";
 
+//Toasts
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+//Configure toasts
+toast.configure();
+
 const styles = {
     form: {
         backgroundColor: '#242323',
@@ -38,7 +45,6 @@ const styles = {
         background: "#333131"
     }
 }
-
 
 //TODO: REDIRECT
 //REDIRECT TO EDIT IF POST NOT CREATED
@@ -94,6 +100,19 @@ class EditPost extends Component {
                 newFiles.push(e.target.files[i]);
             }
             this.setState({newFiles: newFiles, newFileNames: newFileNames, numberOfFiles: numFiles});
+        }
+        else{
+            toast.error('You cannot upload more than 5 images! Please delete images before trying again', {
+                style: { fontFamily: 'Roboto Mono, monospace', textAlign:'left' },
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            });
+            e.target.value = null;
         }
     }
 
@@ -210,7 +229,7 @@ class EditPost extends Component {
             guiltyPleasure: this.state.guiltyPleasure,
             otherInfo: this.state.otherInfo,
             fileURLS: fileURLS})
-        .then(() => {window.location = '/'})
+        .then(() => {window.location = '/';})
         .catch((err) => {console.log(err)})
     }
 
@@ -242,12 +261,23 @@ class EditPost extends Component {
 
     onDeleteFileFromThumbnail(e, url) {
         let fileURLS = this.state.fileURLS;
-        fileURLS = fileURLS.filter(function(item) {
-            return item !== url
-        })
+
+        var idx = fileURLS.findIndex(item => item==url);
+        fileURLS.splice(idx,1);   
 
         var user = firebase.auth().currentUser;
         var newNumberOfFiles = this.state.numberOfFiles - 1;
+
+        toast.info('Image temporarily deleted! Click submit below to save this change', {
+            style: { fontFamily: 'Roboto Mono, monospace', textAlign:'left' },
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+        });
 
         //save to state
         this.setState({fileURLS: fileURLS, numberOfFiles: newNumberOfFiles});
@@ -256,8 +286,18 @@ class EditPost extends Component {
     onDeleteNewFile(e, fileName) {
         e.preventDefault();
 
-        var newFileNames = this.state.newFileNames.filter(function(element) { return element !== fileName });
-        var newFiles = this.state.newFiles.filter(function(element) { return element.name !== fileName });
+        let newFileNames = this.state.newFileNames;
+        let newFiles = this.state.newFiles;
+
+        var idx = newFileNames.findIndex(item => item==fileName);
+        newFileNames.splice(idx,1);   
+
+        idx = newFiles.findIndex(item => item.name==fileName);
+        newFiles.splice(idx,1);   
+
+
+        //var newFileNames = this.state.newFileNames.filter(function(element) { return element !== fileName });
+        //var newFiles = this.state.newFiles.filter(function(element) { return element.name !== fileName });
         var newNumberOfFiles  = this.state.numberOfFiles - 1;
 
         this.setState({newFileNames: newFileNames, newFiles: newFiles, numberOfFiles: newNumberOfFiles});

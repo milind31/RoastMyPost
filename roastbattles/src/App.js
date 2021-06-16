@@ -20,7 +20,6 @@ import EditPost from './components/edit-post';
 import SavedPosts from './components/saved-posts';
 import PageNotFound from './components/page-not-found';
 
-
 const theme = createMuiTheme({
   palette: {
     primary: {
