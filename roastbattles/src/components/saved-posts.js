@@ -2,6 +2,10 @@
 import React, { Component } from 'react';
 import Nav from './navbar';
 
+//Redux
+import { connect } from 'react-redux';
+import { setSavedPosts, savePost, unsavePost } from './actions/index';
+
 //Firebase
 import firebase from 'firebase/app';
 import "firebase/auth";
@@ -20,6 +24,7 @@ const styles = {
     header: {
         marginTop: '175px',
         paddingBottom: '20px'
+
     }
 }
 
@@ -27,7 +32,7 @@ class SavedPosts extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {saves: [], loading: true}
+        this.state = {loading: true}
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
         this.getSaves = this.getSaves.bind(this);
@@ -41,7 +46,12 @@ class SavedPosts extends Component {
     handleAuthChange(user) {
         if (user) {
             //user is logged in
-            this.getSaves(user.uid)
+            if (this.props.saves.fetchedSaves === false){
+                this.getSaves(user.uid);
+            }
+            else{
+                this.setState({loading: false});
+            }
         } else {
             //user is not logged in
             window.location = '/signin';
@@ -49,6 +59,7 @@ class SavedPosts extends Component {
     }
     
     getSaves(id) {
+        console.log("firebase call...")
         firebase.firestore().collection('saves').where("saver", "==", id).get()
         .then((data) => {
             let saves = []
@@ -65,7 +76,8 @@ class SavedPosts extends Component {
         })
         .then((saves) => {
             console.log(saves);
-            this.setState({saves: saves, loading: false});
+            this.props.setSavedPosts(saves);
+            this.setState({loading: false})
         })
     }
 
@@ -73,19 +85,20 @@ class SavedPosts extends Component {
         <div>
             <a href={"/posts/" + props.save.postOwner} >{props.save.postOwner}</a>
             <br/>
-            <small>Saved on {props.save.timeStamp.toDateString()}</small>
+            <small>Saved on {props.save.timeStamp.toString()}</small>
         </div>
     )
 
     render() {
         const { classes } = this.props;
+        const { saves } = this.props;
         return (
             <div>
                 <Nav/>
                 <h1 className={classes.header}>Saved Posts</h1>
-                {this.state.saves.length > 0 
+                {saves.saves.length > 0 
                     ? 
-                    (this.state.saves.sort(function(a,b){return a.timeStamp - b.timeStamp}).map((save) => (
+                    (saves.saves.sort(function(a,b){return a.timeStamp - b.timeStamp}).map((save) => (
                         <this.Save save={save} classes={classes}></this.Save>))
                     )
                     :
@@ -110,5 +123,11 @@ SavedPosts.propTypes = {
     classes: PropTypes.object.isRequired
 }
 
+const mapStateToProps = (state) => ({
+    saves: state.saves,
+    gotSaves: state.gotSaves,
+})
 
-export default withStyles(styles)(SavedPosts);
+const mapActionsToProps = { setSavedPosts, savePost, unsavePost };
+
+export default connect(mapStateToProps, mapActionsToProps)(withStyles(styles)(SavedPosts));
