@@ -11,9 +11,10 @@ import Col from 'react-bootstrap/Col';
 import Image from 'react-bootstrap/Image';
 
 //Material UI
-import { withStyles } from '@material-ui/styles';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import Button from '@material-ui/core/Button';
+import { withStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
 
 //Firebase
@@ -83,6 +84,9 @@ class EditPost extends Component {
             newFiles: [],
             newFileNames: [], 
             numberOfFiles: 0,
+
+            //loading
+            loading: false,
         }
     }
 
@@ -196,6 +200,8 @@ class EditPost extends Component {
     onSubmit = async (e) =>{
         e.preventDefault();
 
+        this.setState({loading: true});
+
         var user = firebase.auth().currentUser;
         var fileURLS = this.state.fileURLS;
         if (this.state.newFiles.length > 0){
@@ -229,7 +235,7 @@ class EditPost extends Component {
             guiltyPleasure: this.state.guiltyPleasure,
             otherInfo: this.state.otherInfo,
             fileURLS: fileURLS})
-        .then(() => {window.location = '/';})
+        .then(() => {this.setState({loading: false}); window.location = '/';})
         .catch((err) => {console.log(err)})
     }
 
@@ -458,9 +464,11 @@ class EditPost extends Component {
                     </Form.Group>
                     
                     { /*submit*/ }
-                    <SubmitButton variant="primary" type="submit">
-                        Submit
-                    </SubmitButton>
+                    {this.state.loading ? <CircularProgress/> : (
+                        <SubmitButton variant="primary" type="submit">
+                            Submit
+                        </SubmitButton>
+                    )}
 
                     </Form>
             </div>
