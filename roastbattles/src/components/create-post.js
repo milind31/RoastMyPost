@@ -6,8 +6,13 @@ import Nav from './navbar';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 
+//Redux
+import { connect } from 'react-redux';
+import { userCreatedPost } from './actions/index';
+
 //Material UI
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import MuiButton from '@material-ui/core/Button';
 import { withStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
@@ -22,6 +27,7 @@ import "firebase/storage";
 //Toasts
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Loading from './loading';
 
 //Configure toasts
 toast.configure();
@@ -76,6 +82,8 @@ class CreatePost extends Component {
             fileList: [],
             fileNames: [],
             numberOfFiles: 0,
+
+            loading: false,
         }
     }
 
@@ -185,6 +193,7 @@ class CreatePost extends Component {
     onSubmit = async (e) =>{
         e.preventDefault();
 
+        this.setState({loading: true});
         var fileURLS = [];
         if (this.state.fileList.length > 0) {
             // 3. Loop over all the files
@@ -220,7 +229,10 @@ class CreatePost extends Component {
             firebase.firestore().collection("users").doc(user.uid.toString()).update({
                 createdPost: true
             })
-            .then(() => {window.location = '/'})
+            .then(() => {
+                this.props.userCreatedPost();
+            })
+            .then(() => {window.location = '/'; this.setState({loading: false});})
         })
         .catch((err) => {console.log(err)})
     }
@@ -384,9 +396,11 @@ class CreatePost extends Component {
                     </Form.Group>
                     
                     { /*submit*/ }
+                    {this.state.loading ? (<CircularProgress/>) : (
                     <Button variant="primary" type="submit">
                         Submit
-                    </Button>
+                    </Button>)
+                    }
 
                     </Form>
             </div>
@@ -398,5 +412,11 @@ CreatePost.propTypes = {
     classes: PropTypes.object.isRequired
 }
 
+const mapStateToProps = (state) => ({
+    createdPost: state.createdPost
+})
 
-export default withStyles(styles)(CreatePost);
+const mapActionsToProps = { userCreatedPost };
+
+export default connect(mapStateToProps, mapActionsToProps)(withStyles(styles)(CreatePost))
+
