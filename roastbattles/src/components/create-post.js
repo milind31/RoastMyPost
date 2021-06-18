@@ -84,7 +84,7 @@ class CreatePost extends Component {
             fileNames: [],
             numberOfFiles: 0,
 
-            loading: false,
+            loading: true,
         }
     }
 
@@ -134,9 +134,10 @@ class CreatePost extends Component {
 
     handleAuthChange(user) {
         if (user) {
-            //user is logged in
-            //TODO: IF USER CREATED POST (GET FROM REDUX)
-            //THEN SEND TO THEIR POST
+            if (this.props.createdPost){
+                window.location = '/posts/' + user.uid;
+            }
+            this.setState({loading: false})
         } else {
             //user is not logged in
             window.location = '/signin';
@@ -255,6 +256,8 @@ class CreatePost extends Component {
         const { classes } = this.props;
         return (
             <div style={{padding: '100px 0px 200px 0px'}}>
+                {this.state.loading ? (<Loading/>) : (
+                <div>
                 <Nav/>
                 <h1>Create post...</h1>
                 <Form className={classes.form}  onSubmit={this.onSubmit}>
@@ -406,6 +409,8 @@ class CreatePost extends Component {
                     }
 
                     </Form>
+                    </div>
+                    )}
             </div>
         )
   }
