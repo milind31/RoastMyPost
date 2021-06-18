@@ -14,8 +14,6 @@ import Col from 'react-bootstrap/Col';
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import Backdrop from '@material-ui/core/Backdrop';
-/*import Avatar from '@material-ui/core/Avatar';
-import Grid from '@material-ui/core/Grid';*/
 import withStyles from '@material-ui/core/styles/withStyles';
 import WhatshotIcon from '@material-ui/icons/Whatshot';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -121,6 +119,7 @@ const styles = ((theme) => ({
     backdrop: {
         zIndex: theme.zIndex.drawer + 1, 
         color: '#fff',
+        marginTop: '-50px'
     },
 }))
 
@@ -154,7 +153,8 @@ class ViewPost extends Component {
             comments: [],
             commentsToShow: [],
             numberOfCommentsToShow: 10,
-            commentDeleteDialogueOpen: false,
+            deleteCommentMode: false,
+            deleteReplyMode: false,
             replyMode: false,
             replyID: '',
             replyCommentOwnerID: '',
@@ -167,19 +167,12 @@ class ViewPost extends Component {
             postNotFound: false,
             contentLoading: true,
             saveStatusLoading: true,
-
-            //Toasts
-            commentPostedToast: false,
-            postSavedToast: false,
-            replyToast: false,
-            commentDeletedToast: false,
         }
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
         this.onPostComment = this.onPostComment.bind(this);
         this.onChangeComment = this.onChangeComment.bind(this);
         this.onChangeReply = this.onChangeReply.bind(this);
-        this.onDeleteComment = this.onDeleteComment.bind(this);
         this.onChangeNumberOfComments = this.onChangeNumberOfComments.bind(this);
         this.getNewPost = this.getNewPost.bind(this);
         this.savePost = this.savePost.bind(this);
@@ -355,7 +348,7 @@ class ViewPost extends Component {
         comments = comments.filter(function( obj ) {
             return obj.id !== id;
         });
-        this.setState({comments: comments});
+        this.setState({comments: comments, deleteCommentMode: false});
 
         toast.success('Comment Deleted!', {
             style: { fontFamily: 'Roboto Mono, monospace', width:'75%', height:'50%', textAlign:'left' },
@@ -376,6 +369,17 @@ class ViewPost extends Component {
     }
 
     Reply = props => (
+        <div>
+            {this.state.deleteReplyMode && 
+                <Backdrop open={this.state.deleteReplyMode} className={props.classes.backdrop}>
+                    <Form className={props.classes.form} style={{ borderRadius: '5px', width: "25%", padding: '10px'}}>
+                        <h3 style={{marginTop: '10px'}}>Are you sure you want to delete this reply?</h3>
+                        <p style={{ fontSize:'90%', marginBottom:'20px'}}>This action cannot be undone...</p>
+                        <SubmitButton variant="primary" style={{float: "right", margin: "5px"}} onClick={(e) => {this.onDeleteReply(e, props.commentID, props.reply)}}>Yes</SubmitButton>
+                        <SubmitButton variant="secondary" style={{float: "right", margin: "5px"}} onClick={() => this.setState({deleteReplyMode: false})}>Cancel</SubmitButton>
+                    </Form>
+                </Backdrop>
+            }
         <div className={props.classes.comment} style={{marginLeft: '25px'}}>
             <p>
                 <a href={"/posts/" + props.reply.replyUserID} 
@@ -388,16 +392,28 @@ class ViewPost extends Component {
             <small>{props.reply.timeStamp}</small>
             {this.state.uid === props.reply.replyUserID &&
             <Tooltip message={"Delete Reply"}>
-                    <Button color="primary" style={{backgroundColor:'transparent'}} onClick={(e) => {this.onDeleteReply(e, props.commentID, props.reply)}}>
+                    <Button color="primary" style={{backgroundColor:'transparent'}} onClick={() => this.setState({deleteReplyMode: true})}>
                         <DeleteIcon/>
                     </Button>
             </Tooltip>}
           <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
         </div>
+        </div>
     )
 
     //Move to new file later
     Comment = props => (
+        <div>
+            {this.state.deleteCommentMode && 
+                <Backdrop open={this.state.deleteCommentMode} className={props.classes.backdrop}>
+                    <Form className={props.classes.form} style={{ borderRadius: '5px', width: "25%", padding: '10px'}}>
+                        <h3 style={{marginTop: '10px'}}>Are you sure you want to delete this comment?</h3>
+                        <p style={{ fontSize:'90%', marginBottom:'20px'}}>This action cannot be undone...</p>
+                        <SubmitButton variant="primary" style={{float: "right", margin: "5px"}} type="submit" onClick={(e) => {this.onDeleteComment(e, props.comment.id)}}>Yes</SubmitButton>
+                        <SubmitButton variant="secondary" style={{float: "right", margin: "5px"}} type="submit" onClick={() => this.setState({deleteCommentMode: false})}>Cancel</SubmitButton>
+                    </Form>
+                </Backdrop>
+            }
         <div className={props.classes.comment}>
             <p>
                 <a href={"/posts/" + props.comment.commenter} 
@@ -444,7 +460,7 @@ class ViewPost extends Component {
 
             {this.state.uid === props.comment.commenter &&
             <Tooltip message="Delete Comment">
-                <Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={(e) => {this.onDeleteComment(e, props.comment.id)}}>
+                <Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={() => this.setState({deleteCommentMode: true})}>
                 <DeleteIcon/>
             </Button>
           </Tooltip>}
@@ -459,6 +475,7 @@ class ViewPost extends Component {
             ))}
             {props.comment.replies.length > 0 && props.comment.numRepliesToShow < props.comment.replies.length && <Button style={{margin: '0 auto', display: "flex"}} color="primary" onClick={(e) => {this.onShowMoreReplies(e, props.comment.id)}}>Show more replies</Button>}
             {props.comment.replies.length > INITIAL_NUMBER_OF_REPLIES && props.comment.numRepliesToShow >= props.comment.replies.length && <Button style={{margin: '0 auto', display: "flex"}} color="primary" onClick={(e) => {this.onHideReplies(e, props.comment.id)}}>Hide replies</Button>}
+        </div>
         </div>
     )
 
@@ -740,7 +757,7 @@ class ViewPost extends Component {
         comments[index].replies = comments[index].replies.filter(function( r ) {
             return r !== reply;
         });
-        this.setState({comments: comments});
+        this.setState({comments: comments, deleteReplyMode: false});
 
         toast.success('Reply Deleted!', {
             style: { fontFamily: 'Roboto Mono, monospace', width:'75%', height:'50%', textAlign:'left' },
