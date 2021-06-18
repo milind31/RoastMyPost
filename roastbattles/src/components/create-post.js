@@ -1,6 +1,7 @@
 //React
 import React, { Component } from 'react';
 import Nav from './navbar';
+import Tooltip from './utils/tooltip';
 
 //React Bootstrap
 import Button from 'react-bootstrap/Button';
@@ -281,7 +282,9 @@ class CreatePost extends Component {
                     {this.state.fileNames.map((fileName) => 
                         <div>
                         <p style={{display: 'inline-block'}}>{fileName}</p>
-                        <MuiButton color="secondary" onClick={(e) => this.onDeleteFile(e, fileName)}><DeleteForeverIcon></DeleteForeverIcon></MuiButton>
+                        <Tooltip message="Delete Image">
+                            <MuiButton color="secondary" onClick={(e) => this.onDeleteFile(e, fileName)}><DeleteForeverIcon></DeleteForeverIcon></MuiButton>
+                        </Tooltip>
                         </div>
                     )}
                     </div>

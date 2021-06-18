@@ -1,6 +1,7 @@
 //React
 import React, { Component } from 'react';
 import Nav from './navbar';
+import Tooltip from './utils/tooltip';
 
 //React Bootstrap
 import SubmitButton from 'react-bootstrap/Button';
@@ -257,7 +258,9 @@ class EditPost extends Component {
                         {this.state.fileURLS.length !== 0 && this.state.fileURLS.map((url, index) => (
                             <Col xs={6} md={4}>
                                 <Image thumbnail  src={url}></Image>
-                                <Button color="primary"onClick={(e) => {this.onDeleteFileFromThumbnail(e, url)}}><DeleteForeverIcon/></Button>
+                                <Tooltip message="Delete Image" location="bottom">
+                                    <Button color="primary"onClick={(e) => {this.onDeleteFileFromThumbnail(e, url)}}><DeleteForeverIcon/></Button>
+                                </Tooltip>
                             </Col>
                         ))}
                     </Row>
@@ -350,7 +353,9 @@ class EditPost extends Component {
                     {this.state.newFileNames.map((fileName) => 
                         <div>
                         <p style={{display: 'inline-block'}}>{fileName}</p>
-                        <Button color="secondary" onClick={(e) => this.onDeleteNewFile(e, fileName)}><DeleteForeverIcon></DeleteForeverIcon></Button>
+                        <Tooltip message="Delete Image">
+                            <Button color="secondary" onClick={(e) => this.onDeleteNewFile(e, fileName)}><DeleteForeverIcon></DeleteForeverIcon></Button>
+                        </Tooltip>
                         </div>
                     )}
                     </div>

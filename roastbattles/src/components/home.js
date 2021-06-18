@@ -101,7 +101,7 @@ class Home extends Component {
         return (
             <div>
                 <Nav/>
-                <div style={{paddingTop:'200px'}}>
+                <div style={{paddingTop:'250px'}}>
                 <h1 className={classes.header}>Welcome!</h1>
                 {
                     this.props.createdPost ? 

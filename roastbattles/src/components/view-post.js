@@ -3,13 +3,12 @@ import React, { Component, Fragment } from 'react';
 import Nav from './navbar';
 import Loading from './loading';
 import PostNotFound from './post-not-found';
+import Tooltip from './utils/tooltip';
 
 //React Bootstrap
 import SubmitButton from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Col from 'react-bootstrap/Col';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
-import Tooltip from 'react-bootstrap/Tooltip';
 
 //Material UI
 import Button from '@material-ui/core/Button';
@@ -388,17 +387,11 @@ class ViewPost extends Component {
             <p style={{fontSize: '125%'}}>{props.reply.body}</p>
             <small>{props.reply.timeStamp}</small>
             {this.state.uid === props.reply.replyUserID &&
-            <OverlayTrigger
-                placement='top'
-                overlay={
-                <div style={{fontSize: "12px", padding: '4px', borderRadius: "5px", backgroundColor:'black'}}>
-                    <p style={{marginBottom:'0px'}}>Delete Reply</p>
-                </div>
-                }
-            ><Button color="primary" style={{backgroundColor:'transparent'}} onClick={(e) => {this.onDeleteReply(e, props.commentID, props.reply)}}>
-                <DeleteIcon/>
-            </Button>
-            </OverlayTrigger>}
+            <Tooltip message={"Delete Reply"}>
+                    <Button color="primary" style={{backgroundColor:'transparent'}} onClick={(e) => {this.onDeleteReply(e, props.commentID, props.reply)}}>
+                        <DeleteIcon/>
+                    </Button>
+            </Tooltip>}
           <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
         </div>
     )
@@ -450,28 +443,16 @@ class ViewPost extends Component {
                                                              )} 
 
             {this.state.uid === props.comment.commenter &&
-            <OverlayTrigger
-            placement='top'
-            overlay={
-            <div style={{fontSize: "12px", padding: '4px', borderRadius: "5px", backgroundColor:'black'}}>
-                <p style={{marginBottom:'0px'}}>Delete Post</p>
-            </div>
-            }
-        ><Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={(e) => {this.onDeleteComment(e, props.comment.id)}}>
+            <Tooltip message="Delete Comment">
+                <Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={(e) => {this.onDeleteComment(e, props.comment.id)}}>
                 <DeleteIcon/>
             </Button>
-          </OverlayTrigger>}
-          <OverlayTrigger
-                placement='top'
-                overlay={
-                <div style={{fontSize: "12px", padding: '4px', borderRadius: "5px", backgroundColor:'black'}}>
-                    <p style={{marginBottom:'0px'}}>Reply</p>
-                </div>
-                }
-            ><Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={(e) => {this.handleClickReply(e, props.comment.id, props.comment.commenter)}}>
+          </Tooltip>}
+          <Tooltip message="Reply">
+              <Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={(e) => {this.handleClickReply(e, props.comment.id, props.comment.commenter)}}>
                 <ReplyIcon/>
             </Button>
-          </OverlayTrigger>
+          </Tooltip>
             <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
             {props.comment.replies.slice(0, props.comment.numRepliesToShow).map((reply) => (
                 <this.Reply reply={reply} postOwner={props.comment.postOwner} commentID={props.comment.id} classes={props.classes}></this.Reply>

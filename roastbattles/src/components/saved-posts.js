@@ -68,7 +68,7 @@ class SavedPosts extends Component {
                 const save = {
                     postOwner: doc.data().postOwner,
                     saver: doc.data().saver,
-                    timeStamp: doc.data().timeStamp.toDate()
+                    timeStamp: doc.data().timeStamp.toDate().toDateString()
                 }
                 saves.push(save)
             });
