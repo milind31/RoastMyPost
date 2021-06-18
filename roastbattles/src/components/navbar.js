@@ -46,7 +46,7 @@ class Nav extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {userID: '', notifications: []}
+        this.state = {userID: ''}
 
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
@@ -55,52 +55,15 @@ class Nav extends Component {
 
     componentDidMount = () => {
         firebase.auth().onAuthStateChanged(this.handleAuthChange);
-        console.log(this.state.notifications);
     }
 
     handleAuthChange(user) {
         if (user) {
-            firebase.firestore().collection("notifications").where("to", "==", user.uid).get()
-            .then((data) => {
-                var notifications = [];
-                data.forEach((doc) => {
-                    console.log(doc.id)
-                    const notification = { 
-                        id: doc.id,
-                        comment: doc.data().comment,
-                        reply: doc.data().reply,
-                        from: doc.data().from,
-                        to: doc.data().to,
-                        post: doc.data().post,
-                        timeStamp: doc.data().timeStamp.toDate(),
-                    }
-                    notifications.push(notification);
-                })
-                return notifications
-            })
-            .then((notifications) => {
-                this.setState({notifications: notifications}, function(){this.setState({...this.state})});
-            })
+
         } else {
             //user is not logged in
             window.location = '/signin';
         }
-    }
-
-    removeNotification(e, id) {
-        e.preventDefault();
-
-        firebase.firestore().collection("notifications").doc(id).delete().then(() => {
-            console.log("Notification Document successfully deleted!");
-        }).catch((error) => {
-            console.error("Error removing notification document: ", error);
-        });
-
-        let notifications = this.state.notifications;
-        notifications = notifications.filter(function( obj ) {
-            return obj.id !== id;
-        });
-        this.setState({notifications: notifications});
     }
 
     onSignOut() {
@@ -108,56 +71,11 @@ class Nav extends Component {
         this.props.userLoggedOut();
     }
 
-    CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
-        <Button color="secondary"
-            ref={ref}
-            onClick={(e) => {
-                e.preventDefault();
-                onClick(e);
-            }} 
-        ><Badge badgeContent={this.state.notifications.length} color="primary"><NotificationsIcon/></Badge>
-            {children}
-        </Button>
-      ));
-
     render() {
         const { classes } = this.props;
         return (
             <div>
                 <div className={classes.topRight}>
-                    <Dropdown style={{float:'left', margin: '0px', padding: '0px'}}>
-                        <Dropdown.Toggle  as={this.CustomToggle} id="dropdown-basic">
-                        </Dropdown.Toggle>
-                        { this.state.notifications.length > 0 ? (
-                        <Dropdown.Menu style={{maxHeight: '250px', maxWidth: '500px', overflowY: 'scroll', textAlign: 'center'}}>
-                            {this.state.notifications.map((notification) => (
-                                <div className={classes.dropdownItem}>
-                                    {
-                                        notification.comment ? 
-                                        (<Dropdown.Item style={{padding:'0px', marginTop: '0px', fontSize: '75%'}} href={"/posts/" + notification.post}>User {notification.from} commented on your post!   
-                                            <small style={{fontSize:'75%', padding:'5px'}}>{notification.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
-                                        </Dropdown.Item>
-                                        )
-                                        : 
-                                        (
-                                        <Dropdown.Item style={{padding:'0px', marginTop: '0px', fontSize: '75%'}} href={"/posts/" + notification.post}>User {notification.from} replied to your comment!   
-                                            <small style={{fontSize:'75%', padding:'5px'}}>{notification.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
-                                        </Dropdown.Item>
-                                        )
-                                    }
-                                    <Button style={{marginBottom:'-5px'}} onClick={(e) => this.removeNotification(e, notification.id)}><DeleteForeverIcon/></Button>
-                                    <hr style={{marginBottom:'-5px'}}/>
-                                </div>
-                            ))}
-                        </Dropdown.Menu>
-                        ) :
-                        (
-                        <Dropdown.Menu>
-                            <Dropdown.Item style={{padding:'10px', marginTop: '0px', fontSize: '75%'}} >You have no notifications, you absolute loser</Dropdown.Item>
-                        </Dropdown.Menu>
-                        )
-                        }
-                    </Dropdown>
                     <Button color="primary" onClick={() => window.location = '/saved'}><BookmarksIcon/></Button>
                     <Button color="secondary" onClick={() => this.onSignOut()}>Sign Out</Button>
                 </div>

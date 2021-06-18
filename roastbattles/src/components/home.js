@@ -1,7 +1,7 @@
 //React
 import React, { Component } from 'react';
 import { Fragment } from 'react';
-import Nav from './navbar';
+import NavWithNotifications from './navbar-with-notifications';
 
 //Material UI
 import Button from '@material-ui/core/Button';
@@ -100,7 +100,7 @@ class Home extends Component {
 
         return (
             <div>
-                <Nav/>
+                <NavWithNotifications/>
                 <div style={{paddingTop:'250px'}}>
                 <h1 className={classes.header}>Welcome!</h1>
                 {
