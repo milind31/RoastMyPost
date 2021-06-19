@@ -3,6 +3,10 @@ import React, { Component } from 'react';
 import Nav from './navbar';
 import Tooltip from './utils/tooltip';
 
+//Redux
+import { connect } from 'react-redux';
+import { userDeletedPost } from './actions/index';
+
 //React Bootstrap
 import SubmitButton from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -13,6 +17,7 @@ import Image from 'react-bootstrap/Image';
 
 //Material UI
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Backdrop from '@material-ui/core/Backdrop';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import Button from '@material-ui/core/Button';
 import { withStyles } from '@material-ui/styles';
@@ -32,7 +37,7 @@ import 'react-toastify/dist/ReactToastify.css';
 //Configure toasts
 toast.configure();
 
-const styles = {
+const styles = ((theme) => ({
     form: {
         backgroundColor: '#242323',
         alignItems: 'center'
@@ -45,8 +50,13 @@ const styles = {
     },
     container: {
         background: "#333131"
-    }
-}
+    },
+    backdrop: {
+        zIndex: theme.zIndex.drawer + 1, 
+        color: '#fff',
+        marginTop: '-50px'
+    },
+}))
 
 //TODO: REDIRECT
 //REDIRECT TO EDIT IF POST NOT CREATED
@@ -67,6 +77,7 @@ class EditPost extends Component {
         this.onChangeOtherInfo = this.onChangeOtherInfo.bind(this);
         this.handleFileChange = this.handleFileChange.bind(this);
         this.onDeleteFileFromThumbnail = this.onDeleteFileFromThumbnail.bind(this);
+        this.deletePost = this.deletePost.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.uploadImage = this.uploadImage.bind(this);
 
@@ -85,6 +96,9 @@ class EditPost extends Component {
             newFiles: [],
             newFileNames: [], 
             numberOfFiles: 0,
+
+            //popups
+            deletePostMode: false,
 
             //loading
             loading: false,
@@ -304,19 +318,44 @@ class EditPost extends Component {
         idx = newFiles.findIndex(item => item.name==fileName);
         newFiles.splice(idx,1);   
 
-
-        //var newFileNames = this.state.newFileNames.filter(function(element) { return element !== fileName });
-        //var newFiles = this.state.newFiles.filter(function(element) { return element.name !== fileName });
         var newNumberOfFiles  = this.state.numberOfFiles - 1;
 
         this.setState({newFileNames: newFileNames, newFiles: newFiles, numberOfFiles: newNumberOfFiles});
+    }
+
+    deletePost(){
+        var user = firebase.auth().currentUser;
+
+        firebase.firestore().collection("posts").doc(this.props.match.params.id).delete()
+        .then(() => {
+            console.log("Document successfully deleted!");
+            firebase.firestore().collection("users").doc(this.props.match.params.id).update({
+                createdPost: false
+            })
+            this.props.userDeletedPost();
+            this.setState({deletePostMode:false});
+            window.location = '/';
+        }).catch((error) => {
+            console.error("Error removing document: ", error);
+        });
     }
 
 
     render () {
         const { classes } = this.props;
         return (
-            <div style={{paddingBottom: '500px'}}>
+            <div>
+                {this.state.deletePostMode && 
+                    <Backdrop open={this.state.deletePostMode} className={classes.backdrop}>
+                        <Form className={classes.form} style={{ borderRadius: '5px', width: "25%", padding: '10px'}}>
+                            <h3 style={{marginTop: '10px'}}>Are you sure you want to delete this post?</h3>
+                            <p style={{ fontSize:'90%', marginBottom:'20px'}}>This action cannot be undone...</p>
+                            <SubmitButton variant="primary" style={{float: "right", margin: "5px"}} onClick={this.deletePost()}>Yes</SubmitButton>
+                            <SubmitButton variant="secondary" style={{float: "right", margin: "5px"}} onClick={() => this.setState({deletePostMode: false})}>Cancel</SubmitButton>
+                        </Form>
+                    </Backdrop>
+                }
+            <div style={{paddingBottom: '150px'}}>
                 <Nav/>
                 <h1 style={{paddingTop:'125px'}}>Edit post...</h1>
                 <Form className={classes.form}  onSubmit={this.onSubmit}>
@@ -476,6 +515,9 @@ class EditPost extends Component {
                     )}
 
                     </Form>
+
+                    <Button color="primary" style={{marginTop: '125px'}} onClick={() => this.setState({deletePostMode: true})}>Delete Post</Button>
+            </div>
             </div>
         )
   }
@@ -485,5 +527,8 @@ EditPost.propTypes = {
     classes: PropTypes.object.isRequired
 }
 
+const mapStateToProps = (state) => ({})
 
-export default withStyles(styles)(EditPost);
+const mapActionsToProps = { userDeletedPost };
+
+export default connect(mapStateToProps, mapActionsToProps)(withStyles(styles)(EditPost));

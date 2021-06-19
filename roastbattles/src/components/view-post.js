@@ -649,7 +649,7 @@ class ViewPost extends Component {
 
         var user = firebase.auth().currentUser;
 
-        //add document to firestore
+        //delete document from firestore
         firebase.firestore().collection('saves').where("saver", "==", user.uid).where("postOwner", "==", this.props.match.params.id).get().then(function(querySnapshot) {
             querySnapshot.forEach(function(doc) {
               doc.ref.delete();

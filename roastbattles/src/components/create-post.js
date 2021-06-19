@@ -4,7 +4,7 @@ import Nav from './navbar';
 import Tooltip from './utils/tooltip';
 
 //React Bootstrap
-import Button from 'react-bootstrap/Button';
+import SubmitButton from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 
 //Redux
@@ -14,7 +14,7 @@ import { userCreatedPost } from './actions/index';
 //Material UI
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import MuiButton from '@material-ui/core/Button';
+import Button from '@material-ui/core/Button';
 import { withStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
 
@@ -79,11 +79,14 @@ class CreatePost extends Component {
             selfRating: '',
             guiltyPleasure: '',
             otherInfo: '',
+            uid: '',
+            
+            //files
             files: null,
             fileList: [],
             fileNames: [],
             numberOfFiles: 0,
-
+            
             loading: true,
         }
     }
@@ -137,7 +140,7 @@ class CreatePost extends Component {
             if (this.props.createdPost){
                 window.location = '/posts/' + user.uid;
             }
-            this.setState({loading: false})
+            this.setState({loading: false, uid: user.uid})
         } else {
             //user is not logged in
             window.location = '/signin';
@@ -216,7 +219,7 @@ class CreatePost extends Component {
         var user = firebase.auth().currentUser;
 
         //add post in firestore
-        firebase.firestore().collection("posts").doc(user.uid.toString()).set({
+        firebase.firestore().collection("posts").doc(this.state.uid).set({
             music: this.state.music,
             age: this.state.age,
             dayAsOtherPerson: this.state.dayAsOtherPerson,
@@ -286,7 +289,7 @@ class CreatePost extends Component {
                         <div>
                         <p style={{display: 'inline-block'}}>{fileName}</p>
                         <Tooltip message="Delete Image">
-                            <MuiButton color="secondary" onClick={(e) => this.onDeleteFile(e, fileName)}><DeleteForeverIcon></DeleteForeverIcon></MuiButton>
+                            <Button color="secondary" onClick={(e) => this.onDeleteFile(e, fileName)}><DeleteForeverIcon></DeleteForeverIcon></Button>
                         </Tooltip>
                         </div>
                     )}
@@ -403,9 +406,9 @@ class CreatePost extends Component {
                     
                     { /*submit*/ }
                     {this.state.loading ? (<CircularProgress/>) : (
-                    <Button variant="primary" type="submit">
+                    <SubmitButton variant="primary" type="submit">
                         Submit
-                    </Button>)
+                    </SubmitButton>)
                     }
 
                     </Form>

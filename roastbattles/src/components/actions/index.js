@@ -11,6 +11,12 @@ export const userLoggedOut = () => {
     }
 }
 
+export const userDeletedPost = () => {
+    return {
+        type: 'USER_DELETED_POST'
+    }
+}
+
 export const userHasNoPost = () => {
     return {
         type: 'USER_HAS_NO_POST'
