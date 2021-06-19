@@ -63,12 +63,12 @@ class Home extends Component {
         e.preventDefault();
 
         var db = firebase.firestore();
-        var users = db.collection("users");
+        var posts = db.collection("posts");
 
-        var key = users.doc().id;
+        var key = posts.doc().id;
 
         console.log("key", key);
-        users.where(firebase.firestore.FieldPath.documentId(), '>=', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
+        posts.where(firebase.firestore.FieldPath.documentId(), '>=', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
         .then(snapshot => {
             if(snapshot.size > 0) {
                 snapshot.forEach(doc => {
@@ -76,7 +76,7 @@ class Home extends Component {
                 });
             }
             else {
-                var user = users.where(firebase.firestore.FieldPath.documentId(), '<', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
+                var post = posts.where(firebase.firestore.FieldPath.documentId(), '<', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
                 .then(snapshot => {
                     snapshot.forEach(doc => {
                         window.location = '/posts/' + doc.id;

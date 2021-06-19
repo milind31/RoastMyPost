@@ -17,7 +17,7 @@ const savesReducer = (state = initialState, action) => {
                 fetchedSaves: state.fetchedSaves
             }
         case 'UNSAVE_POST':
-            let index = state.saves.findIndex(element => element.postOwner === action.payload.postOwner);
+            let index = state.saves.findIndex(element => element.postOwner === action.payload);
             state.saves.splice(index, 1);
             return {
                 saves: state.saves,

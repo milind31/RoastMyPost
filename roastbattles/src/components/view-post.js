@@ -4,6 +4,8 @@ import Nav from './navbar';
 import Loading from './loading';
 import PostNotFound from './post-not-found';
 import Tooltip from './utils/tooltip';
+import { connect } from 'react-redux';
+import { savePost, unsavePost } from './actions/index';
 
 //React Bootstrap
 import SubmitButton from 'react-bootstrap/Button';
@@ -617,6 +619,15 @@ class ViewPost extends Component {
             //update state
             this.setState({postSaved: true});
 
+            const timeElapsed = Date.now();
+            const today = new Date(timeElapsed);
+
+            this.props.savePost(
+                {saver: user.uid,
+                postOwner: this.props.match.params.id,
+                timeStamp: today.toDateString(),
+            });
+
             toast.success('Post Saved!', {
                 style: { fontFamily: 'Roboto Mono, monospace', width:'75%', height:'50%', textAlign:'left' },
                 position: "top-right",
@@ -647,6 +658,8 @@ class ViewPost extends Component {
         .then(() => {
             console.log("Save document successfully deleted");
             this.setState({postSaved: false});
+
+            this.props.unsavePost(this.props.match.params.id);
 
             toast.success('Post Unsaved!', {
                 style: { fontFamily: 'Roboto Mono, monospace', width:'75%', height:'50%', textAlign:'left' },
@@ -885,5 +898,8 @@ ViewPost.propTypes = {
     classes: PropTypes.object.isRequired
 }
 
+const mapStateToProps = (state) => ({})
 
-export default (withStyles(styles)(ViewPost));
+const mapActionsToProps = { savePost, unsavePost };
+
+export default connect(mapStateToProps, mapActionsToProps)(withStyles(styles)(ViewPost));

@@ -25,14 +25,16 @@ export const setSavedPosts = (posts) => {
     }
 }
 
-export const savePost = () => {
+export const savePost = (post) => {
     return {
-        type: 'SAVE_POST'
+        type: 'SAVE_POST',
+        payload: post
     }
 }
 
-export const unsavePost = () => {
+export const unsavePost = (postOwner) => {
     return {
-        type: 'UNSAVE_POST'
+        type: 'UNSAVE_POST',
+        payload: postOwner
     }
 }
