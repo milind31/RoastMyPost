@@ -324,9 +324,40 @@ class EditPost extends Component {
     }
 
     deletePost(){
-        var user = firebase.auth().currentUser;
-
+        console.log(this.props.match.params.id);
+        // delete post from firestore
         firebase.firestore().collection("posts").doc(this.props.match.params.id).delete()
+
+        //delete associated comments/scores from firestore
+        firebase.firestore().collection("comments").where("postOwner", "==", this.props.match.params.id).get()
+        .then(querySnapshot =>  {
+            querySnapshot.forEach(function(comment) {
+            firebase.firestore().collection('scores').where("comment", "==", comment.data().comment).get()
+            .then(function(querySnapshot) {
+                querySnapshot.forEach(function(score) {
+                    score.ref.delete();
+                })
+            })
+            comment.ref.delete();
+            })
+        })
+        .then(() => {
+            //delete associated saves from firestore
+            firebase.firestore().collection('saves').where("postOwner", "==", this.props.match.params.id).get()
+            .then(function(querySnapshot) {
+                querySnapshot.forEach(function(doc) {
+                    doc.ref.delete();
+                })
+            })
+        })
+        .then(() => {
+            //delete associated notifications from firestore
+            firebase.firestore().collection('notifications').where("post", "==", this.props.match.params.id).get().then(function(querySnapshot) {
+                querySnapshot.forEach(function(doc) {
+                    doc.ref.delete();
+                })
+            })
+        })
         .then(() => {
             console.log("Document successfully deleted!");
             firebase.firestore().collection("users").doc(this.props.match.params.id).update({
@@ -335,9 +366,8 @@ class EditPost extends Component {
             this.props.userDeletedPost();
             this.setState({deletePostMode:false});
             window.location = '/';
-        }).catch((error) => {
-            console.error("Error removing document: ", error);
-        });
+        })
+        .catch((err) => {console.log(err)})
     }
 
 
@@ -350,7 +380,7 @@ class EditPost extends Component {
                         <Form className={classes.form} style={{ borderRadius: '5px', width: "25%", padding: '10px'}}>
                             <h3 style={{marginTop: '10px'}}>Are you sure you want to delete this post?</h3>
                             <p style={{ fontSize:'90%', marginBottom:'20px'}}>This action cannot be undone...</p>
-                            <SubmitButton variant="primary" style={{float: "right", margin: "5px"}} onClick={this.deletePost()}>Yes</SubmitButton>
+                            <SubmitButton variant="primary" style={{float: "right", margin: "5px"}} onClick={() => {this.deletePost()}}>Yes</SubmitButton>
                             <SubmitButton variant="secondary" style={{float: "right", margin: "5px"}} onClick={() => this.setState({deletePostMode: false})}>Cancel</SubmitButton>
                         </Form>
                     </Backdrop>

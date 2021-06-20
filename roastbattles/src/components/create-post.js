@@ -237,7 +237,7 @@ class CreatePost extends Component {
             .then(() => {
                 this.props.userCreatedPost();
             })
-            .then(() => {window.location = '/'; this.setState({loading: false});})
+            .then(() => {window.location = '/'})
         })
         .catch((err) => {console.log(err)})
     }

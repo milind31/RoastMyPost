@@ -19,6 +19,7 @@ import createMuiTheme from '@material-ui/core/styles/createMuiTheme';
 import EditPost from './components/edit-post';
 import SavedPosts from './components/saved-posts';
 import PageNotFound from './components/page-not-found';
+import Settings from './components/settings';
 
 const theme = createMuiTheme({
   palette: {
@@ -67,6 +68,7 @@ class App extends Component {
             <Route exact path={"/posts/:id"}  component={ViewPost}/>
             <Route exact path={"/posts/:id/edit"}  component={EditPost}/>
             <Route exact path={"/saved"}  component={SavedPosts}/>
+            <Route exact path={"/settings"}  component={Settings}/>
             <Route path="*" render={() => <PageNotFound/>} />
           </Switch>
         </div>

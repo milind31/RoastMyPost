@@ -341,10 +341,18 @@ class ViewPost extends Component {
         e.preventDefault();
 
         firebase.firestore().collection("comments").doc(id).delete().then(() => {
-            console.log("Document successfully deleted!");
+            //delete associated saves from firestore
+            firebase.firestore().collection('scores').where("comment", "==", id).get()
+            .then(function(querySnapshot) {
+                querySnapshot.forEach(function(doc) {
+                    doc.ref.delete();
+                })
+            })
         }).catch((error) => {
             console.error("Error removing document: ", error);
         });
+
+        //TODO: DELETE SAVE AS WELL
 
         let comments = this.state.comments;
         comments = comments.filter(function( obj ) {
@@ -573,12 +581,12 @@ class ViewPost extends Component {
         e.preventDefault();
 
         var db = firebase.firestore();
-        var users = db.collection("users");
+        var posts = db.collection("posts");
 
-        var key = users.doc().id;
+        var key = posts.doc().id;
 
         console.log("key", key);
-        users.where(firebase.firestore.FieldPath.documentId(), '>=', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
+        posts.where(firebase.firestore.FieldPath.documentId(), '>=', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
         .then(snapshot => {
             if(snapshot.size > 0) {
                 snapshot.forEach(doc => {
@@ -586,7 +594,7 @@ class ViewPost extends Component {
                 });
             }
             else {
-                var user = users.where(firebase.firestore.FieldPath.documentId(), '<', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
+                var post = posts.where(firebase.firestore.FieldPath.documentId(), '<', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
                 .then(snapshot => {
                     snapshot.forEach(doc => {
                         window.location = '/posts/' + doc.id;

@@ -1,13 +1,11 @@
 //React
 import React, { Component } from 'react';
-import { Fragment } from 'react';
 import NavWithNotifications from './navbar-with-notifications';
 
 //Material UI
 import Button from '@material-ui/core/Button';
 import withStyles from '@material-ui/core/styles/withStyles';
 import PropTypes from 'prop-types';
-import AppBar from '@material-ui/core/AppBar';
 
 //Firebase
 import firebase from 'firebase/app';

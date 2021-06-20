@@ -12,6 +12,7 @@ import Button from '@material-ui/core/Button';
 import Badge from '@material-ui/core/Badge';
 import BookmarksIcon from '@material-ui/icons/Bookmarks';
 import NotificationsIcon from '@material-ui/icons/Notifications';
+import SettingsIcon from '@material-ui/icons/Settings';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 
 //React Bootstrap
@@ -159,6 +160,7 @@ class NavWithNotifications extends Component {
                         }
                     </Dropdown>
                     <Button color="primary" onClick={() => window.location = '/saved'}><BookmarksIcon/></Button>
+                    <Button color="primary" onClick={() => {window.location="/settings"}}><SettingsIcon/></Button>
                     <Button color="secondary" onClick={() => this.onSignOut()}>Sign Out</Button>
                 </div>
                 <a href='/'><img className={classes.homeButton} src="https://firebasestorage.googleapis.com/v0/b/roastbattles-85b35.appspot.com/o/roastlogosmall.png?alt=media&token=6762f1df-27ea-4d4a-a559-ff87678cac04"/></a>
