@@ -138,6 +138,11 @@ class EditPost extends Component {
     handleAuthChange(user) {
         if (user) {
             //user is logged in
+            //user hasn't created username yet
+            if (this.props.username === '') {
+                window.location = '/set-username';
+            }
+
             if (user.uid !== this.props.match.params.id) {
                 window.location = '/';
             }
@@ -557,7 +562,9 @@ EditPost.propTypes = {
     classes: PropTypes.object.isRequired
 }
 
-const mapStateToProps = (state) => ({})
+const mapStateToProps = (state) => ({
+    username: state.username
+})
 
 const mapActionsToProps = { userDeletedPost };
 

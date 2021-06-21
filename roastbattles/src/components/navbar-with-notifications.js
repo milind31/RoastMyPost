@@ -172,7 +172,7 @@ NavWithNotifications.propTypes = {
 }
 
 const mapStateToProps = (state) => ({
-
+    username: state.username
 })
 
 const mapActionsToProps = {userLoggedOut}

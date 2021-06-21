@@ -50,6 +50,11 @@ class Home extends Component {
     handleAuthChange(user) {
         if (user) {
             //user is logged in
+
+            //user hasn't created username yet
+            if (this.props.username === '') {
+                window.location = '/set-username';
+            }
             this.setState({uid: user.uid, loading: false})
         } else {
             //user is not logged in
@@ -132,7 +137,8 @@ Home.propTypes = {
 }
 
 const mapStateToProps = (state) => ({
-    createdPost: state.createdPost
+    createdPost: state.createdPost,
+    username: state.username
 })
 
 export default connect((mapStateToProps),)(withStyles(styles)(Home));

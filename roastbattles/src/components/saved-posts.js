@@ -45,6 +45,11 @@ class SavedPosts extends Component {
 
     handleAuthChange(user) {
         if (user) {
+            //user hasn't created username yet
+            if (this.props.username === '') {
+                window.location = '/set-username';
+            }
+
             //user is logged in
             if (this.props.saves.fetchedSaves === false){
                 this.getSaves(user.uid);
@@ -52,6 +57,7 @@ class SavedPosts extends Component {
             else{
                 this.setState({loading: false});
             }
+            
         } else {
             //user is not logged in
             window.location = '/signin';
@@ -125,7 +131,7 @@ SavedPosts.propTypes = {
 
 const mapStateToProps = (state) => ({
     saves: state.saves,
-    gotSaves: state.gotSaves,
+    username: state.username
 })
 
 const mapActionsToProps = { setSavedPosts, savePost, unsavePost };

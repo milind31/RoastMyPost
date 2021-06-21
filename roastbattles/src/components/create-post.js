@@ -137,6 +137,11 @@ class CreatePost extends Component {
 
     handleAuthChange(user) {
         if (user) {
+            //user hasn't created username yet
+            if (this.props.username === '') {
+                window.location = '/set-username';
+            }
+
             if (this.props.createdPost){
                 window.location = '/posts/' + user.uid;
             }
@@ -424,7 +429,8 @@ CreatePost.propTypes = {
 }
 
 const mapStateToProps = (state) => ({
-    createdPost: state.createdPost
+    createdPost: state.createdPost,
+    username: state.username
 })
 
 const mapActionsToProps = { userCreatedPost };

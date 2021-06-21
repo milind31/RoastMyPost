@@ -59,7 +59,7 @@ class Nav extends Component {
 
     handleAuthChange(user) {
         if (user) {
-
+            //user hasn't created username yet
         } else {
             //user is not logged in
             window.location = '/signin';
@@ -90,7 +90,7 @@ Nav.propTypes = {
 }
 
 const mapStateToProps = (state) => ({
-
+    username: state.username
 })
 
 const mapActionsToProps = {

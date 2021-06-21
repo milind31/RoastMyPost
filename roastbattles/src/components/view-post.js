@@ -199,6 +199,9 @@ class ViewPost extends Component {
 
     handleAuthChange(user) {
         if (user) {
+            if (this.props.username === '') {
+                window.location = '/set-username';
+            }
             this.setState({uid: user.uid});
             this.getPostInfo(user);
             this.getCommentsAndSavedStatus();
@@ -906,7 +909,9 @@ ViewPost.propTypes = {
     classes: PropTypes.object.isRequired
 }
 
-const mapStateToProps = (state) => ({})
+const mapStateToProps = (state) => ({
+    username: state.username
+})
 
 const mapActionsToProps = { savePost, unsavePost };
 

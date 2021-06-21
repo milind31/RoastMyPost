@@ -67,13 +67,12 @@ class SetUsername extends Component {
     }
 
     setUsername() {
-        //add post in firestore
         let uid = this.props.uid;
         let enteredUsername = this.state.username;
         var t = this;
 
-        //Check if any users exist
-        firebase.firestore().collection('users').where('username', '==', enteredUsername).get()
+        //Check if username already exists
+        firebase.firestore().collection('users').where('username', '==', enteredUsername).limit(1).get()
         .then(function (querySnapshot) {
             if (!querySnapshot.empty) {
                 toast.error('Username already exists, please try again', {

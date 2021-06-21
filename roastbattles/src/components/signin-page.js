@@ -9,7 +9,7 @@ import "firebase/firestore";
 import "firebase/auth";
 
 //Redux
-import { userCreatedPost, userHasNoPost, setUID } from './actions/index';
+import { userCreatedPost, userHasNoPost, setUID, setUsername } from './actions/index';
 import { connect } from 'react-redux';
 
 
@@ -42,6 +42,7 @@ class SignIn extends Component {
                 firebase.firestore().collection('users').doc(user.uid).get()
                   .then((docData) => {
                     this.props.setUID(user.uid);
+                    this.props.setUsername(docData.data().username)
                     if (docData.data().createdPost === true){
                       this.props.userCreatedPost();
                     }
@@ -74,7 +75,8 @@ const mapStateToProps = (state) => ({
 const mapActionsToProps = {
   userCreatedPost,
   userHasNoPost,
-  setUID
+  setUID,
+  setUsername,
 }
 
 export default connect(mapStateToProps, mapActionsToProps)(SignIn);
