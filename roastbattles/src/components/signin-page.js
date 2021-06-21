@@ -9,7 +9,7 @@ import "firebase/firestore";
 import "firebase/auth";
 
 //Redux
-import { userCreatedPost, userHasNoPost } from './actions/index';
+import { userCreatedPost, userHasNoPost, setUID } from './actions/index';
 import { connect } from 'react-redux';
 
 
@@ -34,12 +34,14 @@ class SignIn extends Component {
                 createdPost: false,
                 email: user.email
               })
-              .then(() => {window.location = '/'})
-              .catch(() => {console.log("document not added (error)")})
+              .then(() => {this.props.setUID(user.uid)})
+              .then(() => {window.location = '/set-username'})
+              .catch((err) => {console.log("document not added (error)", err)})
             }
             else {
                 firebase.firestore().collection('users').doc(user.uid).get()
                   .then((docData) => {
+                    this.props.setUID(user.uid);
                     if (docData.data().createdPost === true){
                       this.props.userCreatedPost();
                     }
@@ -47,7 +49,7 @@ class SignIn extends Component {
                       this.props.userHasNoPost();
                     }
                   })
-                  this.props.history.push('/');
+                  .then(() => {window.location= '/';})
             }
           })
       }
@@ -71,7 +73,8 @@ const mapStateToProps = (state) => ({
 
 const mapActionsToProps = {
   userCreatedPost,
-  userHasNoPost
+  userHasNoPost,
+  setUID
 }
 
-export default connect(mapStateToProps, mapActionsToProps)(withRouter(SignIn));
+export default connect(mapStateToProps, mapActionsToProps)(SignIn);

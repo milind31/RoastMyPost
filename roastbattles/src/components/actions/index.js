@@ -44,3 +44,38 @@ export const unsavePost = (postOwner) => {
         payload: postOwner
     }
 }
+
+export const clearSavedPosts = () => {
+    return {
+        type: 'CLEAR_SAVES',
+    }
+}
+
+//UID
+export const setUID = (uid) => {
+    return {
+        type: 'SET_UID',
+        payload: uid.toString()
+    }
+}
+
+export const clearUID = () => {
+    return {
+        type: 'CLEAR_UID',
+    }
+}
+
+
+//username
+export const setUsername = (username) => {
+    return {
+        type: 'SET_USERNAME',
+        payload: username
+    }
+}
+
+export const clearUsername = () => {
+    return {
+        type: 'CLEAR_USERNAME',
+    }
+}

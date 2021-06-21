@@ -56,7 +56,6 @@ class NavWithNotifications extends Component {
 
     componentDidMount = () => {
         firebase.auth().onAuthStateChanged(this.handleAuthChange);
-        console.log(this.state.notifications);
     }
 
     handleAuthChange(user) {
@@ -105,11 +104,12 @@ class NavWithNotifications extends Component {
     }
 
     onSignOut() {
-        firebase.auth().signOut();
         this.props.userLoggedOut();
+        firebase.auth().signOut();
     }
 
     CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
+        
         <Button color="secondary"
             ref={ref}
             onClick={(e) => {
@@ -127,8 +127,7 @@ class NavWithNotifications extends Component {
             <div>
                 <div className={classes.topRight}>
                     <Dropdown style={{float:'left', margin: '0px', padding: '0px'}}>
-                        <Dropdown.Toggle  as={this.CustomToggle} id="dropdown-basic">
-                        </Dropdown.Toggle>
+                        <Dropdown.Toggle  as={this.CustomToggle} id="dropdown-basic"></Dropdown.Toggle>
                         { this.state.notifications.length > 0 ? (
                         <Dropdown.Menu style={{maxHeight: '250px', maxWidth: '500px', overflowY: 'scroll', textAlign: 'center'}}>
                             {this.state.notifications.map((notification) => (
@@ -160,7 +159,6 @@ class NavWithNotifications extends Component {
                         }
                     </Dropdown>
                     <Button color="primary" onClick={() => window.location = '/saved'}><BookmarksIcon/></Button>
-                    <Button color="primary" onClick={() => {window.location="/settings"}}><SettingsIcon/></Button>
                     <Button color="secondary" onClick={() => this.onSignOut()}>Sign Out</Button>
                 </div>
                 <a href='/'><img className={classes.homeButton} src="https://firebasestorage.googleapis.com/v0/b/roastbattles-85b35.appspot.com/o/roastlogosmall.png?alt=media&token=6762f1df-27ea-4d4a-a559-ff87678cac04"/></a>
@@ -177,9 +175,7 @@ const mapStateToProps = (state) => ({
 
 })
 
-const mapActionsToProps = {
-  userLoggedOut
-}
+const mapActionsToProps = {userLoggedOut}
 
 
 export default connect(mapStateToProps, mapActionsToProps)(withStyles(styles)(NavWithNotifications));
