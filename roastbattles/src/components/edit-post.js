@@ -31,11 +31,7 @@ import "firebase/auth";
 import "firebase/storage";
 
 //Toasts
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
-//Configure toasts
-toast.configure();
+import { errorToast, infoToast } from './utils/toast';
 
 const styles = ((theme) => ({
     form: {
@@ -121,16 +117,8 @@ class EditPost extends Component {
             this.setState({newFiles: newFiles, newFileNames: newFileNames, numberOfFiles: numFiles});
         }
         else{
-            toast.error('You cannot upload more than 5 images! Please delete images before trying again', {
-                style: { fontFamily: 'Roboto Mono, monospace', textAlign:'left' },
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-            });
+            errorToast('You cannot upload more than 5 images! Please delete images before trying again');
+
             e.target.value = null;
         }
     }
@@ -296,16 +284,7 @@ class EditPost extends Component {
         var user = firebase.auth().currentUser;
         var newNumberOfFiles = this.state.numberOfFiles - 1;
 
-        toast.info('Image temporarily deleted! Click submit below to save this change', {
-            style: { fontFamily: 'Roboto Mono, monospace', textAlign:'left' },
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-        });
+        infoToast('Image temporarily deleted! Click submit below to save this change')
 
         //save to state
         this.setState({fileURLS: fileURLS, numberOfFiles: newNumberOfFiles});

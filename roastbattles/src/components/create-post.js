@@ -2,6 +2,7 @@
 import React, { Component } from 'react';
 import Nav from './navbar';
 import Tooltip from './utils/tooltip';
+import Loading from './loading';
 
 //React Bootstrap
 import SubmitButton from 'react-bootstrap/Button';
@@ -26,12 +27,7 @@ import "firebase/auth";
 import "firebase/storage";
 
 //Toasts
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import Loading from './loading';
-
-//Configure toasts
-toast.configure();
+import { errorToast } from './utils/toast';
 
 const styles = {
     form: {
@@ -108,16 +104,8 @@ class CreatePost extends Component {
             this.setState({fileList: fileList, fileNames: fileNames, numberOfFiles: numFiles});
         }
         else{
-            toast.error('You cannot upload more than 5 images! Please delete images before trying again', {
-                style: { fontFamily: 'Roboto Mono, monospace', textAlign:'left' },
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-            });
+            errorToast('You cannot upload more than 5 images! Please delete images before trying again');
+            
             e.target.value = null;
         }
       }

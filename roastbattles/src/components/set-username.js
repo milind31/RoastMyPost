@@ -22,10 +22,6 @@ import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
 
 //Toasts
 import { errorToast } from './utils/toast';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
-toast.configure();
 
 const styles = {
     container: {

@@ -34,8 +34,7 @@ import "firebase/auth";
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
 
 //Toasts
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { successToast } from './utils/toast';
 
 //Global Definitions
 var Carousel = require('react-responsive-carousel').Carousel;
@@ -44,8 +43,6 @@ const NUMBER_OF_REPLIES_TO_ADD  = 5;
 const POST_COMMENT              = 'POST_COMMENT';
 const COMMENT_REPLY             = 'COMMENT_REPLY';
 
-//Configure toasts
-toast.configure();
 
 //Styling
 const styles = ((theme) => ({
@@ -290,16 +287,7 @@ class ViewPost extends Component {
             comments.push(comment);
             this.setState({commentLeft: '', commentPostedToast: true, comments: comments});
 
-            toast.success('Comment Posted!', {
-                style: { fontFamily: 'Roboto Mono, monospace', width:'75%', height:'50%', textAlign:'left' },
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-            });
+            successToast('Comment Posted!');
 
             //send notification
             if (user.uid !== this.props.match.params.id){
@@ -364,16 +352,7 @@ class ViewPost extends Component {
         });
         this.setState({comments: comments, deleteCommentMode: false});
 
-        toast.success('Comment Deleted!', {
-            style: { fontFamily: 'Roboto Mono, monospace', width:'75%', height:'50%', textAlign:'left' },
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-        });
+        successToast('Comment Deleted!');
     }
 
     onChangeComment(e) {
@@ -516,7 +495,7 @@ class ViewPost extends Component {
     getSavedStatus() {
         var user = firebase.auth().currentUser;
 
-        firebase.firestore().collection('saves').where("saver", "==", user.uid).where("postOwner", "==", this.props.match.params.id).get()
+        firebase.firestore().collection('saves').where("saver", "==", user.uid).where("postOwnerID", "==", this.props.match.params.id).get()
         .then((docData) => {
             console.log(docData);
             if (docData.size > 0){
@@ -636,23 +615,14 @@ class ViewPost extends Component {
             const timeElapsed = Date.now();
             const today = new Date(timeElapsed);
 
-            this.props.savePost(
-                {saver: user.uid,
+            this.props.savePost({
+                saver: user.uid,
                 postOwnerID: this.props.match.params.id,
                 postOwnerUsername: this.state.username,
                 timeStamp: today.toDateString(),
             });
 
-            toast.success('Post Saved!', {
-                style: { fontFamily: 'Roboto Mono, monospace', width:'75%', height:'50%', textAlign:'left' },
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-            });
+            successToast('Post Saved!')
         })
         .catch((error) => {
             console.error("Error adding save document: ", error);
@@ -676,16 +646,7 @@ class ViewPost extends Component {
 
             this.props.unsavePost(this.props.match.params.id);
 
-            toast.success('Post Unsaved!', {
-                style: { fontFamily: 'Roboto Mono, monospace', width:'75%', height:'50%', textAlign:'left' },
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-            });
+            successToast('Post Unsaved!');
         })
         .catch((err) => {console.log("Error unsaving post", err)});
         
@@ -756,16 +717,7 @@ class ViewPost extends Component {
             comments: comments
         })
         
-        toast.success('Reply Posted!', {
-            style: { fontFamily: 'Roboto Mono, monospace', width:'75%', height:'50%', textAlign:'left' },
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-        });
+        successToast('Reply Posted!')
 
         var user = firebase.auth().currentUser;
 
@@ -790,16 +742,7 @@ class ViewPost extends Component {
         });
         this.setState({comments: comments, deleteReplyMode: false});
 
-        toast.success('Reply Deleted!', {
-            style: { fontFamily: 'Roboto Mono, monospace', width:'75%', height:'50%', textAlign:'left' },
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-        });
+        successToast('Reply Deleted!');
     }
 
     onChangeReply(e) {
