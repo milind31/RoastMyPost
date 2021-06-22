@@ -225,6 +225,7 @@ class CreatePost extends Component {
 
         //add post in firestore
         firebase.firestore().collection("posts").doc(this.state.uid).set({
+            username: this.props.username,
             music: this.state.music,
             age: this.state.age,
             dayAsOtherPerson: this.state.dayAsOtherPerson,

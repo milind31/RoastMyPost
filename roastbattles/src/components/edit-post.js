@@ -245,7 +245,7 @@ class EditPost extends Component {
         }
 
         //add post in firestore
-        firebase.firestore().collection("posts").doc(user.uid.toString()).set({
+        firebase.firestore().collection("posts").doc(user.uid.toString()).update({
             music: this.state.music,
             age: this.state.age,
             dayAsOtherPerson: this.state.dayAsOtherPerson,

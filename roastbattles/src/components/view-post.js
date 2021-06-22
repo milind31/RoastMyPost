@@ -142,7 +142,6 @@ class ViewPost extends Component {
             guiltyPleasure: '',
             otherInfo: '',
             files: [],
-            profileImage: null,
             
             //Determine if logged in user's post
             usersPost: true,
@@ -218,7 +217,7 @@ class ViewPost extends Component {
             .then((docData) => {
                 console.log(docData.data().fileURLS);
                 this.setState({
-                    username: user.displayName,
+                    username: docData.data().username,
                     music: docData.data().music,
                     age: docData.data().age,
                     dayAsOtherPerson: docData.data().dayAsOtherPerson,
@@ -235,7 +234,7 @@ class ViewPost extends Component {
             firebase.firestore().collection('posts').doc(this.props.match.params.id).get()
             .then((docData) => {
                 this.setState({
-                    username: this.props.match.params.id,
+                    username: docData.data().username,
                     music: docData.data().music,
                     age: docData.data().age,
                     dayAsOtherPerson: docData.data().dayAsOtherPerson,
@@ -261,9 +260,10 @@ class ViewPost extends Component {
 
         //add document to firestore
         firebase.firestore().collection("comments").add({
-            comment: this.state.commentLeft,
+            commentBody: this.state.commentLeft,
             postOwner: this.props.match.params.id,
-            commenter:  user.uid,
+            commenterID:  user.uid,
+            commenterUsername: this.props.username, //current user
             totalScore: 0,
             numScores: 0,
             replies: [],
@@ -275,7 +275,8 @@ class ViewPost extends Component {
             //update state
             const comment = {
                 commentBody: this.state.commentLeft,
-                commenter:  user.uid,
+                commenterID:  user.uid,
+                commenterUsername: this.props.username, //current user
                 postOwner: this.props.match.params.id,
                 timeStamp: "just now",
                 id: docRef.id,
@@ -302,7 +303,7 @@ class ViewPost extends Component {
 
             //send notification
             if (user.uid !== this.props.match.params.id){
-                this.sendNotification(POST_COMMENT, this.props.match.params.id, user.uid);
+                this.sendNotification(POST_COMMENT, this.props.match.params.id, this.props.username);
             }
         })
         .catch((error) => {
@@ -397,7 +398,7 @@ class ViewPost extends Component {
             <p>
                 <a href={"/posts/" + props.reply.replyUserID} 
                     style={{textDecoration:'none'}}
-                    >{props.reply.replyUserID}
+                    >{props.reply.replyUsername}
                 </a>
                 {(props.reply.replyUserID === props.postOwner) && <WhatshotIcon/>}
             </p>
@@ -429,17 +430,17 @@ class ViewPost extends Component {
             }
         <div className={props.classes.comment}>
             <p>
-                <a href={"/posts/" + props.comment.commenter} 
+                <a href={"/posts/" + props.comment.commenterID} 
                     style={{textDecoration:'none'}}
-                    >{props.comment.commenter}
+                    >{props.comment.commenterUsername}
                 </a>
-                {(props.comment.commenter === props.comment.postOwner) && <WhatshotIcon/>}
+                {(props.comment.commenterID === props.comment.postOwner) && <WhatshotIcon/>}
                 <p style={{float:'right', paddingRight: '20px'}}>Score: {isNaN(props.comment.totalScore / props.comment.numScores) ? "-" : (props.comment.totalScore / props.comment.numScores).toFixed(2)}</p>
             </p>
 
             <p style={{fontSize: '125%'}}>{props.comment.commentBody}</p>
             <small style={{paddingRight: '10px'}}>{props.comment.timeStamp.toString()}</small>
-            {(props.comment.commenter !== this.state.uid) && (<Fragment className={props.classes.scoreBar}>
+            {(props.comment.commenterID !== this.state.uid) && (<Fragment className={props.classes.scoreBar}>
                                                                     <Button 
                                                                         style={{float: 'right', marginBottom: '20px'}} 
                                                                         onClick={(e) => {this.scoreComment(e, 4, props.comment.id, props.comment.userScore)}} 
@@ -471,14 +472,14 @@ class ViewPost extends Component {
                                                              </Fragment>
                                                              )} 
 
-            {this.state.uid === props.comment.commenter &&
+            {this.state.uid === props.comment.commenterID &&
             <Tooltip message="Delete Comment">
                 <Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={() => this.setState({deleteCommentMode: true})}>
                 <DeleteIcon/>
             </Button>
           </Tooltip>}
           <Tooltip message="Reply">
-              <Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={(e) => {this.handleClickReply(e, props.comment.id, props.comment.commenter)}}>
+              <Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={(e) => {this.handleClickReply(e, props.comment.id, props.comment.commenterID)}}>
                 <ReplyIcon/>
             </Button>
           </Tooltip>
@@ -548,8 +549,9 @@ class ViewPost extends Component {
                     })
                     .then((score) => {
                         const comment = {
-                            commentBody: doc.data().comment,
-                            commenter: doc.data().commenter,
+                            commentBody: doc.data().commentBody,
+                            commenterID: doc.data().commenterID,
+                            commenterUsername: doc.data().commenterUsername,
                             postOwner: doc.data().postOwner,
                             timeStamp: doc.data().timeStamp.toDate(),
                             id: doc.id,
@@ -623,7 +625,8 @@ class ViewPost extends Component {
         //add document to firestore
         firebase.firestore().collection("saves").add({
             saver: user.uid,
-            postOwner: this.props.match.params.id,
+            postOwnerID: this.props.match.params.id,
+            postOwnerUsername: this.state.username,
             timeStamp: firebase.firestore.FieldValue.serverTimestamp()
         })
         .then((docRef) => {
@@ -635,7 +638,8 @@ class ViewPost extends Component {
 
             this.props.savePost(
                 {saver: user.uid,
-                postOwner: this.props.match.params.id,
+                postOwnerID: this.props.match.params.id,
+                postOwnerUsername: this.state.username,
                 timeStamp: today.toDateString(),
             });
 
@@ -731,6 +735,7 @@ class ViewPost extends Component {
         const reply = {
             body: this.state.reply.toString(),
             replyUserID: this.state.uid.toString(),
+            replyUsername: this.props.username.toString(),
             timeStamp: timeStamp.toDateString()
         }
 
@@ -764,8 +769,10 @@ class ViewPost extends Component {
 
         var user = firebase.auth().currentUser;
 
+        console.log(ownerID)
+
         if (user.uid !== ownerID){
-            this.sendNotification(COMMENT_REPLY, ownerID, this.state.uid);
+            this.sendNotification(COMMENT_REPLY, ownerID, this.props.username);
         }
     }
 
@@ -839,7 +846,7 @@ class ViewPost extends Component {
 
                <div style={{padding: '75px 0px 100px 0px'}}>
                <Paper className={classes.container} >
-                    <h1 className={classes.header}>User #{this.props.match.params.id.replace(/\D/g, "") /* REGEX IS ONLY TEMPORARY (...unless) */}</h1>
+                    <h1 className={classes.header}>{this.state.username}</h1>
                     {!this.state.usersPost && (this.state.postSaved ? <this.SavedButton classes={classes}/> : <this.UnsavedButton classes={classes}/>) }
                     <div className={classes.container} style={{paddingBottom:'75px'}}/>
                     <Carousel showArrows={true} showThumbs={false} dynamicHeight={true} infiniteLoop={true} autoPlay={false}>
@@ -847,7 +854,6 @@ class ViewPost extends Component {
                         <img key={index} src={url} style={{height:'auto',width:'800px'}}/>
                         ))}
                     </Carousel>
-                    {/*<img className={classes.media} src={this.state.files[0]}></img>*/}
                     <div className={classes.bio}>
                         { this.state.music !== '' && <p>Music currently on rotation: <strong>{this.state.music}</strong></p>}
                         { this.state.age !== '' && <p>Age: <strong>{this.state.age}</strong></p>}
@@ -910,6 +916,7 @@ ViewPost.propTypes = {
 }
 
 const mapStateToProps = (state) => ({
+    uid: state.uid,
     username: state.username
 })
 

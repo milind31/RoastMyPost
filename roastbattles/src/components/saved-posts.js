@@ -65,14 +65,14 @@ class SavedPosts extends Component {
     }
     
     getSaves(id) {
-        console.log("firebase call...")
         firebase.firestore().collection('saves').where("saver", "==", id).get()
         .then((data) => {
             let saves = []
             data.forEach((doc) => {
                 console.log(doc.id);
                 const save = {
-                    postOwner: doc.data().postOwner,
+                    postOwnerID: doc.data().postOwnerID,
+                    postOwnerUsername: doc.data().postOwnerUsername,
                     saver: doc.data().saver,
                     timeStamp: doc.data().timeStamp.toDate().toDateString()
                 }
@@ -89,7 +89,7 @@ class SavedPosts extends Component {
 
     Save = props => (
         <div>
-            <a href={"/posts/" + props.save.postOwner} >{props.save.postOwner}</a>
+            <a style={{fontSize: '150%'}} href={"/posts/" + props.save.postOwnerID} >{props.save.postOwnerUsername}</a>
             <br/>
             <small>Saved on {props.save.timeStamp.toString()}</small>
         </div>

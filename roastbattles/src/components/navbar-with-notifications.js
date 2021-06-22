@@ -134,13 +134,13 @@ class NavWithNotifications extends Component {
                                 <div className={classes.dropdownItem}>
                                     {
                                         notification.comment ? 
-                                        (<Dropdown.Item style={{padding:'0px', marginTop: '0px', fontSize: '75%'}} href={"/posts/" + notification.post}>User {notification.from} commented on your post!   
+                                        (<Dropdown.Item style={{padding:'0px 0px 0px 10px', marginTop: '0px', fontSize: '75%'}} href={"/posts/" + notification.post}>{notification.from} commented on your post!   
                                             <small style={{fontSize:'75%', padding:'5px'}}>{notification.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
                                         </Dropdown.Item>
                                         )
                                         : 
                                         (
-                                        <Dropdown.Item style={{padding:'0px', marginTop: '0px', fontSize: '75%'}} href={"/posts/" + notification.post}>User {notification.from} replied to your comment!   
+                                        <Dropdown.Item style={{padding:'0px 0px 0px 10px', marginTop: '0px', fontSize: '75%'}} href={"/posts/" + notification.post}>{notification.from} replied to your comment!   
                                             <small style={{fontSize:'75%', padding:'5px'}}>{notification.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
                                         </Dropdown.Item>
                                         )
