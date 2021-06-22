@@ -21,6 +21,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
 
 //Toasts
+import { errorToast } from './utils/toast';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -61,6 +62,7 @@ class SetUsername extends Component {
     }
     
     onChangeUsername(e) {
+        //Check if username exceeds max length
         this.setState({
             username: e.target.value
         });
@@ -71,20 +73,17 @@ class SetUsername extends Component {
         let enteredUsername = this.state.username;
         var t = this;
 
+        //Check if username is between 4-15 characters
+        if (enteredUsername.length > 15 || enteredUsername.length < 4){
+            errorToast("Username must be between 4-15 characters!");
+            return
+        }
+
         //Check if username already exists
         firebase.firestore().collection('users').where('username', '==', enteredUsername).limit(1).get()
         .then(function (querySnapshot) {
             if (!querySnapshot.empty) {
-                toast.error('Username already exists, please try again', {
-                    style: { fontFamily: 'Roboto Mono, monospace', textAlign:'left' },
-                    position: "top-right",
-                    autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                });
+                errorToast('Username already exists, please try again');
             }
             else {
                 firebase.firestore().collection("users").doc(uid).update({
@@ -116,6 +115,9 @@ class SetUsername extends Component {
                             size="sm" as="textarea" rows={1}
                             placeholder="Username..." />
                         </Form.Group>
+                        <Form.Text style={{marginTop: '-10px', paddingBottom: '25px'}} className="text-muted">
+                            Username must be between 4-15 characters
+                        </Form.Text>
                         <SubmitButton variant="primary" style={{}} onClick ={() => {this.setUsername()}}>Submit</SubmitButton>
                         </div>
                 </Form>
