@@ -13,7 +13,7 @@ import Badge from '@material-ui/core/Badge';
 import BookmarksIcon from '@material-ui/icons/Bookmarks';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import SettingsIcon from '@material-ui/icons/Settings';
-import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import ClearIcon from '@material-ui/icons/Clear';
 
 //React Bootstrap
 import Dropdown from 'react-bootstrap/Dropdown';
@@ -21,6 +21,7 @@ import Dropdown from 'react-bootstrap/Dropdown';
 //Redux
 import { userLoggedOut } from './actions/index';
 import { connect } from 'react-redux';
+import { successToast } from './utils/toast';
 
 const styles = {
     homeButton: {
@@ -49,9 +50,9 @@ class NavWithNotifications extends Component {
 
         this.state = {userID: '', notifications: []}
 
-
         this.handleAuthChange = this.handleAuthChange.bind(this);
         this.onSignOut = this.onSignOut.bind(this);
+        this.clearNotifications = this.clearNotifications.bind(this);
     }
 
     componentDidMount = () => {
@@ -60,6 +61,9 @@ class NavWithNotifications extends Component {
 
     handleAuthChange(user) {
         if (user) {
+            //user is logged in
+
+            //get notifications
             firebase.firestore().collection("notifications").where("to", "==", user.uid).get()
             .then((data) => {
                 var notifications = [];
@@ -90,17 +94,36 @@ class NavWithNotifications extends Component {
     removeNotification(e, id) {
         e.preventDefault();
 
+        //remove notification from firestore
         firebase.firestore().collection("notifications").doc(id).delete().then(() => {
             console.log("Notification Document successfully deleted!");
         }).catch((error) => {
             console.error("Error removing notification document: ", error);
         });
 
+        //remove notification from current state
         let notifications = this.state.notifications;
         notifications = notifications.filter(function( obj ) {
             return obj.id !== id;
         });
         this.setState({notifications: notifications});
+
+        //push toast
+        successToast("Notification Deleted!")
+    }
+
+    clearNotifications() {
+        //delete associated notifications from firestore
+        firebase.firestore().collection('notifications').where("to", "==", this.props.uid).get()
+        .then(function(querySnapshot) {
+            querySnapshot.forEach(function(doc) {
+                doc.ref.delete();
+            })
+            successToast("Notifications Cleared!")
+        })
+
+        //reset state
+        this.setState({notifications: []})
     }
 
     onSignOut() {
@@ -108,8 +131,8 @@ class NavWithNotifications extends Component {
         firebase.auth().signOut();
     }
 
+    //Notification Button
     CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
-        
         <Button color="secondary"
             ref={ref}
             onClick={(e) => {
@@ -130,6 +153,8 @@ class NavWithNotifications extends Component {
                         <Dropdown.Toggle  as={this.CustomToggle} id="dropdown-basic"></Dropdown.Toggle>
                         { this.state.notifications.length > 0 ? (
                         <Dropdown.Menu style={{maxHeight: '250px', maxWidth: '500px', overflowY: 'scroll', textAlign: 'center'}}>
+                            <Dropdown.Item style={{padding:'5px 0px 5px 0px', marginTop: '0px', fontSize: '100%'}} onClick={() => this.clearNotifications()}>Clear Notifications</Dropdown.Item> 
+                            <hr style={{marginBottom:'-5px'}}/>
                             {this.state.notifications.map((notification) => (
                                 <div className={classes.dropdownItem}>
                                     {
@@ -145,7 +170,7 @@ class NavWithNotifications extends Component {
                                         </Dropdown.Item>
                                         )
                                     }
-                                    <Button style={{marginBottom:'-5px'}} onClick={(e) => this.removeNotification(e, notification.id)}><DeleteForeverIcon/></Button>
+                                    <Button style={{marginBottom:'-5px', width:'5%', height:'75%'}} onClick={(e) => this.removeNotification(e, notification.id)}><ClearIcon style={{width:'35%'}}/></Button>
                                     <hr style={{marginBottom:'-5px'}}/>
                                 </div>
                             ))}
@@ -172,6 +197,7 @@ NavWithNotifications.propTypes = {
 }
 
 const mapStateToProps = (state) => ({
+    uid: state.uid,
     username: state.username
 })
 

@@ -344,8 +344,6 @@ class ViewPost extends Component {
             console.error("Error removing document: ", error);
         });
 
-        //TODO: DELETE SAVE AS WELL
-
         let comments = this.state.comments;
         comments = comments.filter(function( obj ) {
             return obj.id !== id;
