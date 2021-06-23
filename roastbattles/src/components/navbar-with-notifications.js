@@ -153,8 +153,8 @@ class NavWithNotifications extends Component {
                         <Dropdown.Toggle  as={this.CustomToggle} id="dropdown-basic"></Dropdown.Toggle>
                         { this.state.notifications.length > 0 ? (
                         <Dropdown.Menu style={{maxHeight: '250px', maxWidth: '500px', overflowY: 'scroll', textAlign: 'center'}}>
-                            <Dropdown.Item style={{padding:'5px 0px 5px 0px', marginTop: '0px', fontSize: '100%'}} onClick={() => this.clearNotifications()}>Clear Notifications</Dropdown.Item> 
-                            <hr style={{marginBottom:'-5px'}}/>
+                            <Dropdown.Item style={{padding:'5px 0px 5px 0px', marginTop: '0px', marginBottom:'0px', fontSize: '100%'}} onClick={() => this.clearNotifications()}>Clear Notifications</Dropdown.Item> 
+                            <hr style={{marginTop:'5px'}}/>
                             {this.state.notifications.map((notification) => (
                                 <div className={classes.dropdownItem}>
                                     {
