@@ -427,7 +427,7 @@ class ViewPost extends Component {
             </p>
 
             <p style={{fontSize: '125%'}}>{props.comment.commentBody}</p>
-            <small style={{paddingRight: '10px'}}>{props.comment.timeStamp.toString()}</small>
+            <small style={{paddingRight: '10px'}}>{props.comment.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
             {(props.comment.commenterID !== this.state.uid) && (<Fragment className={props.classes.scoreBar}>
                                                                     <Button 
                                                                         style={{float: 'right', marginBottom: '20px'}} 
@@ -720,6 +720,7 @@ class ViewPost extends Component {
         let comments = this.state.comments;
         let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === id));
         console.log(comments[index])
+        reply.timeStamp = "just now";
         comments[index].replies.push(reply);
         console.log(ownerID);
         this.setState({
