@@ -34,7 +34,7 @@ import "firebase/auth";
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
 
 //Toasts
-import { successToast } from './utils/toast';
+import { errorToast, successToast } from './utils/toast';
 
 //Global Definitions
 var Carousel = require('react-responsive-carousel').Carousel;
@@ -253,6 +253,12 @@ class ViewPost extends Component {
 
     onPostComment(e) {
         e.preventDefault();
+
+        //comments are being added too quickly
+        if (this.state.newCommentsAdded.length >= 5) {
+            errorToast("Comments are being added too quickly! Please try again in a bit")
+            return
+        }
 
         var user = firebase.auth().currentUser;
 
@@ -821,7 +827,7 @@ class ViewPost extends Component {
                     <p className={classes.commentHeader}>Comments</p>
                     <Form>
                         <Form.Group className={classes.container}>
-                        <Form.Row style = {{float:'left', marginTop:'-8px', marginLeft:'10px'}} className={classes.container}>
+                        <Form.Row style = {{float:'left', marginTop:'-20px', marginLeft:'10px'}} className={classes.container}>
                             <Col xs={12} className={classes.container}>
                                 <Form.Control as="select" onChange={this.onChangeNumberOfComments} placeholder="Number of Comments Displayed">
                                     <option value={10}>Top 10</option>
@@ -838,7 +844,7 @@ class ViewPost extends Component {
                     {this.state.comments.slice(0, this.state.numberOfCommentsToShow).map((comment) => (
                         <this.Comment comment={comment} classes={classes}></this.Comment>
                     ))}
-                    {this.state.newCommentsAdded.length > 0 && this.state.newCommentsAdded.map((comment) => (
+                    {this.state.newCommentsAdded.length > 0 && this.state.comments.length > this.state.numberOfCommentsToShow && this.state.newCommentsAdded.map((comment) => (
                         <this.Comment comment={comment} classes={classes}></this.Comment>
                     ))}
                     </div>

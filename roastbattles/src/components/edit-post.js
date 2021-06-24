@@ -314,54 +314,44 @@ class EditPost extends Component {
         firebase.firestore().collection("posts").doc(this.props.match.params.id).delete()
         .then(() => {
             //delete associated comments/scores from firestore
-            firebase.firestore().collection("comments").where("postOwner", "==", t.props.match.params.id).get()
+            return firebase.firestore().collection("comments").where("postOwner", "==", t.props.match.params.id).get()
             .then(querySnapshot =>  {
-                querySnapshot.forEach(function(comment) {
-                /*firebase.firestore().collection('scores').where("comment", "==", comment.id).get()
-                .then(function(querySnapshot) {
-                    querySnapshot.forEach(function(score) {
-                        score.ref.delete();
-                    })
-                })*/
-                comment.ref.delete();
-                })
-                return true;
-            })
-            .then((done) => {
-                if (done) {
-                    //delete associated saves from firestore
-                    firebase.firestore().collection('saves').where("postOwnerID", "==", t.props.match.params.id).get()
+                return querySnapshot.forEach(function(comment) {
+                    firebase.firestore().collection('scores').where("comment", "==", comment.id).get()
                     .then(function(querySnapshot) {
-                        querySnapshot.forEach(function(doc) {
-                            doc.ref.delete();
+                        return querySnapshot.forEach(function(score) {
+                            score.ref.delete();
                         })
                     })
-                }
-                return true;
+                    comment.ref.delete();
+                })
             })
-            .then((done) => {
-                if (done) {
-                    //delete associated notifications from firestore
-                    firebase.firestore().collection('notifications').where("post", "==", t.props.match.params.id).get().then(function(querySnapshot) {
-                        querySnapshot.forEach(function(doc) {
-                            doc.ref.delete();
-                        })
+        })
+        .then(() => {
+                //delete associated saves from firestore
+                return firebase.firestore().collection('saves').where("postOwnerID", "==", t.props.match.params.id).get()
+                .then(function(querySnapshot) {
+                    return querySnapshot.forEach(function(doc) {
+                        doc.ref.delete();
                     })
-                }
-                return true;
-            })
-            .then((done) => {
-                if (done) {
-                    console.log("Document successfully deleted!");
-                    firebase.firestore().collection("users").doc(t.props.match.params.id).update({
-                        createdPost: false
+                })
+        })
+        .then(() => {
+                //delete associated notifications from firestore
+                return firebase.firestore().collection('notifications').where("post", "==", t.props.match.params.id).get().then(function(querySnapshot) {
+                    return querySnapshot.forEach(function(doc) {
+                        doc.ref.delete();
                     })
-                    t.props.userDeletedPost();
-                    t.setState({deletePostMode:false});
-                }
+                })
+        })
+        .then(() => {
+                console.log("Document successfully deleted!");
+                firebase.firestore().collection("users").doc(t.props.match.params.id).update({
+                    createdPost: false
+                })
+                t.props.userDeletedPost();
+                t.setState({deletePostMode:false});
                 window.location = '/';
-            })
-            .catch((err) => {console.log(err)})
         })
         .catch((err) => {console.log(err)})
     }
