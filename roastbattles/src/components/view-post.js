@@ -176,8 +176,9 @@ class ViewPost extends Component {
         this.savePost = this.savePost.bind(this);
         this.unsavePost = this.unsavePost.bind(this);
         this.scoreComment = this.scoreComment.bind(this);
-        this.getSavedStatus = this.getSavedStatus.bind(this); //used as helper function to getCommentsAndSavedStatus()
+        this.getSavedStatusAndSortComments = this.getSavedStatusAndSortComments.bind(this); //used as helper function to getCommentsAndSavedStatus()
         this.getCommentsAndSavedStatus = this.getCommentsAndSavedStatus.bind(this);
+        this.sortComments = this.sortComments.bind(this);
         this.getPostInfo = this.getPostInfo.bind(this);
         this.handleClickReply = this.handleClickReply.bind(this);
         this.handleCancelReply = this.handleCancelReply.bind(this);
@@ -494,20 +495,24 @@ class ViewPost extends Component {
         this.setState(this.state);
     }
 
-    getSavedStatus() {
+    getSavedStatusAndSortComments() {
         var user = firebase.auth().currentUser;
 
         firebase.firestore().collection('saves').where("saver", "==", user.uid).where("postOwnerID", "==", this.props.match.params.id).get()
         .then((docData) => {
             console.log(docData);
             if (docData.size > 0){
-                this.setState({postSaved: true});
+                this.setState({postSaved: true}, () => {this.sortComments()});
             }
             else{
-                this.setState({postSaved: false});
+                this.setState({postSaved: false}, () => {this.sortComments()});
             }
-            this.setState({saveStatusLoading: false});
         })
+    }
+
+    sortComments() {
+        //sort comments by score and finish loading
+        this.setState({comments: this.state.comments.sort((a, b) => (a.totalScore/a.numScores > b.totalScore/b.numScores) ? -1 : 1), saveStatusLoading: false});
     }
 
     //query for comments on this post from firestore
@@ -548,7 +553,7 @@ class ViewPost extends Component {
                 return comments
             })
             .then((comments) => {
-                this.setState({comments: comments}, () => {this.getSavedStatus()});
+                this.setState({comments: comments}, () => {this.getSavedStatusAndSortComments()});
             })
             .then(() => {return});
     }
