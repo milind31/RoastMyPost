@@ -97,7 +97,8 @@ class EditPost extends Component {
             deletePostMode: false,
 
             //loading
-            loading: false,
+            loadingSubmit: false,
+            loadingDelete: false,
         }
     }
 
@@ -208,7 +209,7 @@ class EditPost extends Component {
     onSubmit = async (e) =>{
         e.preventDefault();
 
-        this.setState({loading: true});
+        this.setState({loadingSubmit: true});
 
         var user = firebase.auth().currentUser;
         var fileURLS = this.state.fileURLS;
@@ -243,7 +244,7 @@ class EditPost extends Component {
             guiltyPleasure: this.state.guiltyPleasure,
             otherInfo: this.state.otherInfo,
             fileURLS: fileURLS})
-        .then(() => {this.setState({loading: false}); window.location = '/';})
+        .then(() => {this.setState({loadingSubmit: false}); window.location = '/';})
         .catch((err) => {console.log(err)})
     }
 
@@ -308,7 +309,7 @@ class EditPost extends Component {
     }
 
     deletePost(){
-        console.log(this.props.match.params.id);
+        this.setState({loadingDelete: true});
         let t = this;
         // delete post from firestore
         firebase.firestore().collection("posts").doc(this.props.match.params.id).delete()
@@ -339,7 +340,7 @@ class EditPost extends Component {
                                 })
                                 .then(() => {
                                     t.props.userDeletedPost();
-                                    t.setState({deletePostMode:false});
+                                    t.setState({deletePostMode:false, loadingDelete: false});
                                     return window.location = '/';
                                 })
                             })
@@ -361,8 +362,10 @@ class EditPost extends Component {
                         <Form className={classes.form} style={{ borderRadius: '5px', width: "25%", padding: '10px'}}>
                             <h3 style={{marginTop: '10px'}}>Are you sure you want to delete this post?</h3>
                             <p style={{ fontSize:'90%', marginBottom:'20px'}}>This action cannot be undone...</p>
-                            <SubmitButton variant="primary" style={{float: "right", margin: "5px"}} onClick={() => {this.deletePost()}}>Yes</SubmitButton>
-                            <SubmitButton variant="secondary" style={{float: "right", margin: "5px"}} onClick={() => this.setState({deletePostMode: false})}>Cancel</SubmitButton>
+                            {this.state.loadingDelete ? <CircularProgress/> : (<div>
+                                <SubmitButton variant="primary" style={{float: "right", margin: "5px"}} onClick={() => {this.deletePost()}}>Yes</SubmitButton>
+                                <SubmitButton variant="secondary" style={{float: "right", margin: "5px"}} onClick={() => this.setState({deletePostMode: false})}>Cancel</SubmitButton>
+                            </div>)}
                         </Form>
                     </Backdrop>
                 }
@@ -519,7 +522,7 @@ class EditPost extends Component {
                     </Form.Group>
                     
                     { /*submit*/ }
-                    {this.state.loading ? <CircularProgress/> : (
+                    {this.state.loadingSubmit ? <CircularProgress/> : (
                         <SubmitButton variant="primary" type="submit">
                             Submit
                         </SubmitButton>
