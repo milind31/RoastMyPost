@@ -149,7 +149,7 @@ class ViewPost extends Component {
             //Comment Section
             commentLeft: '',
             comments: [],
-            commentsToShow: [],
+            newCommentsAdded: [],
             numberOfCommentsToShow: 10,
             deleteCommentMode: false,
             deleteReplyMode: false,
@@ -284,8 +284,12 @@ class ViewPost extends Component {
                 numRepliesToShow: INITIAL_NUMBER_OF_REPLIES,
             }
             let comments = this.state.comments;
+            let newCommentsAdded = this.state.newCommentsAdded;
+
             comments.push(comment);
-            this.setState({commentLeft: '', commentPostedToast: true, comments: comments});
+            newCommentsAdded.push(comment);
+
+            this.setState({commentLeft: '', commentPostedToast: true, comments: comments, newCommentsAdded: newCommentsAdded});
 
             successToast('Comment Posted!');
 
@@ -828,7 +832,10 @@ class ViewPost extends Component {
                     {this.state.comments.length === 0 && <div className={classes.container}><p>No comments yet :(</p><br/><p>Be the first to leave one below!</p></div>}
                     {this.state.comments.slice(0, this.state.numberOfCommentsToShow).map((comment) => (
                         <this.Comment comment={comment} classes={classes}></this.Comment>
-                        ))}
+                    ))}
+                    {this.state.newCommentsAdded.length > 0 && this.state.newCommentsAdded.map((comment) => (
+                        <this.Comment comment={comment} classes={classes}></this.Comment>
+                    ))}
                     </div>
 
                     <Form className={classes.form} onSubmit={this.onPostComment}>

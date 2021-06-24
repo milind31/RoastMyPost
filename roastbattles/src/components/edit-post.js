@@ -309,47 +309,59 @@ class EditPost extends Component {
 
     deletePost(){
         console.log(this.props.match.params.id);
+        let t = this;
         // delete post from firestore
         firebase.firestore().collection("posts").doc(this.props.match.params.id).delete()
-
-        //delete associated comments/scores from firestore
-        firebase.firestore().collection("comments").where("postOwner", "==", this.props.match.params.id).get()
-        .then(querySnapshot =>  {
-            querySnapshot.forEach(function(comment) {
-            firebase.firestore().collection('scores').where("comment", "==", comment.data().comment).get()
-            .then(function(querySnapshot) {
-                querySnapshot.forEach(function(score) {
-                    score.ref.delete();
-                })
-            })
-            comment.ref.delete();
-            })
-        })
         .then(() => {
-            //delete associated saves from firestore
-            firebase.firestore().collection('saves').where("postOwner", "==", this.props.match.params.id).get()
-            .then(function(querySnapshot) {
-                querySnapshot.forEach(function(doc) {
-                    doc.ref.delete();
+            //delete associated comments/scores from firestore
+            firebase.firestore().collection("comments").where("postOwner", "==", t.props.match.params.id).get()
+            .then(querySnapshot =>  {
+                querySnapshot.forEach(function(comment) {
+                /*firebase.firestore().collection('scores').where("comment", "==", comment.id).get()
+                .then(function(querySnapshot) {
+                    querySnapshot.forEach(function(score) {
+                        score.ref.delete();
+                    })
+                })*/
+                comment.ref.delete();
                 })
+                return true;
             })
-        })
-        .then(() => {
-            //delete associated notifications from firestore
-            firebase.firestore().collection('notifications').where("post", "==", this.props.match.params.id).get().then(function(querySnapshot) {
-                querySnapshot.forEach(function(doc) {
-                    doc.ref.delete();
-                })
+            .then((done) => {
+                if (done) {
+                    //delete associated saves from firestore
+                    firebase.firestore().collection('saves').where("postOwnerID", "==", t.props.match.params.id).get()
+                    .then(function(querySnapshot) {
+                        querySnapshot.forEach(function(doc) {
+                            doc.ref.delete();
+                        })
+                    })
+                }
+                return true;
             })
-        })
-        .then(() => {
-            console.log("Document successfully deleted!");
-            firebase.firestore().collection("users").doc(this.props.match.params.id).update({
-                createdPost: false
+            .then((done) => {
+                if (done) {
+                    //delete associated notifications from firestore
+                    firebase.firestore().collection('notifications').where("post", "==", t.props.match.params.id).get().then(function(querySnapshot) {
+                        querySnapshot.forEach(function(doc) {
+                            doc.ref.delete();
+                        })
+                    })
+                }
+                return true;
             })
-            this.props.userDeletedPost();
-            this.setState({deletePostMode:false});
-            window.location = '/';
+            .then((done) => {
+                if (done) {
+                    console.log("Document successfully deleted!");
+                    firebase.firestore().collection("users").doc(t.props.match.params.id).update({
+                        createdPost: false
+                    })
+                    t.props.userDeletedPost();
+                    t.setState({deletePostMode:false});
+                }
+                window.location = '/';
+            })
+            .catch((err) => {console.log(err)})
         })
         .catch((err) => {console.log(err)})
     }
