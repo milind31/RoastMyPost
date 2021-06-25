@@ -23,6 +23,9 @@ import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
 //Toasts
 import { errorToast } from './utils/toast';
 
+//Profanity Checker
+var Filter = require("bad-words");
+
 const styles = {
     container: {
         background: "#333131"
@@ -58,7 +61,11 @@ class SetUsername extends Component {
     }
     
     onChangeUsername(e) {
-        //Check if username exceeds max length
+        //don't allow user to enter space in username
+        if (e.target.value.slice(-1) === ' ') {
+            return
+        }
+    
         this.setState({
             username: e.target.value
         });
@@ -68,6 +75,12 @@ class SetUsername extends Component {
         let uid = this.props.uid;
         let enteredUsername = this.state.username;
         var t = this;
+
+        var filter = new Filter();
+        if (filter.isProfane(enteredUsername)) {
+            errorToast("Username must not contain any inappropriate language!");
+            return
+        }
 
         //Check if username is between 4-15 characters
         if (enteredUsername.length > 15 || enteredUsername.length < 4){

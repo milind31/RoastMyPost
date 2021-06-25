@@ -20,6 +20,7 @@ import withStyles from '@material-ui/core/styles/withStyles';
 import WhatshotIcon from '@material-ui/icons/Whatshot';
 import DeleteIcon from '@material-ui/icons/Delete';
 import ReplyIcon from '@material-ui/icons/Reply';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
 import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
 import PropTypes from 'prop-types';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -151,12 +152,15 @@ class ViewPost extends Component {
             comments: [],
             newCommentsAdded: [],
             numberOfCommentsToShow: 10,
-            deleteCommentMode: false,
-            deleteReplyMode: false,
-            replyMode: false,
             replyID: '',
             replyCommentOwnerID: '',
             reply: '',
+
+            //Popups
+            deleteCommentMode: false,
+            deleteReplyMode: false,
+            replyMode: false,
+            markAsHarassmentMode: false,
 
             //Saving
             postSaved: false,
@@ -249,6 +253,19 @@ class ViewPost extends Component {
                 this.setState({postNotFound: true})
             })
         }
+    }
+
+    markAsHarassment(e, commentID, commenterID) {
+        e.preventDefault();
+
+        //add document to firestore
+        firebase.firestore().collection("flagged").add({
+            commentID: commentID,
+            commenterID: commenterID
+        })
+        .then(() => {})
+        .catch((err) => console.log(err));
+
     }
 
     onPostComment(e) {
@@ -403,6 +420,18 @@ class ViewPost extends Component {
         </div>
     )
 
+    //More Button
+    CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
+        <Button color="secondary"
+            ref={ref}
+            onClick={(e) => {
+                e.preventDefault();
+                onClick(e);
+            }} 
+        >
+        </Button>
+      ));
+
     //Move to new file later
     Comment = props => (
         <div>
@@ -416,6 +445,16 @@ class ViewPost extends Component {
                     </Form>
                 </Backdrop>
             }
+
+            {this.state.markAsHarassmentMode && 
+                <Backdrop open={this.state.markAsHarassmentMode} className={props.classes.backdrop}>
+                    <Form className={props.classes.form} style={{ borderRadius: '5px', width: "25%", padding: '10px'}}>
+                        <h3 style={{marginTop: '10px'}}>Are you sure you want mark this post as harassment?</h3>
+                        <SubmitButton variant="primary" style={{float: "right", margin: "5px"}} type="submit" onClick={(e) => this.markAsHarassment(e, props.comment.id, props.comment.commenterID)}>Yes</SubmitButton>
+                        <SubmitButton variant="secondary" style={{float: "right", margin: "5px"}} type="submit" onClick={() => this.setState({markAsHarassmentMode: false})}>Cancel</SubmitButton>
+                    </Form>
+                </Backdrop>
+            }
         <div className={props.classes.comment}>
             <p>
                 <a href={"/posts/" + props.comment.commenterID} 
@@ -423,6 +462,7 @@ class ViewPost extends Component {
                     >{props.comment.commenterUsername}
                 </a>
                 {(props.comment.commenterID === props.comment.postOwner) && <WhatshotIcon/>}
+                {(props.comment.commenterID !== this.state.uid) && <Tooltip message="Mark user/post for harassment"><Button size="small" style={{float:'right', padding:'0px', marginLeft:'-35px', marginRight:'-25px'}} onClick={() => this.setState({markAsHarassmentMode: true})}><MoreVertIcon style={{color:'#525252', height:'90%', float:'right'}}/></Button></Tooltip>}
                 <p style={{float:'right', paddingRight: '20px'}}>Score: {isNaN(props.comment.totalScore / props.comment.numScores) ? "-" : (props.comment.totalScore / props.comment.numScores).toFixed(2)}</p>
             </p>
 
