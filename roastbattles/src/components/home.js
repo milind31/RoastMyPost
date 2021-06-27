@@ -15,10 +15,14 @@ import "firebase/auth";
 
 //Redux
 import { connect } from 'react-redux';
+import { errorToast } from './utils/toast';
 
 const styles = {
     header: {
-        paddingTop: '20px'
+        position: 'fixed',
+        top: '38%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)'
     },
     button: {
         margin: "10px",
@@ -40,7 +44,6 @@ class Home extends Component {
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
         this.getNewPost = this.getNewPost.bind(this);
-
     }
 
     componentDidMount = () => {
@@ -50,7 +53,6 @@ class Home extends Component {
     handleAuthChange(user) {
         if (user) {
             //user is logged in
-
             //user hasn't created username yet
             if (this.props.username === '') {
                 window.location = '/set-username';
@@ -71,6 +73,7 @@ class Home extends Component {
         var key = posts.doc().id;
 
         console.log("key", key);
+        //try to get post above key
         posts.where(firebase.firestore.FieldPath.documentId(), '>=', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
         .then(snapshot => {
             if(snapshot.size > 0) {
@@ -79,21 +82,25 @@ class Home extends Component {
                 });
             }
             else {
-                var post = posts.where(firebase.firestore.FieldPath.documentId(), '<', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
+                //no post above key, get one below key
+                posts.where(firebase.firestore.FieldPath.documentId(), '<', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
                 .then(snapshot => {
-                    snapshot.forEach(doc => {
-                        window.location = '/posts/' + doc.id;
-                    });
+                    if(snapshot.size > 0) {
+                        snapshot.forEach(doc => {
+                            window.location = '/posts/' + doc.id;
+                        });
+                    }
+                    else {
+                        errorToast("Couldn't find any posts!")
+                    }
                 })
-                .catch(err => {
-                    console.log('Error getting random post', err);
-                    //COULDN'T FIND POST, PLEASE TRY AGAIN ERROR
+                .catch(() => {
+                    errorToast("There was an error! Please try again later")
                 });
             }
         })
-        .catch(err => {
-            console.log('Error getting random post', err);
-            //COULDN'T FIND POST, PLEASE TRY AGAIN ERROR
+        .catch(() => {
+            errorToast("There was an error! Please try again later")
         });
     }
 
@@ -104,8 +111,8 @@ class Home extends Component {
         return (
             <div>
                 <NavWithNotifications/>
-                <div style={{paddingTop:'250px'}}>
-                <h1 className={classes.header}>Welcome!</h1>
+                <div className={classes.header}>
+                <h1>Welcome!</h1>
                 {
                     this.props.createdPost ? 
                     <Button 

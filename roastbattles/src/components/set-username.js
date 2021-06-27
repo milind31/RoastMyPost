@@ -17,8 +17,6 @@ import "firebase/auth";
 //Material UI
 import withStyles from '@material-ui/core/styles/withStyles';
 import PropTypes from 'prop-types';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
 
 //Toasts
 import { errorToast } from './utils/toast';
@@ -107,7 +105,6 @@ class SetUsername extends Component {
     }
 
     render() {
-        const { classes } = this.props;
         return (
             <div>
                 <Nav/>

@@ -9,13 +9,8 @@ import "firebase/auth";
 import withStyles from '@material-ui/core/styles/withStyles';
 import PropTypes from 'prop-types';
 import Button from '@material-ui/core/Button';
-import Badge from '@material-ui/core/Badge';
 import BookmarksIcon from '@material-ui/icons/Bookmarks';
-import NotificationsIcon from '@material-ui/icons/Notifications';
-import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 
-//React Bootstrap
-import Dropdown from 'react-bootstrap/Dropdown';
 
 //Redux
 import { userLoggedOut } from './actions/index';
@@ -45,9 +40,6 @@ const styles = {
 class Nav extends Component {
     constructor(props) {
         super(props);
-
-        this.state = {userID: ''}
-
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
         this.onSignOut = this.onSignOut.bind(this);
@@ -79,7 +71,7 @@ class Nav extends Component {
                     <Button color="primary" onClick={() => window.location = '/saved'}><BookmarksIcon/></Button>
                     <Button color="secondary" onClick={() => this.onSignOut()}>Sign Out</Button>
                 </div>
-                <a href='/'><img className={classes.homeButton} src="https://firebasestorage.googleapis.com/v0/b/roastbattles-85b35.appspot.com/o/roastlogosmall.png?alt=media&token=6762f1df-27ea-4d4a-a559-ff87678cac04"/></a>
+                <a href='/'><img className={classes.homeButton} src="https://firebasestorage.googleapis.com/v0/b/roastbattles-85b35.appspot.com/o/roastlogosmall.png?alt=media&token=6762f1df-27ea-4d4a-a559-ff87678cac04" alt="home button"/></a>
             </div>
             );
     }

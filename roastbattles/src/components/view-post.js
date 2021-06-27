@@ -1,5 +1,5 @@
 //React
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import Nav from './navbar';
 import Loading from './loading';
 import PostNotFound from './post-not-found';
@@ -16,7 +16,7 @@ import Col from 'react-bootstrap/Col';
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import Backdrop from '@material-ui/core/Backdrop';
-import withStyles from '@material-ui/core/styles/withStyles';
+import { withStyles } from '@material-ui/styles';
 import WhatshotIcon from '@material-ui/icons/Whatshot';
 import DeleteIcon from '@material-ui/icons/Delete';
 import ReplyIcon from '@material-ui/icons/Reply';
@@ -97,7 +97,7 @@ const styles = ((theme) => ({
     newPostButton: {
         marginTop: '50px'
     },
-    comment: {
+    commentSection: {
         textAlign: 'left',
         backgroundColor: '#333131',
         color: 'white'
@@ -105,9 +105,6 @@ const styles = ((theme) => ({
     comments: {
         paddingTop: '50px',
         backgroundColor: '#333131',
-    },
-    scoreBar: {
-        marginBottom: '-10px',
     },
     scoringButtons: {
         backgroundColor: '#333131',
@@ -121,7 +118,7 @@ const styles = ((theme) => ({
         color: '#fff',
         marginTop: '-50px'
     },
-}))
+}));
 
 //homepage
 class ViewPost extends Component {
@@ -171,6 +168,7 @@ class ViewPost extends Component {
             saveStatusLoading: true,
         }
 
+        this.wrapper = React.createRef();
         this.handleAuthChange = this.handleAuthChange.bind(this);
         this.onPostComment = this.onPostComment.bind(this);
         this.onChangeComment = this.onChangeComment.bind(this);
@@ -192,7 +190,7 @@ class ViewPost extends Component {
         this.onShowMoreReplies = this.onShowMoreReplies.bind(this);
         this.Comment = this.Comment.bind(this);
         this.Reply = this.Reply.bind(this);
-    }
+    };
 
     componentDidMount = () => {
         firebase.auth().onAuthStateChanged(this.handleAuthChange);
@@ -229,8 +227,8 @@ class ViewPost extends Component {
                     guiltyPleasure: docData.data().guiltyPleasure,
                     otherInfo: docData.data().otherInfo,
                     files: docData.data().fileURLS,
-                })
-            })
+                });
+            });
         }
         else {
             firebase.firestore().collection('posts').doc(this.props.match.params.id).get()
@@ -247,11 +245,11 @@ class ViewPost extends Component {
                     otherInfo: docData.data().otherInfo,
                     files: docData.data().fileURLS,
                     usersPost: false
-                })
+                });
             })
             .catch(() => {
-                this.setState({postNotFound: true})
-            })
+                this.setState({postNotFound: true});
+            });
         }
     }
 
@@ -263,7 +261,7 @@ class ViewPost extends Component {
             commentID: commentID,
             commenterID: commenterID
         })
-        .then(() => {})
+        .then(() => {console.log("post/user flagged");})
         .catch((err) => console.log(err));
 
     }
@@ -273,8 +271,8 @@ class ViewPost extends Component {
 
         //comments are being added too quickly
         if (this.state.newCommentsAdded.length >= 5) {
-            errorToast("Comments are being added too quickly! Please try again in a bit")
-            return
+            errorToast("Comments are being added too quickly! Please try again in a bit");
+            return;
         }
 
         var user = firebase.auth().currentUser;
@@ -306,7 +304,7 @@ class ViewPost extends Component {
                 numScores: 0,
                 replies: [],
                 numRepliesToShow: INITIAL_NUMBER_OF_REPLIES,
-            }
+            };
             let comments = this.state.comments;
             let newCommentsAdded = this.state.newCommentsAdded;
 
@@ -339,12 +337,12 @@ class ViewPost extends Component {
             comments[index].userScore = score;
             comments[index].totalScore += score;
             comments[index].numScores += 1;
-            this.setState({comments: comments})
+            this.setState({comments: comments});
 
             firebase.firestore().collection("comments").doc(id).update({
                 totalScore: comments[index].totalScore,
                 numScores: comments[index].numScores
-            })
+            });
 
             //add document to firestore
             firebase.firestore().collection("scores").add({
@@ -360,15 +358,17 @@ class ViewPost extends Component {
     onDeleteComment(e, id) {
         e.preventDefault();
 
-        firebase.firestore().collection("comments").doc(id).delete().then(() => {
+        firebase.firestore().collection("comments").doc(id).delete()
+        .then(() => {
             //delete associated saves from firestore
             firebase.firestore().collection('scores').where("comment", "==", id).get()
             .then(function(querySnapshot) {
                 querySnapshot.forEach(function(doc) {
                     doc.ref.delete();
-                })
+                });
             })
-        }).catch((error) => {
+        })
+        .catch((error) => {
             console.error("Error removing document: ", error);
         });
 
@@ -399,40 +399,27 @@ class ViewPost extends Component {
                     </Form>
                 </Backdrop>
             }
-        <div className={props.classes.comment} style={{marginLeft: '25px'}}>
-            <p>
-                <a href={"/posts/" + props.reply.replyUserID} 
-                    style={{textDecoration:'none'}}
-                    >{props.reply.replyUsername}
-                </a>
-                {(props.reply.replyUserID === props.postOwner) && <WhatshotIcon/>}
-            </p>
-            <p style={{fontSize: '125%'}}>{props.reply.body}</p>
-            <small>{props.reply.timeStamp}</small>
-            {this.state.uid === props.reply.replyUserID &&
-            <Tooltip message={"Delete Reply"}>
-                    <Button color="primary" style={{backgroundColor:'transparent'}} onClick={() => this.setState({deleteReplyMode: true})}>
-                        <DeleteIcon/>
-                    </Button>
-            </Tooltip>}
-          <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
-        </div>
+            <div className={props.classes.comment} style={{marginLeft: '25px'}}>
+                <p>
+                    <a href={"/posts/" + props.reply.replyUserID} 
+                        style={{textDecoration:'none'}}
+                        >{props.reply.replyUsername}
+                    </a>
+                    {(props.reply.replyUserID === props.postOwner) && <WhatshotIcon/>}
+                </p>
+                <p style={{fontSize: '125%'}}>{props.reply.body}</p>
+                <small>{props.reply.timeStamp}</small>
+                {this.state.uid === props.reply.replyUserID &&
+                <Tooltip message={"Delete Reply"}>
+                        <Button color="primary" style={{backgroundColor:'transparent'}} onClick={() => this.setState({deleteReplyMode: true})}>
+                            <DeleteIcon/>
+                        </Button>
+                </Tooltip>}
+            <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
+            </div>
         </div>
     )
 
-    //More Button
-    CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
-        <Button color="secondary"
-            ref={ref}
-            onClick={(e) => {
-                e.preventDefault();
-                onClick(e);
-            }} 
-        >
-        </Button>
-      ));
-
-    //Move to new file later
     Comment = props => (
         <div>
             {this.state.deleteCommentMode && 
@@ -449,71 +436,102 @@ class ViewPost extends Component {
             {this.state.markAsHarassmentMode && 
                 <Backdrop open={this.state.markAsHarassmentMode} className={props.classes.backdrop}>
                     <Form className={props.classes.form} style={{ borderRadius: '5px', width: "25%", padding: '10px'}}>
-                        <h3 style={{marginTop: '10px'}}>Are you sure you want mark this post as harassment?</h3>
+                        <h3 style={{marginTop: '10px'}}>Are you sure you want to flag this post and or user for harassment?</h3>
                         <SubmitButton variant="primary" style={{float: "right", margin: "5px"}} type="submit" onClick={(e) => this.markAsHarassment(e, props.comment.id, props.comment.commenterID)}>Yes</SubmitButton>
                         <SubmitButton variant="secondary" style={{float: "right", margin: "5px"}} type="submit" onClick={() => this.setState({markAsHarassmentMode: false})}>Cancel</SubmitButton>
                     </Form>
                 </Backdrop>
             }
-        <div className={props.classes.comment}>
-            <p>
-                <a href={"/posts/" + props.comment.commenterID} 
-                    style={{textDecoration:'none'}}
-                    >{props.comment.commenterUsername}
-                </a>
-                {(props.comment.commenterID === props.comment.postOwner) && <WhatshotIcon/>}
-                {(props.comment.commenterID !== this.state.uid) && <Tooltip message="Mark user/post for harassment"><Button size="small" style={{float:'right', padding:'0px', marginLeft:'-35px', marginRight:'-25px'}} onClick={() => this.setState({markAsHarassmentMode: true})}><MoreVertIcon style={{color:'#525252', height:'90%', float:'right'}}/></Button></Tooltip>}
-                <p style={{float:'right', paddingRight: '20px'}}>Score: {isNaN(props.comment.totalScore / props.comment.numScores) ? "-" : (props.comment.totalScore / props.comment.numScores).toFixed(2)}</p>
-            </p>
 
-            <p style={{fontSize: '125%'}}>{props.comment.commentBody}</p>
-            <small style={{paddingRight: '10px'}}>{props.comment.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
-            {(props.comment.commenterID !== this.state.uid) && (<Fragment className={props.classes.scoreBar}>
-                                                                    <Button 
-                                                                        style={{float: 'right', marginBottom: '20px'}} 
-                                                                        onClick={(e) => {this.scoreComment(e, 4, props.comment.id, props.comment.userScore)}} 
-                                                                        color={props.comment.userScore === 0 ? "secondary" : "primary"}
-                                                                        disabled={props.comment.userScore !== 0 && props.comment.userScore !== 4}
-                                                                        >4
-                                                                    </Button> 
+            {this.state.deleteReplyMode && 
+                <Backdrop open={this.state.deleteReplyMode} className={props.classes.backdrop}>
+                    <Form className={props.classes.form} style={{ borderRadius: '5px', width: "25%", padding: '10px'}}>
+                        <h3 style={{marginTop: '10px'}}>Are you sure you want to delete this reply?</h3>
+                        <p style={{ fontSize:'90%', marginBottom:'20px'}}>This action cannot be undone...</p>
+                        <SubmitButton variant="primary" style={{float: "right", margin: "5px"}} onClick={(e) => {this.onDeleteReply(e, props.commentID, props.reply)}}>Yes</SubmitButton>
+                        <SubmitButton variant="secondary" style={{float: "right", margin: "5px"}} onClick={() => this.setState({deleteReplyMode: false})}>Cancel</SubmitButton>
+                    </Form>
+                </Backdrop>
+            }
+
+        <div className={props.classes.commentSection}>
+            <div>
+                    <a href={"/posts/" + props.comment.commenterID} 
+                        style={{textDecoration:'none', textAlign:'left', float:'left'}}
+                        >{props.comment.commenterUsername}
+                    </a>
+                    {(props.comment.commenterID === props.comment.postOwner) && <WhatshotIcon style={{float:'left', paddingLeft:'7px'}}/>}
+                    {(props.comment.commenterID !== this.state.uid) && <Tooltip message="Mark user/post for harassment"><Button size="small" style={{float:'right', padding:'0px', marginLeft:'-35px', marginRight:'-25px'}} onClick={() => this.setState({markAsHarassmentMode: true})}><MoreVertIcon style={{color:'#525252', height:'90%', float:'right'}}/></Button></Tooltip>}
+                    <strong style={{float:'right', paddingRight: '20px'}}>Score: {isNaN(props.comment.totalScore / props.comment.numScores) ? "-" : (props.comment.totalScore / props.comment.numScores).toFixed(2)}</strong>
+            </div>
+
+            <div style={{paddingTop:'40px'}}>
+                <p style={{fontSize: '125%', float:'left'}}>{props.comment.commentBody}</p>
+            </div>
+
+            <div style={{paddingTop:'15px', paddingBottom:'25px'}}>
+                <small style={{paddingRight: '10px', float:'left', textAlign:'left'}}>{props.comment.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
+                <div style={{float:'left', marginTop:'-10px', paddingTop:'0px'}}>
+                    {this.state.uid === props.comment.commenterID &&
+                        <Tooltip message="Delete Comment">
+                            <Button color="primary" style={{backgroundColor:'transparent', marginLeft:'-15px', marginRight:'-5px'}} onClick={() => this.setState({deleteCommentMode: true})}>
+                                <DeleteIcon/>
+                            </Button>
+                        </Tooltip>}
+                        <Tooltip message="Reply">
+                            <Button color="primary" style={{backgroundColor:'transparent', marginLeft:'-15px', marginRight:'-5px'}} onClick={(e) => {this.handleClickReply(e, props.comment.id, props.comment.commenterID)}}>
+                                <ReplyIcon/>
+                            </Button>
+                        </Tooltip>
+                </div>
+                {(props.comment.commenterID !== this.state.uid) && (<div style={{float:'right', marginTop: '-5px'}}>
                                                                         <Button 
-                                                                        style={{float: 'right', marginBottom: '20px'}} 
-                                                                        onClick={(e) => {this.scoreComment(e, 3, props.comment.id, props.comment.userScore)}} 
-                                                                        color={props.comment.userScore === 0 ? "secondary" : "primary"}
-                                                                        disabled={props.comment.userScore !== 0 && props.comment.userScore !== 3}
-                                                                        >3
-                                                                    </Button>
-                                                                    <Button 
-                                                                        style={{float: 'right', marginBottom: '20px'}} 
-                                                                        onClick={(e) => {this.scoreComment(e, 2, props.comment.id, props.comment.userScore)}} 
-                                                                        color={props.comment.userScore === 0 ? "secondary" : "primary"}
-                                                                        disabled={props.comment.userScore !== 0 && props.comment.userScore !== 2}
-                                                                        >2
-                                                                    </Button>
-                                                                    <Button 
-                                                                        style={{float: 'right', marginBottom: '20px'}} 
-                                                                        onClick={(e) => {this.scoreComment(e, 1, props.comment.id, props.comment.userScore)}} 
-                                                                        color={props.comment.userScore === 0 ? "secondary" : "primary"}
-                                                                        disabled={props.comment.userScore !== 0 && props.comment.userScore !== 1}
-                                                                        >1
-                                                                    </Button>
-                                                             </Fragment>
-                                                             )} 
-
-            {this.state.uid === props.comment.commenterID &&
-            <Tooltip message="Delete Comment">
-                <Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={() => this.setState({deleteCommentMode: true})}>
-                <DeleteIcon/>
-            </Button>
-          </Tooltip>}
-          <Tooltip message="Reply">
-              <Button color="primary" style={{marginLeft: '-15px', backgroundColor:'transparent'}} onClick={(e) => {this.handleClickReply(e, props.comment.id, props.comment.commenterID)}}>
-                <ReplyIcon/>
-            </Button>
-          </Tooltip>
+                                                                            onClick={(e) => {this.scoreComment(e, 1, props.comment.id, props.comment.userScore)}} 
+                                                                            color={props.comment.userScore === 0 ? "secondary" : "primary"}
+                                                                            disabled={props.comment.userScore !== 0 && props.comment.userScore !== 1}
+                                                                            >1
+                                                                        </Button>
+                                                                        <Button 
+                                                                            onClick={(e) => {this.scoreComment(e, 2, props.comment.id, props.comment.userScore)}} 
+                                                                            color={props.comment.userScore === 0 ? "secondary" : "primary"}
+                                                                            disabled={props.comment.userScore !== 0 && props.comment.userScore !== 2}
+                                                                            >2
+                                                                        </Button>
+                                                                            <Button 
+                                                                            onClick={(e) => {this.scoreComment(e, 3, props.comment.id, props.comment.userScore)}} 
+                                                                            color={props.comment.userScore === 0 ? "secondary" : "primary"}
+                                                                            disabled={props.comment.userScore !== 0 && props.comment.userScore !== 3}
+                                                                            >3
+                                                                        </Button>
+                                                                        <Button                      
+                                                                            onClick={(e) => {this.scoreComment(e, 4, props.comment.id, props.comment.userScore)}} 
+                                                                            color={props.comment.userScore === 0 ? "secondary" : "primary"}
+                                                                            disabled={props.comment.userScore !== 0 && props.comment.userScore !== 4}
+                                                                            >4
+                                                                        </Button> 
+                                                                </div>
+                                                                )} 
+            </div>
             <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
-            {props.comment.replies.slice(0, props.comment.numRepliesToShow).map((reply) => (
-                <this.Reply reply={reply} postOwner={props.comment.postOwner} commentID={props.comment.id} classes={props.classes}></this.Reply>
+            {props.comment.replies.slice(0, props.comment.numRepliesToShow).map((reply, index) => (
+                <div className={props.classes.commentSection} style={{marginLeft: '25px'}}>
+                    <p>
+                        <a href={"/posts/" + reply.replyUserID} 
+                            style={{textDecoration:'none'}}
+                            >{reply.replyUsername}
+                        </a>
+                        {(reply.replyUserID === props.comment.postOwner) && <WhatshotIcon style={{paddingLeft:'7px'}}/>}
+                    </p>
+                    <p style={{fontSize: '125%'}}>{reply.body}</p>
+                    <small>{reply.timeStamp}</small>
+                    {this.state.uid === reply.replyUserID &&
+                    <Tooltip message={"Delete Reply"}>
+                            <Button color="primary" style={{backgroundColor:'transparent', marginLeft:'-5px', marginTop:'-5px'}} onClick={() => this.setState({deleteReplyMode: true})}>
+                                <DeleteIcon/>
+                            </Button>
+                    </Tooltip>}
+                <hr style={{color: '#5c5c5c', backgroundColor:'#5c5c5c'}}></hr>
+                </div>
             ))}
             {props.comment.replies.length > 0 && props.comment.numRepliesToShow < props.comment.replies.length && <Button style={{margin: '0 auto', display: "flex"}} color="primary" onClick={(e) => {this.onShowMoreReplies(e, props.comment.id)}}>Show more replies</Button>}
             {props.comment.replies.length > INITIAL_NUMBER_OF_REPLIES && props.comment.numRepliesToShow >= props.comment.replies.length && <Button style={{margin: '0 auto', display: "flex"}} color="primary" onClick={(e) => {this.onHideReplies(e, props.comment.id)}}>Hide replies</Button>}
@@ -553,7 +571,7 @@ class ViewPost extends Component {
             else{
                 this.setState({postSaved: false}, () => {this.sortComments()});
             }
-        })
+        });
     }
 
     sortComments() {
@@ -571,11 +589,11 @@ class ViewPost extends Component {
                     console.log(doc.id);
                     firebase.firestore().collection("scores").where("comment", "==", doc.id).where("user", "==", user.uid).get()
                     .then((data) => {
-                        var score = 0
+                        var score = 0;
                         if (data.size > 0){
                             data.forEach((doc) => {
                                 score = doc.data().score;
-                            })
+                            });
                         }
                         return score;
                     })
@@ -592,16 +610,16 @@ class ViewPost extends Component {
                             userScore: score,
                             replies: doc.data().replies,
                             numRepliesToShow: INITIAL_NUMBER_OF_REPLIES
-                        }
+                        };
                         comments.push(comment);
-                    })
+                    });
                 })
-                return comments
+                return comments;
             })
             .then((comments) => {
                 this.setState({comments: comments}, () => {this.getSavedStatusAndSortComments()});
             })
-            .then(() => {return});
+            .then(() => {return;});
     }
 
     onChangeNumberOfComments(e) {
@@ -609,8 +627,8 @@ class ViewPost extends Component {
 
         this.setState({
             numberOfCommentsToShow: e.target.value
-        })
-        console.log(this.state.comments)
+        });
+        console.log(this.state.comments);
         console.log(e.target.value);
     }
 
@@ -631,7 +649,7 @@ class ViewPost extends Component {
                 });
             }
             else {
-                var post = posts.where(firebase.firestore.FieldPath.documentId(), '<', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
+                posts.where(firebase.firestore.FieldPath.documentId(), '<', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
                 .then(snapshot => {
                     snapshot.forEach(doc => {
                         window.location = '/posts/' + doc.id;
@@ -675,7 +693,7 @@ class ViewPost extends Component {
                 timeStamp: today.toDateString(),
             });
 
-            successToast('Post Saved!')
+            successToast('Post Saved!');
         })
         .catch((error) => {
             console.error("Error adding save document: ", error);
@@ -691,7 +709,7 @@ class ViewPost extends Component {
         firebase.firestore().collection('saves').where("saver", "==", user.uid).where("postOwner", "==", this.props.match.params.id).get().then(function(querySnapshot) {
             querySnapshot.forEach(function(doc) {
               doc.ref.delete();
-            })
+            });
         })
         .then(() => {
             console.log("Save document successfully deleted");
@@ -727,7 +745,7 @@ class ViewPost extends Component {
             replyMode: true,
             replyID: id,
             replyCommentOwnerID: ownerID
-        })
+        });
     }
 
     handleCancelReply(e) {
@@ -737,29 +755,29 @@ class ViewPost extends Component {
             replyID: '',
             replyCommentOwnerID: '',
             reply: ''
-        })
+        });
     }
 
     submitReply(e, id, ownerID) {
         e.preventDefault();
 
         var time = Date.now();
-        var timeStamp = new Date(time)
+        var timeStamp = new Date(time);
 
         const reply = {
             body: this.state.reply.toString(),
             replyUserID: this.state.uid.toString(),
             replyUsername: this.props.username.toString(),
             timeStamp: timeStamp.toDateString()
-        }
+        };
 
         firebase.firestore().collection("comments").doc(id).update({
             replies: firebase.firestore.FieldValue.arrayUnion(reply)
-        })
+        });
 
         let comments = this.state.comments;
         let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === id));
-        console.log(comments[index])
+        console.log(comments[index]);
         reply.timeStamp = "just now";
         comments[index].replies.push(reply);
         console.log(ownerID);
@@ -769,13 +787,13 @@ class ViewPost extends Component {
             replyCommentOwnerID: '',
             reply: '',
             comments: comments
-        })
+        });
         
-        successToast('Reply Posted!')
+        successToast('Reply Posted!');
 
         var user = firebase.auth().currentUser;
 
-        console.log(ownerID)
+        console.log(ownerID);
 
         if (user.uid !== ownerID){
             this.sendNotification(COMMENT_REPLY, ownerID, this.props.username);
@@ -787,7 +805,7 @@ class ViewPost extends Component {
 
         firebase.firestore().collection("comments").doc(commentID).update({
             replies: firebase.firestore.FieldValue.arrayRemove(reply)
-        })
+        });
 
         let comments = this.state.comments;
         let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === commentID));
@@ -801,7 +819,7 @@ class ViewPost extends Component {
 
     onChangeReply(e) {
         e.preventDefault();
-        this.setState({reply: e.target.value})
+        this.setState({reply: e.target.value});
     }
 
     sendNotification(type, to, from) {
@@ -813,20 +831,20 @@ class ViewPost extends Component {
             post: this.props.match.params.id,
             timeStamp: firebase.firestore.FieldValue.serverTimestamp(),
         })
-        .then(() => {})
+        .then(() => {console.log("notification added");})
         .catch((err) => {console.log(err)});
     }
 
     render () {
         const { classes } = this.props;
         return (
-           <div>
+           <div ref={this.wrapper}>
                {this.state.postNotFound ? (<PostNotFound/>) : (this.state.contentLoading || this.state.saveStatusLoading ? (<Loading/>) : (
                <div>
                <Nav/>
                {this.state.replyMode &&
                 <Backdrop open={this.state.replyMode} className={classes.backdrop}>
-                    <Form className={classes.form} style={{borderRadius: '5px', width: "25%", padding: '10px'}} onSubmit={(e) => {this.submitReply(e, this.state.replyID, this.state.replyCommentOwnerID)}}>
+                    <Form className={classes.form} style={{borderRadius: '5px', width: "25%", padding: '10px'}} onSubmit={(e) => {this.submitReply(e, this.state.replyID, this.state.replyCommentOwnerID);}}>
                         <Form.Group className={classes.container} controlId="exampleForm.ControlTextarea1">
                             <Form.Control 
                             onChange={this.onChangeReply}
@@ -836,7 +854,6 @@ class ViewPost extends Component {
                         </Form.Group>
                         <SubmitButton variant="primary" style={{float: "right", margin: "5px"}} type="submit">Reply</SubmitButton>
                         <SubmitButton variant="secondary" style={{float: "right", margin: "5px"}} type="submit" onClick={this.handleCancelReply}>Cancel</SubmitButton>
-
                     </Form>
                 </Backdrop>
                 }
@@ -846,9 +863,9 @@ class ViewPost extends Component {
                     <h1 className={classes.header}>{this.state.username}</h1>
                     {!this.state.usersPost && (this.state.postSaved ? <this.SavedButton classes={classes}/> : <this.UnsavedButton classes={classes}/>) }
                     <div className={classes.container} style={{paddingBottom:'75px'}}/>
-                    <Carousel showArrows={true} showThumbs={false} dynamicHeight={true} infiniteLoop={true} autoPlay={false}>
+                    <Carousel showArrows={true} emulateTouch={true} showThumbs={false} dynamicHeight={true} infiniteLoop={false} autoPlay={false}>
                         {this.state.files.map((url, index) => (
-                        <img key={index} src={url} style={{height:'auto',width:'800px'}}/>
+                        <img key={index} src={url} alt={`profileimg${index}`} style={{height:'auto',width:'800px'}}/>
                         ))}
                     </Carousel>
                     <div className={classes.bio}>
@@ -882,11 +899,11 @@ class ViewPost extends Component {
                     
                     <div className={classes.comments}>
                     {this.state.comments.length === 0 && <div className={classes.container}><p>No comments yet :(</p><br/><p>Be the first to leave one below!</p></div>}
-                    {this.state.comments.slice(0, this.state.numberOfCommentsToShow).map((comment) => (
-                        <this.Comment comment={comment} classes={classes}></this.Comment>
+                    {this.state.comments.slice(0, this.state.numberOfCommentsToShow).map((comment, index) => (
+                        <this.Comment key={index} comment={comment} classes={classes}></this.Comment>
                     ))}
-                    {this.state.newCommentsAdded.length > 0 && this.state.comments.length > this.state.numberOfCommentsToShow && this.state.newCommentsAdded.map((comment) => (
-                        <this.Comment comment={comment} classes={classes}></this.Comment>
+                    {this.state.newCommentsAdded.length > 0 && this.state.comments.length > this.state.numberOfCommentsToShow && this.state.newCommentsAdded.map((comment, index) => (
+                        <this.Comment key={index} comment={comment} classes={classes}></this.Comment>
                     ))}
                     </div>
 
@@ -913,12 +930,12 @@ class ViewPost extends Component {
 }
 ViewPost.propTypes = {
     classes: PropTypes.object.isRequired
-}
+};
 
 const mapStateToProps = (state) => ({
     uid: state.uid,
     username: state.username
-})
+});
 
 const mapActionsToProps = { savePost, unsavePost };
 

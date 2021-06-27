@@ -42,31 +42,13 @@ const styles = {
     }
 }
 
-//TODO: ERROR HANDLING
-//IF MORE THAN 5 FILES UPLOADED, DISPLAY ERROR MESSAGE
-
-//TODO: REDIRECT
-//REDIRECT TO EDIT IF POST NOT CREATED
-
 //create post page
 class CreatePost extends Component {
     constructor(props) {
         super(props);
 
-        this.handleAuthChange = this.handleAuthChange.bind(this);
-        this.onChangeMusic = this.onChangeMusic.bind(this);
-        this.onChangeAge = this.onChangeAge.bind(this);
-        this.onChangeDayAsOtherPerson = this.onChangeDayAsOtherPerson.bind(this);
-        this.onChangeHobbies = this.onChangeHobbies.bind(this);
-        this.onChangePeeves = this.onChangePeeves.bind(this);
-        this.onChangeSelfRating = this.onChangeSelfRating.bind(this);
-        this.onChangeGuiltyPleasure = this.onChangeGuiltyPleasure.bind(this);
-        this.onChangeOtherInfo = this.onChangeOtherInfo.bind(this);
-        this.handleFileChange = this.handleFileChange.bind(this);
-        this.onSubmit = this.onSubmit.bind(this);
-        this.uploadImage = this.uploadImage.bind(this);
-
         this.state = {
+            //bio fields
             music: '',
             age: '',
             dayAsOtherPerson: '',
@@ -85,6 +67,19 @@ class CreatePost extends Component {
             
             loading: true,
         }
+
+        this.handleAuthChange = this.handleAuthChange.bind(this);
+        this.onChangeMusic = this.onChangeMusic.bind(this);
+        this.onChangeAge = this.onChangeAge.bind(this);
+        this.onChangeDayAsOtherPerson = this.onChangeDayAsOtherPerson.bind(this);
+        this.onChangeHobbies = this.onChangeHobbies.bind(this);
+        this.onChangePeeves = this.onChangePeeves.bind(this);
+        this.onChangeSelfRating = this.onChangeSelfRating.bind(this);
+        this.onChangeGuiltyPleasure = this.onChangeGuiltyPleasure.bind(this);
+        this.onChangeOtherInfo = this.onChangeOtherInfo.bind(this);
+        this.handleFileChange = this.handleFileChange.bind(this);
+        this.onSubmit = this.onSubmit.bind(this);
+        this.uploadImage = this.uploadImage.bind(this);
     }
 
     componentDidMount = () => {
@@ -116,9 +111,6 @@ class CreatePost extends Component {
         var newFileNames = this.state.fileNames.filter(function(element) { return element !== fileName });
         var newFileList = this.state.fileList.filter(function(element) { return element.name !== fileName });
         var newNumberOfFiles  = this.state.numberOfFiles - 1;
-
-        console.log("new file names", newFileNames);
-        console.log("new file list", newFileList);
 
         this.setState({fileNames: newFileNames, fileList: newFileList, numberOfFiles: newNumberOfFiles});
     }
@@ -255,159 +247,159 @@ class CreatePost extends Component {
             <div style={{padding: '100px 0px 200px 0px'}}>
                 {this.state.loading ? (<Loading/>) : (
                 <div>
-                <Nav/>
-                <h1>Create post...</h1>
-                <Form className={classes.form}  onSubmit={this.onSubmit}>
+                    <Nav/>
+                    <h1>Create post...</h1>
+                    <Form className={classes.form}  onSubmit={this.onSubmit}>
 
+                        { /* file upload */ }
+                        <Form.Group>
+                            <Form.Label>Upload images of yourself</Form.Label>
+                            <p style={{marginTop: '-50px'}}>     </p>
+                            <div style={{display: 'inline-block'}}>
+                            <Form.File 
+                                onChange={this.handleFileChange} 
+                                className={classes.fileUpload} 
+                                id="exampleFormControlFile1" 
+                                multiple/>
+                            </div>
+                            <Form.Text style={{paddingTop: '10px'}} className="text-muted">
+                                    Required: please upload 1-5 images
+                            </Form.Text>
+                        </Form.Group>
 
-                { /*file upload*/ }
-                <Form.Group>
-                    <Form.Label>Upload images of yourself</Form.Label>
-                    <p style={{marginTop: '-50px'}}>     </p>
-                    <div style={{display: 'inline-block'}}>
-                    <Form.File 
-                        onChange={this.handleFileChange} 
-                        className={classes.fileUpload} 
-                        id="exampleFormControlFile1" 
-                        multiple/>
-                    </div>
-                    <Form.Text style={{paddingTop: '10px'}} className="text-muted">
-                            Required: please upload 1-5 images
-                    </Form.Text>
-                </Form.Group>
+                        {/* show files uploaded */}
+                        {this.state.numberOfFiles > 0 && (
+                            <div>
+                            <strong>Files uploaded:</strong>
+                            {this.state.fileNames.map((fileName) => 
+                                <div>
+                                <p style={{display: 'inline-block'}}>{fileName}</p>
+                                <Tooltip message="Delete Image">
+                                    <Button color="secondary" onClick={(e) => this.onDeleteFile(e, fileName)}><DeleteForeverIcon></DeleteForeverIcon></Button>
+                                </Tooltip>
+                                </div>
+                            )}
+                            </div>
+                        )}
 
-                {this.state.numberOfFiles > 0 && (
-                    <div>
-                    <strong>Files uploaded:</strong>
-                    {this.state.fileNames.map((fileName) => 
-                        <div>
-                        <p style={{display: 'inline-block'}}>{fileName}</p>
-                        <Tooltip message="Delete Image">
-                            <Button color="secondary" onClick={(e) => this.onDeleteFile(e, fileName)}><DeleteForeverIcon></DeleteForeverIcon></Button>
-                        </Tooltip>
-                        </div>
-                    )}
-                    </div>
-                )}
+                        { /* optional fields */ }
+                        <div style={{padding:'35px'}}></div>
+                        <strong>
+                            The following are optional; feel free to answer as many or as few as you would like
+                        </strong>
 
-                    { /*optional fields*/ }
-                    <div style={{padding:'35px'}}></div>
-                    <strong>
-                        The following are optional; feel free to answer as many or as few as you would like
-                    </strong>
+                        { /* music */ }
+                        <Form.Group controlId="exampleForm.ControlTextarea1">
+                            <Form.Label style={{float:'left'}}>
+                                What music do you currently have on rotation?
+                            </Form.Label>
+                            <Form.Control 
+                            onChange={this.onChangeMusic} 
+                            value={this.state.music} 
+                            as="textarea" 
+                            rows={1} 
+                            placeholder="" />
+                        </Form.Group>
 
-                    { /*music*/ }
-                    <Form.Group controlId="exampleForm.ControlTextarea1">
-                        <Form.Label style={{float:'left'}}>
-                            What music do you currently have on rotation?
-                        </Form.Label>
-                        <Form.Control 
-                        onChange={this.onChangeMusic} 
-                        value={this.state.music} 
-                        as="textarea" 
-                        rows={1} 
-                        placeholder="" />
-                    </Form.Group>
+                        { /* age */ }
+                        <Form.Group controlId="exampleForm.ControlTextarea1">
+                            <Form.Label style={{float:'left'}}>
+                                How old are you?
+                            </Form.Label>
+                            <Form.Control 
+                            onChange={this.onChangeAge} 
+                            value={this.state.age} 
+                            as="textarea" rows={1} 
+                            placeholder="" />
+                        </Form.Group>
 
-                    { /*age*/ }
-                    <Form.Group controlId="exampleForm.ControlTextarea1">
-                        <Form.Label style={{float:'left'}}>
-                            How old are you?
-                        </Form.Label>
-                        <Form.Control 
-                        onChange={this.onChangeAge} 
-                        value={this.state.age} 
-                        as="textarea" rows={1} 
-                        placeholder="" />
-                    </Form.Group>
+                        { /* day as other person */ }
+                        <Form.Group controlId="exampleForm.ControlTextarea1">
+                            <Form.Label style={{float:'left'}}>
+                                If you could spend a day as anyone, dead or alive, who would it be?
+                            </Form.Label>
+                            <Form.Control 
+                            onChange={this.onChangeDayAsOtherPerson} 
+                            value={this.state.dayAsOtherPerson} 
+                            as="textarea" rows={1} 
+                            placeholder="" />
+                        </Form.Group>
 
-                    { /*day as other person*/ }
-                    <Form.Group controlId="exampleForm.ControlTextarea1">
-                        <Form.Label style={{float:'left'}}>
-                            If you could spend a day as anyone, dead or alive, who would it be?
-                        </Form.Label>
-                        <Form.Control 
-                        onChange={this.onChangeDayAsOtherPerson} 
-                        value={this.state.dayAsOtherPerson} 
-                        as="textarea" rows={1} 
-                        placeholder="" />
-                    </Form.Group>
+                        { /* hobbies */ }
+                        <Form.Group controlId="exampleForm.ControlTextarea1">
+                            <Form.Label style={{float:'left'}}>
+                                What do you enjoy doing in your spare time?
+                            </Form.Label>
+                            <Form.Control 
+                            onChange={this.onChangeHobbies} 
+                            value={this.state.hobbies} 
+                            as="textarea" 
+                            rows={1} 
+                            placeholder="" />
+                        </Form.Group>
 
-                    { /*hobbies*/ }
-                    <Form.Group controlId="exampleForm.ControlTextarea1">
-                        <Form.Label style={{float:'left'}}>
-                            What do you enjoy doing in your spare time?
-                        </Form.Label>
-                        <Form.Control 
-                        onChange={this.onChangeHobbies} 
-                        value={this.state.hobbies} 
-                        as="textarea" 
-                        rows={1} 
-                        placeholder="" />
-                    </Form.Group>
+                        { /* peeves */ }
+                        <Form.Group controlId="exampleForm.ControlTextarea1">
+                            <Form.Label style={{float:'left'}}>
+                                What pisses you off the most?
+                            </Form.Label>
+                            <Form.Control 
+                            onChange={this.onChangePeeves}
+                            value={this.state.peeves} 
+                            as="textarea" 
+                            rows={1} 
+                            placeholder="" />
+                        </Form.Group>
 
-                    { /*peeves*/ }
-                    <Form.Group controlId="exampleForm.ControlTextarea1">
-                        <Form.Label style={{float:'left'}}>
-                            What pisses you off the most?
-                        </Form.Label>
-                        <Form.Control 
-                        onChange={this.onChangePeeves}
-                        value={this.state.peeves} 
-                        as="textarea" 
-                        rows={1} 
-                        placeholder="" />
-                    </Form.Group>
+                        { /* self rating */ }
+                        <Form.Group controlId="exampleForm.ControlTextarea1">
+                            <Form.Label style={{float:'left'}}>
+                                Rate your looks on a scale from 1-10
+                            </Form.Label>
+                            <Form.Control 
+                            onChange={this.onChangeSelfRating} 
+                            value={this.state.selfRating} 
+                            as="textarea" 
+                            rows={1} 
+                            placeholder="" />
+                        </Form.Group>
 
-                    { /*self rating*/ }
-                    <Form.Group controlId="exampleForm.ControlTextarea1">
-                        <Form.Label style={{float:'left'}}>
-                            Rate your looks on a scale from 1-10
-                        </Form.Label>
-                        <Form.Control 
-                        onChange={this.onChangeSelfRating} 
-                        value={this.state.selfRating} 
-                        as="textarea" 
-                        rows={1} 
-                        placeholder="" />
-                    </Form.Group>
+                        { /* guilty pleasure */ }
+                        <Form.Group controlId="exampleForm.ControlTextarea1">
+                            <Form.Label style={{float:'left'}}>
+                                What is you guilty pleasure?
+                            </Form.Label>
+                            <Form.Control 
+                            onChange={this.onChangeGuiltyPleasure} 
+                            value={this.state.guiltyPleasure} 
+                            as="textarea" 
+                            rows={1} 
+                            placeholder="" />
+                        </Form.Group>
 
-                    { /*guilty pleasure*/ }
-                    <Form.Group controlId="exampleForm.ControlTextarea1">
-                        <Form.Label style={{float:'left'}}>
-                            What is you guilty pleasure?
-                        </Form.Label>
-                        <Form.Control 
-                        onChange={this.onChangeGuiltyPleasure} 
-                        value={this.state.guiltyPleasure} 
-                        as="textarea" 
-                        rows={1} 
-                        placeholder="" />
-                    </Form.Group>
-
-                    { /*additional info*/ }
-                    <Form.Group controlId="exampleForm.ControlTextarea1">
-                        <Form.Label style={{float:'left'}}>
-                            Anything else you want to let people know...
-                        </Form.Label>
-                        <Form.Control 
-                        onChange={this.onChangeOtherInfo}
-                        value={this.state.otherInfo}  
-                        as="textarea" 
-                        rows={3} 
-                        placeholder="" />
-                    </Form.Group>
-                    
-                    { /*submit*/ }
-                    {this.state.loading ? (<CircularProgress/>) : (
-                    <SubmitButton variant="primary" type="submit">
-                        Submit
-                    </SubmitButton>)
-                    }
+                        { /* additional info */ }
+                        <Form.Group controlId="exampleForm.ControlTextarea1">
+                            <Form.Label style={{float:'left'}}>
+                                Anything else you want to let people know...
+                            </Form.Label>
+                            <Form.Control 
+                            onChange={this.onChangeOtherInfo}
+                            value={this.state.otherInfo}  
+                            as="textarea" 
+                            rows={3} 
+                            placeholder="" />
+                        </Form.Group>
+                        
+                        { /* submit */ }
+                        {this.state.loading ? (<CircularProgress/>) : (
+                        <SubmitButton variant="primary" type="submit">
+                            Submit
+                        </SubmitButton>)
+                        }
 
                     </Form>
-                    </div>
-                    )}
+                </div>
+                )}
             </div>
         )
   }

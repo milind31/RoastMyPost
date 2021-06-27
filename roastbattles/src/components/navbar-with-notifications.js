@@ -12,7 +12,6 @@ import Button from '@material-ui/core/Button';
 import Badge from '@material-ui/core/Badge';
 import BookmarksIcon from '@material-ui/icons/Bookmarks';
 import NotificationsIcon from '@material-ui/icons/Notifications';
-import SettingsIcon from '@material-ui/icons/Settings';
 import ClearIcon from '@material-ui/icons/Clear';
 
 //React Bootstrap
@@ -21,7 +20,7 @@ import Dropdown from 'react-bootstrap/Dropdown';
 //Redux
 import { userLoggedOut } from './actions/index';
 import { connect } from 'react-redux';
-import { successToast } from './utils/toast';
+import { errorToast, successToast } from './utils/toast';
 
 const styles = {
     homeButton: {
@@ -53,6 +52,7 @@ class NavWithNotifications extends Component {
         this.handleAuthChange = this.handleAuthChange.bind(this);
         this.onSignOut = this.onSignOut.bind(this);
         this.clearNotifications = this.clearNotifications.bind(this);
+        this.NotificationDropdown = this.NotificationDropdown.bind(this);
     }
 
     componentDidMount = () => {
@@ -62,7 +62,6 @@ class NavWithNotifications extends Component {
     handleAuthChange(user) {
         if (user) {
             //user is logged in
-
             //get notifications
             firebase.firestore().collection("notifications").where("to", "==", user.uid).get()
             .then((data) => {
@@ -91,14 +90,18 @@ class NavWithNotifications extends Component {
         }
     }
 
+    onSignOut() {
+        this.props.userLoggedOut();
+        firebase.auth().signOut();
+    }
+
     removeNotification(e, id) {
         e.preventDefault();
 
         //remove notification from firestore
-        firebase.firestore().collection("notifications").doc(id).delete().then(() => {
-            console.log("Notification Document successfully deleted!");
-        }).catch((error) => {
-            console.error("Error removing notification document: ", error);
+        firebase.firestore().collection("notifications").doc(id).delete().then(() => {})
+        .catch((err) => {
+            errorToast("Error removing notification document: ", err);
         });
 
         //remove notification from current state
@@ -121,18 +124,16 @@ class NavWithNotifications extends Component {
             })
             successToast("Notifications Cleared!")
         })
+        .catch((err) => {
+            errorToast("Error clearing notifications: ", err);
+        });
 
         //reset state
         this.setState({notifications: []})
     }
 
-    onSignOut() {
-        this.props.userLoggedOut();
-        firebase.auth().signOut();
-    }
-
     //Notification Button
-    CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
+    NotificationButton = React.forwardRef(({ children, onClick }, ref) => (
         <Button color="secondary"
             ref={ref}
             onClick={(e) => {
@@ -144,49 +145,53 @@ class NavWithNotifications extends Component {
         </Button>
       ));
 
+    NotificationDropdown = props => (
+        <Dropdown style={{float:'left', margin: '0px', padding: '0px'}}>
+            <Dropdown.Toggle as={this.NotificationButton} id="dropdown-basic"></Dropdown.Toggle>
+            { this.state.notifications.length > 0 ? (
+            <Dropdown.Menu style={{maxHeight: '250px', maxWidth: '500px', overflowY: 'scroll', textAlign: 'center'}}>
+                <Dropdown.Item style={{padding:'5px 0px 5px 0px', marginTop: '0px', marginBottom:'0px', fontSize: '100%'}} onClick={() => this.clearNotifications()}>Clear Notifications</Dropdown.Item> 
+                <hr style={{marginTop:'5px'}}/>
+                {this.state.notifications.map((notification) => (
+                    <div className={this.props.classes.dropdownItem}>
+                        {
+                            notification.comment ? 
+                            (<Dropdown.Item style={{padding:'0px 0px 0px 10px', marginTop: '0px', fontSize: '75%'}} href={"/posts/" + notification.post}>{notification.from} commented on your post!   
+                                <small style={{fontSize:'75%', padding:'5px'}}>{notification.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
+                            </Dropdown.Item>
+                            )
+                            : 
+                            (
+                            <Dropdown.Item style={{padding:'0px 0px 0px 10px', marginTop: '0px', fontSize: '75%'}} href={"/posts/" + notification.post}>{notification.from} replied to your comment!   
+                                <small style={{fontSize:'75%', padding:'5px'}}>{notification.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
+                            </Dropdown.Item>
+                            )
+                        }
+                        <Button style={{marginBottom:'-5px', width:'5%', height:'75%'}} onClick={(e) => this.removeNotification(e, notification.id)}><ClearIcon style={{width:'35%'}}/></Button>
+                        <hr style={{marginBottom:'-5px'}}/>
+                    </div>
+                ))}
+            </Dropdown.Menu>
+            ) :
+            (
+            <Dropdown.Menu>
+                <Dropdown.Item style={{padding:'10px', marginTop: '0px', fontSize: '75%'}} >You have no notifications, you absolute loser</Dropdown.Item>
+            </Dropdown.Menu>
+            )
+            }
+        </Dropdown>
+    )
+
     render() {
         const { classes } = this.props;
         return (
             <div>
                 <div className={classes.topRight}>
-                    <Dropdown style={{float:'left', margin: '0px', padding: '0px'}}>
-                        <Dropdown.Toggle  as={this.CustomToggle} id="dropdown-basic"></Dropdown.Toggle>
-                        { this.state.notifications.length > 0 ? (
-                        <Dropdown.Menu style={{maxHeight: '250px', maxWidth: '500px', overflowY: 'scroll', textAlign: 'center'}}>
-                            <Dropdown.Item style={{padding:'5px 0px 5px 0px', marginTop: '0px', marginBottom:'0px', fontSize: '100%'}} onClick={() => this.clearNotifications()}>Clear Notifications</Dropdown.Item> 
-                            <hr style={{marginTop:'5px'}}/>
-                            {this.state.notifications.map((notification) => (
-                                <div className={classes.dropdownItem}>
-                                    {
-                                        notification.comment ? 
-                                        (<Dropdown.Item style={{padding:'0px 0px 0px 10px', marginTop: '0px', fontSize: '75%'}} href={"/posts/" + notification.post}>{notification.from} commented on your post!   
-                                            <small style={{fontSize:'75%', padding:'5px'}}>{notification.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
-                                        </Dropdown.Item>
-                                        )
-                                        : 
-                                        (
-                                        <Dropdown.Item style={{padding:'0px 0px 0px 10px', marginTop: '0px', fontSize: '75%'}} href={"/posts/" + notification.post}>{notification.from} replied to your comment!   
-                                            <small style={{fontSize:'75%', padding:'5px'}}>{notification.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
-                                        </Dropdown.Item>
-                                        )
-                                    }
-                                    <Button style={{marginBottom:'-5px', width:'5%', height:'75%'}} onClick={(e) => this.removeNotification(e, notification.id)}><ClearIcon style={{width:'35%'}}/></Button>
-                                    <hr style={{marginBottom:'-5px'}}/>
-                                </div>
-                            ))}
-                        </Dropdown.Menu>
-                        ) :
-                        (
-                        <Dropdown.Menu>
-                            <Dropdown.Item style={{padding:'10px', marginTop: '0px', fontSize: '75%'}} >You have no notifications, you absolute loser</Dropdown.Item>
-                        </Dropdown.Menu>
-                        )
-                        }
-                    </Dropdown>
+                    <this.NotificationDropdown classes={classes}/>
                     <Button color="primary" onClick={() => window.location = '/saved'}><BookmarksIcon/></Button>
                     <Button color="secondary" onClick={() => this.onSignOut()}>Sign Out</Button>
                 </div>
-                <a href='/'><img className={classes.homeButton} src="https://firebasestorage.googleapis.com/v0/b/roastbattles-85b35.appspot.com/o/roastlogosmall.png?alt=media&token=6762f1df-27ea-4d4a-a559-ff87678cac04"/></a>
+                <a href='/'><img className={classes.homeButton} src="https://firebasestorage.googleapis.com/v0/b/roastbattles-85b35.appspot.com/o/roastlogosmall.png?alt=media&token=6762f1df-27ea-4d4a-a559-ff87678cac04" alt="home button"/></a>
             </div>
             );
     }

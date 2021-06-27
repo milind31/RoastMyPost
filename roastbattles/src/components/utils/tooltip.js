@@ -4,7 +4,7 @@ import React from 'react';
 //React Bootstrap
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 
-export default ({children, message, location}) =>  (
+const Tooltip = ({children, message, location}) =>  (
             <OverlayTrigger
                 placement={location}
                 overlay={
@@ -15,3 +15,4 @@ export default ({children, message, location}) =>  (
             >{children}
           </OverlayTrigger>
     )
+export default Tooltip;
