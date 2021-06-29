@@ -17,6 +17,7 @@ import Col from 'react-bootstrap/Col';
 import Image from 'react-bootstrap/Image';
 
 //Material UI
+import Paper from '@material-ui/core/Paper';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import Button from '@material-ui/core/Button';
@@ -35,17 +36,42 @@ import { errorToast, infoToast } from './utils/toast';
 
 const styles = ((theme) => ({
     form: {
-        backgroundColor: '#242323',
-        alignItems: 'center'
+        alignItems: 'center',
+        background: "#333131", 
+        color:'white'
     },
     button: {
         backgroundColor: '#ed6c09'
+    },
+    paper: {
+        background: "#333131", 
+        padding: '15px 30px 15px 30px'
+    },
+    mainDiv: {
+        padding: '100px 0px 200px 0px'
     },
     fileUpload: {
         alignItems: 'center',
     },
     container: {
         background: "#333131"
+    },
+    formLabel: {
+        float: 'left'
+    },
+    fileName: {
+        display: 'inline-block'
+    },
+    popupMainText: {
+        marginTop: '10px'
+    },
+    popupSubText: {
+        fontSize:'90%', 
+        marginBottom:'20px'
+    },
+    popupButton: {
+        float: "right", 
+        margin: "5px"
     },
     backdrop: {
         zIndex: theme.zIndex.drawer + 1, 
@@ -111,6 +137,10 @@ class EditPost extends Component {
             let newFileNames = this.state.newFileNames;
             let newFiles = this.state.newFiles;
             for (let i = 0; i < e.target.files.length; i++){
+                if (e.target.files[i].name.slice(-4) !== '.png' && e.target.files[i].name.slice(-4) !== '.jpg' && e.target.files[i].name.slice(-5) !== '.jpeg') {
+                    errorToast('Please only upload .png or .jpg files!');
+                    continue;
+                }
                 newFileNames.push(e.target.files[i].name);
                 newFiles.push(e.target.files[i]);
             }
@@ -206,6 +236,13 @@ class EditPost extends Component {
 
     onSubmit = async (e) =>{
         e.preventDefault();
+
+        let numFiles = this.state.numberOfFiles;
+
+        if (numFiles === 0){
+            errorToast("Remember, you must have at least one image uploaded!")
+            return;
+        }
 
         this.setState({loadingSubmit: true});
 
@@ -316,6 +353,33 @@ class EditPost extends Component {
             //delete associated comments/scores from firestore
             return firebase.firestore().collection("comments").where("postOwner", "==", t.props.match.params.id).get()
             .then(querySnapshot =>  {
+                //if there are no comments, trying to delete scores will not work, so just delete saves and notifications
+                if (querySnapshot.empty) {
+                    //delete associated saves from firestore
+                    return firebase.firestore().collection('saves').where("postOwnerID", "==", t.props.match.params.id).get()
+                    .then(function(querySnapshot) {
+                        querySnapshot.forEach(function(doc) {
+                            doc.ref.delete();
+                        })
+                        //delete associated notifications from firestore
+                        return firebase.firestore().collection('notifications').where("post", "==", t.props.match.params.id).get()
+                        .then(function(querySnapshot) {
+                            querySnapshot.forEach(function(doc) {
+                                doc.ref.delete();
+                            })
+                            //update user document to reflect deleted post
+                            return firebase.firestore().collection("users").doc(t.props.match.params.id).update({
+                                createdPost: false
+                            })
+                            .then(() => {
+                                t.props.userDeletedPost();
+                                t.setState({deletePostMode:false, loadingDelete: false});
+                                window.location = '/';
+                            })
+                        })
+                    })
+                }
+                //if there are comments delete its scores before deleting saves and notifications
                 querySnapshot.forEach(function(comment) {
                     //delete scores from each comment
                     return firebase.firestore().collection('scores').where("comment", "==", comment.id).get()
@@ -343,7 +407,7 @@ class EditPost extends Component {
                                 .then(() => {
                                     t.props.userDeletedPost();
                                     t.setState({deletePostMode:false, loadingDelete: false});
-                                    return window.location = '/';
+                                    window.location = '/';
                                 })
                             })
                         })
@@ -354,7 +418,6 @@ class EditPost extends Component {
         .catch((err) => {console.log(err)})
     }
 
-
     render () {
         const { classes } = this.props;
         return (
@@ -362,23 +425,25 @@ class EditPost extends Component {
                 {/* delete post popup */}
                 {this.state.deletePostMode && 
                     <Popup open={this.state.deletePostMode} classes={classes}>
-                        <h3 style={{marginTop: '10px'}}>Are you sure you want to delete this post?</h3>
-                        <p style={{ fontSize:'90%', marginBottom:'20px'}}>This action cannot be undone...</p>
+                        <h3 className={classes.popupMainText}>Are you sure you want to delete this post?</h3>
+                        <p className={classes.popupSubText}>This action cannot be undone...</p>
                         {this.state.loadingDelete ? <CircularProgress/> : (<div>
-                            <SubmitButton variant="primary" style={{float: "right", margin: "5px"}} onClick={() => {this.deletePost()}}>Yes</SubmitButton>
-                            <SubmitButton variant="secondary" style={{float: "right", margin: "5px"}} onClick={() => this.setState({deletePostMode: false})}>Cancel</SubmitButton>
+                            <SubmitButton variant="primary" className={classes.popupButton} onClick={() => {this.deletePost()}}>Yes</SubmitButton>
+                            <SubmitButton variant="secondary" className={classes.popupButton} onClick={() => this.setState({deletePostMode: false})}>Cancel</SubmitButton>
                         </div>)}
                     </Popup>
                 }
-                <div style={{paddingBottom: '150px'}}>
+
+                <div className={classes.mainDiv}>
                     <Nav/>
-                    <h1 style={{paddingTop:'125px'}}>Edit post...</h1>
-                    <Form className={classes.form}  onSubmit={this.onSubmit}>
+                    <Paper className={classes.paper}>
+                    <h1 style={{paddingTop:'40px'}}>Edit post...</h1>
+                    <Form className={classes.form} onSubmit={this.onSubmit}>
 
                         {/* file upload */}
                         <Form.Group>
                             <Form.Label>Upload new images of yourself</Form.Label>
-                            <p style={{marginTop: '-50px'}}>     </p>
+                            <p style={{marginTop: '-50px'}}></p>
                             <div style={{display: 'inline-block'}}>
                             <Form.File 
                                 onChange={this.handleFileChange} 
@@ -392,7 +457,7 @@ class EditPost extends Component {
                         </Form.Group>
                         
                         {/* previously uploaded image thumbnails */}
-                        {!this.state.filesUploaded && (
+                        {!!!this.state.filesUploaded && this.state.fileURLS.length > 0 && (
                             <div>
                                 <Form.Label style={{paddingBottom: '20px'}}>
                                         Currently uploaded images:
@@ -408,7 +473,7 @@ class EditPost extends Component {
                             <strong>Newly uploaded files:</strong>
                             {this.state.newFileNames.map((fileName) => 
                                 <div>
-                                <p style={{display: 'inline-block'}}>{fileName}</p>
+                                <p className={classes.fileName}>{fileName}</p>
                                 <Tooltip message="Delete Image">
                                     <Button color="secondary" onClick={(e) => this.onDeleteNewFile(e, fileName)}><DeleteForeverIcon></DeleteForeverIcon></Button>
                                 </Tooltip>
@@ -417,14 +482,13 @@ class EditPost extends Component {
                             </div>
                         )}
 
-                        <br/>
-
                         {/* optional fields */}
+                        <br/>
                         <div></div>
 
                         {/* music */}
                         <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label style={{float:'left'}}>
+                            <Form.Label className={classes.formLabel}>
                                 What music do you currently have on rotation?
                             </Form.Label>
                             <Form.Control 
@@ -437,7 +501,7 @@ class EditPost extends Component {
 
                         {/* age */}
                         <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label style={{float:'left'}}>
+                            <Form.Label className={classes.formLabel}>
                                 How old are you?
                             </Form.Label>
                             <Form.Control 
@@ -449,7 +513,7 @@ class EditPost extends Component {
 
                         {/* day as other person */}
                         <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label style={{float:'left'}}>
+                            <Form.Label className={classes.formLabel}>
                                 If you could spend a day as anyone, dead or alive, who would it be?
                             </Form.Label>
                             <Form.Control 
@@ -461,7 +525,7 @@ class EditPost extends Component {
 
                         {/* hobbies */}
                         <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label style={{float:'left'}}>
+                            <Form.Label className={classes.formLabel}>
                                 What do you enjoy doing in your spare time?
                             </Form.Label>
                             <Form.Control 
@@ -474,7 +538,7 @@ class EditPost extends Component {
 
                         {/* peeves */}
                         <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label style={{float:'left'}}>
+                            <Form.Label className={classes.formLabel}>
                                 What pisses you off the most?
                             </Form.Label>
                             <Form.Control 
@@ -487,7 +551,7 @@ class EditPost extends Component {
 
                         {/* self rating */}
                         <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label style={{float:'left'}}>
+                            <Form.Label className={classes.formLabel}>
                                 Rate your looks on a scale from 1-10
                             </Form.Label>
                             <Form.Control 
@@ -500,7 +564,7 @@ class EditPost extends Component {
 
                         {/* guilty pleasure */}
                         <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label style={{float:'left'}}>
+                            <Form.Label className={classes.formLabel}>
                                 What is you guilty pleasure?
                             </Form.Label>
                             <Form.Control 
@@ -513,7 +577,7 @@ class EditPost extends Component {
 
                         {/* additional info */}
                         <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label style={{float:'left'}}>
+                            <Form.Label className={classes.formLabel}>
                                 Anything else you want to let people know...
                             </Form.Label>
                             <Form.Control 
@@ -532,8 +596,9 @@ class EditPost extends Component {
                         )}
                         {/* end optional fields */}
                     </Form>
+                </Paper>
+                <Button color="primary" style={{marginTop: '125px'}} onClick={() => this.setState({deletePostMode: true})}>Delete Post</Button>
 
-                    <Button color="primary" style={{marginTop: '125px'}} onClick={() => this.setState({deletePostMode: true})}>Delete Post</Button>
                 </div>
             </div>
         )

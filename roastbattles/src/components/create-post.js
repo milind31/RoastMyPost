@@ -13,6 +13,7 @@ import { connect } from 'react-redux';
 import { userCreatedPost } from './actions/index';
 
 //Material UI
+import Paper from '@material-ui/core/Paper';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Button from '@material-ui/core/Button';
@@ -31,15 +32,29 @@ import { errorToast } from './utils/toast';
 
 const styles = {
     form: {
-        backgroundColor: '#242323',
-        alignItems: 'center'
+        alignItems: 'center',
+        background: "#333131", 
+        color:'white'
+    },
+    formLabel: {
+        float: 'left'
+    },
+    paper: {
+        background: "#333131", 
+        padding: '15px 30px 15px 30px'
     },
     button: {
         backgroundColor: '#ed6c09'
     },
     fileUpload: {
         alignItems: 'center',
-    }
+    },
+    fileName: {
+        display: 'inline-block'
+    },
+    mainDiv: {
+        padding: '100px 0px 200px 0px'
+    },
 }
 
 //create post page
@@ -93,6 +108,10 @@ class CreatePost extends Component {
             let fileNames = this.state.fileNames;
             let fileList = this.state.fileList;
             for (let i = 0; i < e.target.files.length; i++){
+                if (e.target.files[i].name.slice(-4) !== '.png' && e.target.files[i].name.slice(-4) !== '.jpg' && e.target.files[i].name.slice(-5) !== '.jpeg') {
+                    errorToast('Please only upload .png or .jpg files!');
+                    continue;
+                }
                 fileNames.push(e.target.files[i].name);
                 fileList.push(e.target.files[i]);
             }
@@ -200,6 +219,11 @@ class CreatePost extends Component {
             }
             console.log(fileURLS);          
         }
+        else {
+            errorToast("You must upload at least one image!")
+            this.setState({loading: false});
+            return;
+        }
 
         var user = firebase.auth().currentUser;
 
@@ -244,18 +268,19 @@ class CreatePost extends Component {
     render () {
         const { classes } = this.props;
         return (
-            <div style={{padding: '100px 0px 200px 0px'}}>
+            <div className={classes.mainDiv}>
                 {this.state.loading ? (<Loading/>) : (
                 <div>
                     <Nav/>
-                    <h1>Create post...</h1>
-                    <Form className={classes.form}  onSubmit={this.onSubmit}>
+                    <Paper className={classes.paper}>
+                    <h1 style={{paddingTop:'40px'}}>Create post...</h1>
+                    <Form className={classes.form} onSubmit={this.onSubmit}>
 
                         { /* file upload */ }
                         <Form.Group>
                             <Form.Label>Upload images of yourself</Form.Label>
                             <p style={{marginTop: '-50px'}}>     </p>
-                            <div style={{display: 'inline-block'}}>
+                            <div className={classes.fileName}>
                             <Form.File 
                                 onChange={this.handleFileChange} 
                                 className={classes.fileUpload} 
@@ -268,12 +293,12 @@ class CreatePost extends Component {
                         </Form.Group>
 
                         {/* show files uploaded */}
-                        {this.state.numberOfFiles > 0 && (
+                        {this.state.fileList.length > 0 && (
                             <div>
                             <strong>Files uploaded:</strong>
                             {this.state.fileNames.map((fileName) => 
                                 <div>
-                                <p style={{display: 'inline-block'}}>{fileName}</p>
+                                <p className={classes.fileName}>{fileName}</p>
                                 <Tooltip message="Delete Image">
                                     <Button color="secondary" onClick={(e) => this.onDeleteFile(e, fileName)}><DeleteForeverIcon></DeleteForeverIcon></Button>
                                 </Tooltip>
@@ -290,7 +315,7 @@ class CreatePost extends Component {
 
                         { /* music */ }
                         <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label style={{float:'left'}}>
+                            <Form.Label className={classes.formLabel}>
                                 What music do you currently have on rotation?
                             </Form.Label>
                             <Form.Control 
@@ -303,7 +328,7 @@ class CreatePost extends Component {
 
                         { /* age */ }
                         <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label style={{float:'left'}}>
+                            <Form.Label className={classes.formLabel}>
                                 How old are you?
                             </Form.Label>
                             <Form.Control 
@@ -315,7 +340,7 @@ class CreatePost extends Component {
 
                         { /* day as other person */ }
                         <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label style={{float:'left'}}>
+                            <Form.Label className={classes.formLabel}>
                                 If you could spend a day as anyone, dead or alive, who would it be?
                             </Form.Label>
                             <Form.Control 
@@ -327,7 +352,7 @@ class CreatePost extends Component {
 
                         { /* hobbies */ }
                         <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label style={{float:'left'}}>
+                            <Form.Label className={classes.formLabel}>
                                 What do you enjoy doing in your spare time?
                             </Form.Label>
                             <Form.Control 
@@ -340,7 +365,7 @@ class CreatePost extends Component {
 
                         { /* peeves */ }
                         <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label style={{float:'left'}}>
+                            <Form.Label className={classes.formLabel}>
                                 What pisses you off the most?
                             </Form.Label>
                             <Form.Control 
@@ -353,7 +378,7 @@ class CreatePost extends Component {
 
                         { /* self rating */ }
                         <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label style={{float:'left'}}>
+                            <Form.Label className={classes.formLabel}>
                                 Rate your looks on a scale from 1-10
                             </Form.Label>
                             <Form.Control 
@@ -366,7 +391,7 @@ class CreatePost extends Component {
 
                         { /* guilty pleasure */ }
                         <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label style={{float:'left'}}>
+                            <Form.Label className={classes.formLabel}>
                                 What is you guilty pleasure?
                             </Form.Label>
                             <Form.Control 
@@ -379,7 +404,7 @@ class CreatePost extends Component {
 
                         { /* additional info */ }
                         <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label style={{float:'left'}}>
+                            <Form.Label className={classes.formLabel}>
                                 Anything else you want to let people know...
                             </Form.Label>
                             <Form.Control 
@@ -398,6 +423,7 @@ class CreatePost extends Component {
                         }
 
                     </Form>
+                    </Paper>
                 </div>
                 )}
             </div>
