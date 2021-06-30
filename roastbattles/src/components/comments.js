@@ -195,9 +195,7 @@ class Comments extends Component {
                 window.location = '/set-username';
             }
             this.setState({uid: user.uid});
-            this.getCommentsAndSort();     
-            this.sortComments(); 
-            this.setState({contentLoading: false});  
+            this.getCommentsAndSort();
         } else {
             //user is not logged in
             window.location = '/signin';
@@ -258,13 +256,12 @@ class Comments extends Component {
                 replies: [],
                 numRepliesToShow: INITIAL_NUMBER_OF_REPLIES,
             };
-            let comments = this.state.comments;
+
             let newCommentsAdded = this.state.newCommentsAdded;
 
-            comments.push(comment);
             newCommentsAdded.push(comment);
 
-            this.setState({commentLeft: '', commentPostedToast: true, comments: comments, newCommentsAdded: newCommentsAdded});
+            this.setState({commentLeft: '', commentPostedToast: true, newCommentsAdded: newCommentsAdded});
 
             successToast('Comment Posted!');
 
@@ -322,11 +319,17 @@ class Comments extends Component {
             console.error("Error removing document: ", error);
         });
 
+        let newComments = this.state.newCommentsAdded;
+        newComments = newComments.filter(function( obj ) {
+            return obj.id !== id;
+        });
+
         let comments = this.state.comments;
         comments = comments.filter(function( obj ) {
             return obj.id !== id;
         });
-        this.setState({comments: comments, deleteCommentMode: false, commentIDToDelete: ''});
+
+        this.setState({comments: comments, newCommentsAdded: newComments, deleteCommentMode: false, commentIDToDelete: ''});
 
         successToast('Comment Deleted!');
     }
@@ -359,50 +362,48 @@ class Comments extends Component {
 
     sortComments() {
         //sort comments by score and finish loading
-        this.setState({comments: this.state.comments.sort((a, b) => (a.totalScore/a.numScores > b.totalScore/b.numScores) ? -1 : 1), contentLoading: false})
+        setTimeout(() => {
+            this.setState({comments: this.state.comments.sort((a, b) => ((a.numScores > 0 ? (a.totalScore/a.numScores) : 0) > (b.numScores > 0 ? (b.totalScore/b.numScores) : 0)) ? -1 : 1), contentLoading: false})
+        }, 1000)
     }
 
     //query for comments on this post from firestore
     getCommentsAndSort() {
         var user = firebase.auth().currentUser;
+        var comments = [];
         firebase.firestore().collection("comments").where("postOwner", "==", this.props.url).get()
-            .then((data) => {
-                var comments = [];
-                data.forEach((doc) => {
-                    firebase.firestore().collection("scores").where("comment", "==", doc.id).where("user", "==", user.uid).get()
-                    .then((data) => {
-                        var score = 0;
-                        if (data.size > 0){
-                            data.forEach((doc) => {
-                                score = doc.data().score;
-                            });
-                        }
-                        return score;
-                    })
-                    .then((score) => {
-                        const comment = {
-                            commentBody: doc.data().commentBody,
-                            commenterID: doc.data().commenterID,
-                            commenterUsername: doc.data().commenterUsername,
-                            postOwner: doc.data().postOwner,
-                            timeStamp: doc.data().timeStamp.toDate(),
-                            id: doc.id,
-                            totalScore: doc.data().totalScore,
-                            numScores: doc.data().numScores,
-                            userScore: score,
-                            replies: doc.data().replies,
-                            numRepliesToShow: INITIAL_NUMBER_OF_REPLIES
-                        };
-                        comments.push(comment);
-                    });
-                })
-                return comments
+        .then((data) => {
+            data.forEach((doc) => {
+                firebase.firestore().collection("scores").where("comment", "==", doc.id).where("user", "==", user.uid).get()
+                .then((data) => {
+                    var score = 0;
+                    if (data.size > 0){
+                        data.forEach((doc) => {
+                            score = doc.data().score;
+                        });
+                    }
+                    const comment = {
+                        commentBody: doc.data().commentBody,
+                        commenterID: doc.data().commenterID,
+                        commenterUsername: doc.data().commenterUsername,
+                        postOwner: doc.data().postOwner,
+                        timeStamp: doc.data().timeStamp.toDate(),
+                        id: doc.id,
+                        totalScore: doc.data().totalScore,
+                        numScores: doc.data().numScores,
+                        userScore: score,
+                        replies: doc.data().replies,
+                        numRepliesToShow: INITIAL_NUMBER_OF_REPLIES
+                    };
+                    comments.push(comment);
+                    return comment;
+                });
             })
-            .then((comments) => {
-                this.setState({comments: comments});
-                return comments.sort((a, b) => (a.totalScore/a.numScores > b.totalScore/b.numScores) ? -1 : 1)
-            })
-            .then((sorted) => {console.log(sorted)});
+            return comments
+        })
+        .then((comments) => {
+            this.setState({comments: comments}, () => this.sortComments());
+        })
     }
 
     onChangeNumberOfComments(e) {
@@ -452,15 +453,31 @@ class Comments extends Component {
 
         let comments = this.state.comments;
         let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === id));
-        reply.timeStamp = "just now";
-        comments[index].replies.push(reply);
-        this.setState({
-            replyMode: false,
-            replyID: '',
-            replyCommentOwnerID: '',
-            reply: '',
-            comments: comments
-        });
+        if (index > 0){
+            reply.timeStamp = timeStamp.toDateString();
+            comments[index].replies.push(reply);
+            this.setState({
+                replyMode: false,
+                replyID: '',
+                replyCommentOwnerID: '',
+                reply: '',
+                comments: comments
+            });
+        }
+        else { 
+            //comment was newly added
+            let newComments = this.state.newCommentsAdded;
+            let index = newComments.findIndex((comment => comment.id === id));
+            reply.timeStamp = timeStamp.toDateString();
+            newComments[index].replies.push(reply);
+            this.setState({
+                replyMode: false,
+                replyID: '',
+                replyCommentOwnerID: '',
+                reply: '',
+                comments: comments
+            });
+        }
         
         successToast('Reply Posted!');
 
@@ -472,16 +489,28 @@ class Comments extends Component {
     onDeleteReply(e, commentID, reply) {
         e.preventDefault();
 
+        console.log(reply);
+
         firebase.firestore().collection("comments").doc(commentID).update({
             replies: firebase.firestore.FieldValue.arrayRemove(reply)
         })
         .then(() => {
             let comments = this.state.comments;
+            let newComments = this.state.newCommentsAdded;
             let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === commentID));
-            comments[index].replies = comments[index].replies.filter(function( r ) {
-                return r !== reply;
-            });
-            this.setState({comments: comments, deleteReplyMode: false, commentIDToDeleteReply:'', replyToDelete: ''});
+            if (index > 0) {
+                comments[index].replies = comments[index].replies.filter(function( r ) {
+                    return r !== reply;
+                });
+            }
+            else {
+                //comment was newly added
+                let index = newComments.findIndex((comment => comment.id === commentID));
+                newComments[index].replies = newComments[index].replies.filter(function( r ) {
+                    return r !== reply;
+                });
+            }
+            this.setState({comments: comments, newCommentsAdded: newComments, deleteReplyMode: false, commentIDToDeleteReply:'', replyToDelete: ''});
 
             successToast('Reply Deleted!');
             return comments;
@@ -623,7 +652,7 @@ class Comments extends Component {
         const { classes } = this.props;
         return (
            <div>
-                {this.state.contentLoading ? <CircularProgress/> : (
+                {this.state.contentLoading ? <span/> : (
                 <div>
 
                     {/* Reply Popup */}
@@ -697,7 +726,7 @@ class Comments extends Component {
                             {this.state.comments.slice(0, this.state.numberOfCommentsToShow).map((comment, index) => (
                                 <this.Comment key={index} comment={comment} classes={classes}></this.Comment>
                             ))}
-                            {this.state.newCommentsAdded.length > 0 && this.state.comments.length > this.state.numberOfCommentsToShow && this.state.newCommentsAdded.map((comment, index) => (
+                            {this.state.newCommentsAdded.length > 0 && this.state.newCommentsAdded.map((comment, index) => (
                                 <this.Comment key={index} comment={comment} classes={classes}></this.Comment>
                             ))}
                         </div>
