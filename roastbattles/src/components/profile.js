@@ -59,7 +59,7 @@ class Profile extends Component {
             files: [],
             
             //User info
-            usersPost: true,
+            usersPost: false,
             uid: '',
             postSaved: false,
 
@@ -90,43 +90,20 @@ class Profile extends Component {
     }
 
     getPostInfo(user) {
+        this.setState({
+            username: this.props.docData.data().username,
+            music: this.props.docData.data().music,
+            age: this.props.docData.data().age,
+            dayAsOtherPerson: this.props.docData.data().dayAsOtherPerson,
+            hobbies: this.props.docData.data().hobbies,
+            peeves: this.props.docData.data().peeves,
+            selfRating: this.props.docData.data().selfRating,
+            guiltyPleasure: this.props.docData.data().guiltyPleasure,
+            otherInfo: this.props.docData.data().otherInfo,
+            files: this.props.docData.data().fileURLS,
+        });
         if (this.props.url === user.uid) {
-            firebase.firestore().collection('posts').doc(user.uid).get()
-            .then((docData) => {
-                this.setState({
-                    username: docData.data().username,
-                    music: docData.data().music,
-                    age: docData.data().age,
-                    dayAsOtherPerson: docData.data().dayAsOtherPerson,
-                    hobbies: docData.data().hobbies,
-                    peeves: docData.data().peeves,
-                    selfRating: docData.data().selfRating,
-                    guiltyPleasure: docData.data().guiltyPleasure,
-                    otherInfo: docData.data().otherInfo,
-                    files: docData.data().fileURLS,
-                });
-            });
-        }
-        else {
-            firebase.firestore().collection('posts').doc(this.props.url).get()
-            .then((docData) => {
-                this.setState({
-                    username: docData.data().username,
-                    music: docData.data().music,
-                    age: docData.data().age,
-                    dayAsOtherPerson: docData.data().dayAsOtherPerson,
-                    hobbies: docData.data().hobbies,
-                    peeves: docData.data().peeves,
-                    selfRating: docData.data().selfRating,
-                    guiltyPleasure: docData.data().guiltyPleasure,
-                    otherInfo: docData.data().otherInfo,
-                    files: docData.data().fileURLS,
-                    usersPost: false
-                });
-            })
-            .catch(() => {
-                this.setState({postNotFound: true});
-            });
+            this.setState({usersPost: true})
         }
     }
 

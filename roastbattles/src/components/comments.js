@@ -13,7 +13,6 @@ import Col from 'react-bootstrap/Col';
 //Material UI
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import Backdrop from '@material-ui/core/Backdrop';
 import { withStyles } from '@material-ui/styles';
 import WhatshotIcon from '@material-ui/icons/Whatshot';
@@ -713,7 +712,7 @@ class Comments extends Component {
                                     <Form.Control as="select" onChange={this.onChangeNumberOfComments} placeholder="Number of Comments Displayed">
                                         <option value={10}>Top 10</option>
                                         <option value={25}>Top 25</option>
-                                        <option value={Number.MAX_SAFE_INTEGER}>Show all ({this.state.comments.length})</option>
+                                        <option value={Number.MAX_SAFE_INTEGER}>Show all ({this.state.comments.length + this.state.newCommentsAdded.length})</option>
                                     </Form.Control>
                                 </Col>
                             </Form.Row>
