@@ -29,9 +29,10 @@ const styles = {
         background: "#333131"
     },
     header: {
-        marginTop: '175px',
-        paddingBottom: '20px'
-
+        position: 'fixed',
+        top: '38%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)'
     }
 }
 
@@ -105,12 +106,14 @@ class SetUsername extends Component {
     }
 
     render() {
+        const { classes } = this.props;
         return (
             <div>
                 <Nav/>
-                <h1 style={{paddingTop: '225px', paddingBottom: '10px'}}>Set Username</h1>
+                <div className={classes.header}>
+                <h1>Set Username</h1>
                 <Form>
-                    <div style={{width:'40%'}}>
+                    <div style={{width:'60%'}}>
                         <strong style={{width:'15%', textAlign: 'center'}}>
                             Note: You can only set your username once. Make sure you really like it!
                         </strong>
@@ -127,6 +130,7 @@ class SetUsername extends Component {
                         <SubmitButton variant="primary" style={{}} onClick ={() => {this.setUsername()}}>Submit</SubmitButton>
                         </div>
                 </Form>
+                </div>
             </div>
         );
     }

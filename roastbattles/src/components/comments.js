@@ -14,6 +14,7 @@ import Col from 'react-bootstrap/Col';
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import Backdrop from '@material-ui/core/Backdrop';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import { withStyles } from '@material-ui/styles';
 import WhatshotIcon from '@material-ui/icons/Whatshot';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -359,49 +360,56 @@ class Comments extends Component {
         this.setState(this.state);
     }
 
-    sortComments() {
+    sortComments(comments) {
         //sort comments by score and finish loading
-        setTimeout(() => {
-            this.setState({comments: this.state.comments.sort((a, b) => ((a.numScores > 0 ? (a.totalScore/a.numScores) : 0) > (b.numScores > 0 ? (b.totalScore/b.numScores) : 0)) ? -1 : 1), contentLoading: false})
-        }, 1000)
+        this.setState({comments: comments.sort((a, b) => ((a.numScores > 0 ? (a.totalScore/a.numScores) : 0) > (b.numScores > 0 ? (b.totalScore/b.numScores) : 0)) ? -1 : 1), contentLoading: false})
     }
 
     //query for comments on this post from firestore
-    getCommentsAndSort() {
+    getCommentsAndSort = async () => {
         var user = firebase.auth().currentUser;
-        var comments = [];
         firebase.firestore().collection("comments").where("postOwner", "==", this.props.url).get()
         .then((data) => {
+            var comments = [];
             data.forEach((doc) => {
-                firebase.firestore().collection("scores").where("comment", "==", doc.id).where("user", "==", user.uid).get()
-                .then((data) => {
-                    var score = 0;
-                    if (data.size > 0){
-                        data.forEach((doc) => {
-                            score = doc.data().score;
-                        });
-                    }
-                    const comment = {
-                        commentBody: doc.data().commentBody,
-                        commenterID: doc.data().commenterID,
-                        commenterUsername: doc.data().commenterUsername,
-                        postOwner: doc.data().postOwner,
-                        timeStamp: doc.data().timeStamp.toDate(),
-                        id: doc.id,
-                        totalScore: doc.data().totalScore,
-                        numScores: doc.data().numScores,
-                        userScore: score,
-                        replies: doc.data().replies,
-                        numRepliesToShow: INITIAL_NUMBER_OF_REPLIES
-                    };
-                    comments.push(comment);
-                    return comment;
-                });
+                const comment = {
+                    commentBody: doc.data().commentBody,
+                    commenterID: doc.data().commenterID,
+                    commenterUsername: doc.data().commenterUsername,
+                    postOwner: doc.data().postOwner,
+                    timeStamp: doc.data().timeStamp.toDate(),
+                    id: doc.id,
+                    totalScore: doc.data().totalScore,
+                    numScores: doc.data().numScores,
+                    userScore: 0,
+                    replies: doc.data().replies,
+                    numRepliesToShow: INITIAL_NUMBER_OF_REPLIES
+                };
+                comments.push(comment)
             })
             return comments
         })
+        .then(async (comments) => {
+            for (let i = 0; i < comments.length; i++) {
+                firebase.firestore().collection("scores").where("comment", "==", comments[i].id).where("user", "==", user.uid).limit(1).get()
+                .then((data) => {
+                    if (data.size > 0){
+                        let score = 0;
+                        data.forEach((doc) => {
+                            score = doc.data().score;
+                        });
+                        return score;
+                    }
+                    else {
+                        return 0;
+                    }
+                })
+                .then((score) => {comments[i].userScore = score;})
+            }
+            return comments;
+        })
         .then((comments) => {
-            this.setState({comments: comments}, () => this.sortComments());
+            setTimeout(() => this.sortComments(comments),1000);
         })
     }
 
@@ -651,7 +659,7 @@ class Comments extends Component {
         const { classes } = this.props;
         return (
            <div>
-                {this.state.contentLoading ? <span/> : (
+                {this.state.contentLoading ? <CircularProgress/> : (
                 <div>
 
                     {/* Reply Popup */}

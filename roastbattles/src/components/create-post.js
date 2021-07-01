@@ -111,7 +111,7 @@ class CreatePost extends Component {
                 if (e.target.files[i].name.slice(-4) !== '.png' && e.target.files[i].name.slice(-4) !== '.jpg' && e.target.files[i].name.slice(-5) !== '.jpeg') {
                     errorToast('Please only upload .png or .jpg files!');
                     continue;
-                }
+                }        
                 fileNames.push(e.target.files[i].name);
                 fileList.push(e.target.files[i]);
             }
@@ -217,7 +217,6 @@ class CreatePost extends Component {
                 // 3C. Push the download url to URLs array
                 fileURLS.push(downloadFileResponse);
             }
-            console.log(fileURLS);          
         }
         else {
             errorToast("You must upload at least one image!")
@@ -268,7 +267,7 @@ class CreatePost extends Component {
     render () {
         const { classes } = this.props;
         return (
-            <div className={classes.mainDiv}>
+            <div className={classes.mainDiv} style={{padding: '50px 125px 250px 125px'}}>
                 {this.state.loading ? (<Loading/>) : (
                 <div>
                     <Nav/>

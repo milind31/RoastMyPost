@@ -300,7 +300,7 @@ class EditPost extends Component {
                     <Row>
                         {this.state.fileURLS.length !== 0 && this.state.fileURLS.map((url, index) => (
                             <Col xs={6} md={4}>
-                                <Image thumbnail  src={url}></Image>
+                                <Image thumbnail width="200px" src={url}></Image>
                                 <Tooltip message="Delete Image" location="bottom">
                                     <Button color="primary"onClick={(e) => {this.onDeleteFileFromThumbnail(e, url)}}><DeleteForeverIcon/></Button>
                                 </Tooltip>
@@ -434,7 +434,7 @@ class EditPost extends Component {
                     </Popup>
                 }
 
-                <div className={classes.mainDiv}>
+                <div className={classes.mainDiv} style={{padding: '50px 125px 250px 125px'}}>
                     <Nav/>
                     <Paper className={classes.paper}>
                     <h1 style={{paddingTop:'40px'}}>Edit post...</h1>

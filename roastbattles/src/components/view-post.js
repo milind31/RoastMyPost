@@ -39,7 +39,7 @@ class ViewPost extends Component {
                     this.setState({docSnapshot: docSnapshot})
                 }
             })
-            setTimeout(this.setState({contentLoading: false}), 1000);
+            this.setState({contentLoading: false});
         } else {
             //user is not logged in
             window.location = '/signin';
@@ -52,9 +52,9 @@ class ViewPost extends Component {
                 {this.state.postNotFound ? (<PostNotFound/>) : (this.state.contentLoading ? (<Loading/>) : (
                 <div>
                     <Nav/>
-
+    
                     {this.state.docSnapshot && 
-                    <div>
+                    <div style={{padding: '75px 125px 250px 125px'}}>
                         <Profile url={this.props.match.params.id} docData={this.state.docSnapshot}/>
 
                         <Comments url={this.props.match.params.id}/>

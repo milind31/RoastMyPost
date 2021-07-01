@@ -6,6 +6,7 @@ import { savePost, unsavePost } from './actions/index';
 //Material UI
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import { withStyles } from '@material-ui/styles';
 import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
 import PropTypes from 'prop-types';
@@ -22,7 +23,6 @@ import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a lo
 
 //Toasts
 import { errorToast, successToast } from './utils/toast';
-import { CircularProgress } from '@material-ui/core';
 
 //Global Definitions
 var Carousel = require('react-responsive-carousel').Carousel;
@@ -85,7 +85,7 @@ class Profile extends Component {
             this.setState({uid: user.uid});
             this.getPostInfo(user);
             this.getSavedStatus();
-            setTimeout(() => this.setState({contentLoading: false}), 500);
+            this.setState({contentLoading: false});
         }
     }
 
@@ -215,7 +215,7 @@ class Profile extends Component {
         return (
         <div>
             {this.state.contentLoading ? <CircularProgress/> : (
-            <div style={{padding: '75px 0px 100px 0px'}}>
+            <div style={{paddingBottom: '100px'}}>
                 <Paper className={classes.container} >
                     {/* Username */}
                     <h1 className={classes.header}>{this.state.username}</h1>
@@ -232,7 +232,7 @@ class Profile extends Component {
                     {/* Profile Images */}
                     <Carousel showArrows={true} showThumbs={false} dynamicHeight={true} infiniteLoop={false} autoPlay={false}>
                         {this.state.files.map((url, index) => (
-                        <img key={index} src={url} alt={`profileimg${index}`} style={{width:'800px'}}/>
+                        <img key={index} src={url} alt={`profileimg${index}`}  style={{height:'500px', width:'auto'}}/>
                         ))}
                     </Carousel>
 

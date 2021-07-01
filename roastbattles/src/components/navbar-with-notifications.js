@@ -110,9 +110,6 @@ class NavWithNotifications extends Component {
             return obj.id !== id;
         });
         this.setState({notifications: notifications});
-
-        //push toast
-        successToast("Notification Deleted!")
     }
 
     clearNotifications() {
