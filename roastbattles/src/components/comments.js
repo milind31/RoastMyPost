@@ -50,8 +50,11 @@ const styles = ((theme) => ({
         marginTop: '5%',
         paddingLeft: '20px',
     },
-    form: {
+    replyModeForm: {
         backgroundColor: '#333131',
+        borderRadius: '5px',
+        width: "25%",
+        padding: '10px'
     },
     commentSection: {
         textAlign: 'left',
@@ -202,21 +205,66 @@ class Comments extends Component {
         }
     }
 
-    markAsHarassment(e, commentID, commenterID) {
-        e.preventDefault();
-
-        //add document to firestore
-        firebase.firestore().collection("flagged").add({
-            commentID: commentID,
-            commenterID: commenterID,
-            flagger: this.props.uid
+    //FETCH DATA
+    //query for comments on this post from firestore
+    getCommentsAndSort = async () => {
+        var user = firebase.auth().currentUser;
+        firebase.firestore().collection("comments").where("postOwner", "==", this.props.url).get()
+        .then((data) => {
+            var comments = [];
+            data.forEach((doc) => {
+                const comment = {
+                    commentBody: doc.data().commentBody,
+                    commenterID: doc.data().commenterID,
+                    commenterUsername: doc.data().commenterUsername,
+                    postOwner: doc.data().postOwner,
+                    timeStamp: doc.data().timeStamp.toDate(),
+                    id: doc.id,
+                    totalScore: doc.data().totalScore,
+                    numScores: doc.data().numScores,
+                    userScore: -1,
+                    replies: doc.data().replies,
+                    numRepliesToShow: INITIAL_NUMBER_OF_REPLIES
+                };
+                comments.push(comment)
+            })
+            return comments
         })
-        .then(() => {
-            successToast("Post/User flagged!")
-            this.setState({markAsHarassmentMode: false, commentIDToFlag: '', commenterToFlag: ''});
+        .then(async (comments) => {
+            for (let i = 0; i < comments.length; i++) {
+                firebase.firestore().collection("scores").where("comment", "==", comments[i].id).where("user", "==", user.uid).limit(1).get()
+                .then((data) => {
+                    if (data.size > 0){
+                        let score = 0;
+                        data.forEach((doc) => {
+                            score = doc.data().score;
+                        });
+                        return score;
+                    }
+                    else {
+                        return 0;
+                    }
+                })
+                .then((score) => {comments[i].userScore = score;})
+            }
+            return comments;
         })
-        .catch((err) => {errorToast("Error flagging post", err)});
+        .then((comments) => {
+            setTimeout(() => this.sortComments(comments),1000);
+        })
+    }
 
+    sortComments(comments) {
+        //sort comments by score and finish loading
+        this.setState({comments: comments.sort((a, b) => ((a.numScores > 0 ? (a.totalScore/a.numScores) : 0) > (b.numScores > 0 ? (b.totalScore/b.numScores) : 0)) ? -1 : 1), contentLoading: false})
+    }
+    //END FETCH DATA
+
+    //COMMENTS
+    onChangeComment(e) {
+        this.setState({
+            commentLeft: e.target.value,
+        });
     }
 
     onPostComment(e) {
@@ -275,33 +323,6 @@ class Comments extends Component {
         });
     }
 
-    scoreComment(e, score, id, userScore) {
-        e.preventDefault();
-        if (userScore === 0) {
-            var user = firebase.auth().currentUser;
-
-            let comments = this.state.comments;
-            let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === id));
-
-            comments[index].userScore = score;
-            comments[index].totalScore += score;
-            comments[index].numScores += 1;
-            this.setState({comments: comments});
-
-            firebase.firestore().collection("comments").doc(id).update({
-                totalScore: comments[index].totalScore,
-                numScores: comments[index].numScores
-            });
-
-            //add document to firestore
-            firebase.firestore().collection("scores").add({
-                user: user.uid,
-                comment: comments[index].id,
-                score: score
-            });
-        }
-    }
-
     onDeleteComment(e, id) {
         e.preventDefault();
 
@@ -334,10 +355,31 @@ class Comments extends Component {
         successToast('Comment Deleted!');
     }
 
-    onChangeComment(e) {
-        this.setState({
-            commentLeft: e.target.value,
-        });
+    scoreComment(e, score, id, userScore) {
+        e.preventDefault();
+        if (userScore === 0) {
+            var user = firebase.auth().currentUser;
+
+            let comments = this.state.comments;
+            let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === id));
+
+            comments[index].userScore = score;
+            comments[index].totalScore += score;
+            comments[index].numScores += 1;
+            this.setState({comments: comments});
+
+            firebase.firestore().collection("comments").doc(id).update({
+                totalScore: comments[index].totalScore,
+                numScores: comments[index].numScores
+            });
+
+            //add document to firestore
+            firebase.firestore().collection("scores").add({
+                user: user.uid,
+                comment: comments[index].id,
+                score: score
+            });
+        }
     }
 
     onShowMoreReplies(e, commentID) {
@@ -360,65 +402,18 @@ class Comments extends Component {
         this.setState(this.state);
     }
 
-    sortComments(comments) {
-        //sort comments by score and finish loading
-        this.setState({comments: comments.sort((a, b) => ((a.numScores > 0 ? (a.totalScore/a.numScores) : 0) > (b.numScores > 0 ? (b.totalScore/b.numScores) : 0)) ? -1 : 1), contentLoading: false})
-    }
-
-    //query for comments on this post from firestore
-    getCommentsAndSort = async () => {
-        var user = firebase.auth().currentUser;
-        firebase.firestore().collection("comments").where("postOwner", "==", this.props.url).get()
-        .then((data) => {
-            var comments = [];
-            data.forEach((doc) => {
-                const comment = {
-                    commentBody: doc.data().commentBody,
-                    commenterID: doc.data().commenterID,
-                    commenterUsername: doc.data().commenterUsername,
-                    postOwner: doc.data().postOwner,
-                    timeStamp: doc.data().timeStamp.toDate(),
-                    id: doc.id,
-                    totalScore: doc.data().totalScore,
-                    numScores: doc.data().numScores,
-                    userScore: 0,
-                    replies: doc.data().replies,
-                    numRepliesToShow: INITIAL_NUMBER_OF_REPLIES
-                };
-                comments.push(comment)
-            })
-            return comments
-        })
-        .then(async (comments) => {
-            for (let i = 0; i < comments.length; i++) {
-                firebase.firestore().collection("scores").where("comment", "==", comments[i].id).where("user", "==", user.uid).limit(1).get()
-                .then((data) => {
-                    if (data.size > 0){
-                        let score = 0;
-                        data.forEach((doc) => {
-                            score = doc.data().score;
-                        });
-                        return score;
-                    }
-                    else {
-                        return 0;
-                    }
-                })
-                .then((score) => {comments[i].userScore = score;})
-            }
-            return comments;
-        })
-        .then((comments) => {
-            setTimeout(() => this.sortComments(comments),1000);
-        })
-    }
-
     onChangeNumberOfComments(e) {
         e.preventDefault();
-
         this.setState({
             numberOfCommentsToShow: e.target.value
         });
+    }
+    //END COMMENTS
+
+    //REPLIES
+    onChangeReply(e) {
+        e.preventDefault();
+        this.setState({reply: e.target.value});
     }
 
     handleClickReply(e, id, ownerID) {
@@ -460,7 +455,8 @@ class Comments extends Component {
 
         let comments = this.state.comments;
         let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === id));
-        if (index > 0){
+        console.log(index)
+        if (index >= 0){
             reply.timeStamp = timeStamp.toDateString();
             comments[index].replies.push(reply);
             this.setState({
@@ -505,7 +501,7 @@ class Comments extends Component {
             let comments = this.state.comments;
             let newComments = this.state.newCommentsAdded;
             let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === commentID));
-            if (index > 0) {
+            if (index >= 0) {
                 comments[index].replies = comments[index].replies.filter(function( r ) {
                     return r !== reply;
                 });
@@ -523,11 +519,7 @@ class Comments extends Component {
             return comments;
         })
     }
-
-    onChangeReply(e) {
-        e.preventDefault();
-        this.setState({reply: e.target.value});
-    }
+    //END REPLIES
 
     sendNotification(type, to, from) {
         firebase.firestore().collection("notifications").add({
@@ -538,6 +530,23 @@ class Comments extends Component {
             post: this.props.url,
             timeStamp: firebase.firestore.FieldValue.serverTimestamp(),
         })
+    }
+
+    markAsHarassment(e, commentID, commenterID) {
+        e.preventDefault();
+
+        //add document to firestore
+        firebase.firestore().collection("flagged").add({
+            commentID: commentID,
+            commenterID: commenterID,
+            flagger: this.props.uid
+        })
+        .then(() => {
+            successToast("Post/User flagged!")
+            this.setState({markAsHarassmentMode: false, commentIDToFlag: '', commenterToFlag: ''});
+        })
+        .catch((err) => {errorToast("Error flagging post", err)});
+
     }
 
     Comment = props => (
@@ -665,7 +674,7 @@ class Comments extends Component {
                     {/* Reply Popup */}
                     {this.state.replyMode &&
                         <Backdrop open={this.state.replyMode} className={classes.backdrop}>
-                            <Form className={classes.form} style={{borderRadius: '5px', width: "25%", padding: '10px'}} onSubmit={(e) => {this.submitReply(e, this.state.replyID, this.state.replyCommentOwnerID);}}>
+                            <Form className={classes.replyModeForm} onSubmit={(e) => {this.submitReply(e, this.state.replyID, this.state.replyCommentOwnerID);}}>
                                 <Form.Group className={classes.container} controlId="exampleForm.ControlTextarea1">
                                     <Form.Control 
                                     onChange={this.onChangeReply}

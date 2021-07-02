@@ -54,7 +54,7 @@ class ViewPost extends Component {
                     <Nav/>
     
                     {this.state.docSnapshot && 
-                    <div style={{padding: '75px 125px 250px 125px'}}>
+                    <div style={{padding: '75px 75px 250px 75px'}}>
                         <Profile url={this.props.match.params.id} docData={this.state.docSnapshot}/>
 
                         <Comments url={this.props.match.params.id}/>

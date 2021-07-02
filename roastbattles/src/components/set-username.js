@@ -33,7 +33,17 @@ const styles = {
         top: '38%',
         left: '50%',
         transform: 'translate(-50%, -50%)'
-    }
+    },
+    bodyDiv: {
+        width:'60%'
+    },
+    warning: {
+        width:'15%', 
+        textAlign: 'center'
+    },
+    form: {
+        marginTop:'10px'
+    },
 }
 
 class SetUsername extends Component {
@@ -113,11 +123,11 @@ class SetUsername extends Component {
                 <div className={classes.header}>
                 <h1>Set Username</h1>
                 <Form>
-                    <div style={{width:'60%'}}>
-                        <strong style={{width:'15%', textAlign: 'center'}}>
+                    <div className={classes.bodyDiv}>
+                        <strong className={classes.warning}>
                             Note: You can only set your username once. Make sure you really like it!
                         </strong>
-                        <Form.Group style={{marginTop:'10px'}} controlId="exampleForm.ControlTextarea1">
+                        <Form.Group className={classes.form} controlId="exampleForm.ControlTextarea1">
                             <Form.Control 
                             onChange={this.onChangeUsername}
                             value={this.state.username} 
@@ -127,7 +137,7 @@ class SetUsername extends Component {
                         <Form.Text style={{marginTop: '-10px', paddingBottom: '25px'}} className="text-muted">
                             Username must be between 4-15 characters
                         </Form.Text>
-                        <SubmitButton variant="primary" style={{}} onClick ={() => {this.setUsername()}}>Submit</SubmitButton>
+                        <SubmitButton variant="primary" onClick ={() => {this.setUsername()}}>Submit</SubmitButton>
                         </div>
                 </Form>
                 </div>

@@ -16,14 +16,17 @@ import { connect } from 'react-redux';
 
 const styles = {
   container: {
-      background: "#333131"
+    background: "#333131"
   },
   header: {
-      position: 'fixed',
-      top: '36%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)'
-  }
+    position: 'fixed',
+    top: '36%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)'
+  },
+  logo: {
+    width:'15%', height:'15%'
+  },
 }
 
 class SignIn extends Component {
@@ -72,7 +75,10 @@ class SignIn extends Component {
         const { classes } = this.props;
         return (
             <div className={classes.header}>
-              <img style={{width:'15%', height:'15%'}} src="https://firebasestorage.googleapis.com/v0/b/roastbattles-85b35.appspot.com/o/roastlogo.png?alt=media&token=90d7f233-e25c-48c0-968a-e9cfa4597a6f" alt="logo"></img>
+              <img className={classes.logo} 
+                src="https://firebasestorage.googleapis.com/v0/b/roastbattles-85b35.appspot.com/o/roastlogo.png?alt=media&token=90d7f233-e25c-48c0-968a-e9cfa4597a6f" 
+                alt="logo">
+              </img>
               <h1 style={{fontSize:'350%'}}>Welcome to RoastMyPost!</h1>
               <p>The best place to take your day out on a stranger!</p>
               <button onClick={this.signInWithGoogle} type="button" class="login-with-google-btn" >
@@ -82,9 +88,7 @@ class SignIn extends Component {
         )
      }
 }
-const mapStateToProps = (state) => ({
-
-})
+const mapStateToProps = (state) => ({})
 
 const mapActionsToProps = {
   userCreatedPost,

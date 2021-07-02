@@ -141,6 +141,10 @@ class EditPost extends Component {
                     errorToast('Please only upload .png or .jpg files!');
                     continue;
                 }
+                if (e.target.files[i].size / 1024 / 1024 > 2) { // in MiB
+                    errorToast('Files must be less than 2MiB!');
+                    continue;
+                }
                 newFileNames.push(e.target.files[i].name);
                 newFiles.push(e.target.files[i]);
             }
@@ -293,23 +297,6 @@ class EditPost extends Component {
         // 3. Get download URL and return it as 
         return uploadTask.ref.getDownloadURL().then((fileURL) => fileURL);
     }
-    
-    imageThumbnails = () => (
-        <div style={{marginTop:'-75px'}}>
-                    <Container>
-                    <Row>
-                        {this.state.fileURLS.length !== 0 && this.state.fileURLS.map((url, index) => (
-                            <Col xs={6} md={4}>
-                                <Image thumbnail width="200px" src={url}></Image>
-                                <Tooltip message="Delete Image" location="bottom">
-                                    <Button color="primary"onClick={(e) => {this.onDeleteFileFromThumbnail(e, url)}}><DeleteForeverIcon/></Button>
-                                </Tooltip>
-                            </Col>
-                        ))}
-                    </Row>
-                    </Container>
-                </div>
-    )
 
     //delete previously uploaded image
     onDeleteFileFromThumbnail(e, url) {
@@ -418,6 +405,23 @@ class EditPost extends Component {
         .catch((err) => {console.log(err)})
     }
 
+    imageThumbnails = () => (
+        <div style={{marginTop:'-75px'}}>
+                    <Container>
+                    <Row>
+                        {this.state.fileURLS.length !== 0 && this.state.fileURLS.map((url, index) => (
+                            <Col xs={6} md={4}>
+                                <Image thumbnail width="200px" src={url}></Image>
+                                <Tooltip message="Delete Image" location="bottom">
+                                    <Button color="primary"onClick={(e) => {this.onDeleteFileFromThumbnail(e, url)}}><DeleteForeverIcon/></Button>
+                                </Tooltip>
+                            </Col>
+                        ))}
+                    </Row>
+                    </Container>
+                </div>
+    )
+
     render () {
         const { classes } = this.props;
         return (
@@ -434,7 +438,7 @@ class EditPost extends Component {
                     </Popup>
                 }
 
-                <div className={classes.mainDiv} style={{padding: '50px 125px 250px 125px'}}>
+                <div className={classes.mainDiv} style={{padding: '50px 75px 250px 75px'}}>
                     <Nav/>
                     <Paper className={classes.paper}>
                     <h1 style={{paddingTop:'40px'}}>Edit post...</h1>

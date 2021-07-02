@@ -35,8 +35,39 @@ const styles = {
         padding: "0px",
         margin: "0px"
     },
-    dropdownItem: {
+    dropdown: { 
+        float:'left', 
+        margin: '0px', 
+        padding: '0px'
+    },
+    dropdownMenu: {
+        maxHeight: '250px', 
+        maxWidth: '500px', 
+        overflowY: 'scroll', 
+        textAlign: 'center'
+    },
+    dropdownClear: {
+        padding:'5px 0px 5px 0px', 
+        marginTop: '0px', 
+        marginBottom:'0px', 
+        fontSize: '100%'
+    },
+    dropdownItemDiv: {
         background: "white"
+    },
+    dropdownItem: {
+        padding:'0px 0px 0px 10px', 
+        marginTop: '0px', 
+        fontSize: '75%'
+    },
+    dropdownTimeStamp: {
+        fontSize:'75%', 
+        padding:'5px'
+    },
+    dropdownDeleteItem: {
+        marginBottom:'-5px', 
+        width:'5%', 
+        height:'75%'
     },
     container: {
         background: "#333131"
@@ -143,28 +174,28 @@ class NavWithNotifications extends Component {
       ));
 
     NotificationDropdown = props => (
-        <Dropdown style={{float:'left', margin: '0px', padding: '0px'}}>
+        <Dropdown className={this.props.classes.dropdown}>
             <Dropdown.Toggle as={this.NotificationButton} id="dropdown-basic"></Dropdown.Toggle>
             { this.state.notifications.length > 0 ? (
-            <Dropdown.Menu style={{maxHeight: '250px', maxWidth: '500px', overflowY: 'scroll', textAlign: 'center'}}>
-                <Dropdown.Item style={{padding:'5px 0px 5px 0px', marginTop: '0px', marginBottom:'0px', fontSize: '100%'}} onClick={() => this.clearNotifications()}>Clear Notifications</Dropdown.Item> 
+            <Dropdown.Menu className={this.props.classes.dropdownMenu}>
+                <Dropdown.Item className={this.props.classes.dropdownClear} onClick={() => this.clearNotifications()}>Clear Notifications</Dropdown.Item> 
                 <hr style={{marginTop:'5px'}}/>
                 {this.state.notifications.map((notification) => (
-                    <div className={this.props.classes.dropdownItem}>
+                    <div className={this.props.classes.dropdownItemDiv}>
                         {
                             notification.comment ? 
-                            (<Dropdown.Item style={{padding:'0px 0px 0px 10px', marginTop: '0px', fontSize: '75%'}} href={"/posts/" + notification.post}>{notification.from} commented on your post!   
-                                <small style={{fontSize:'75%', padding:'5px'}}>{notification.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
+                            (<Dropdown.Item className={this.props.classes.dropdownItem} href={"/posts/" + notification.post}>{notification.from} commented on your post!   
+                                <small className={this.props.classes.dropdownTimeStamp}>{notification.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
                             </Dropdown.Item>
                             )
                             : 
                             (
-                            <Dropdown.Item style={{padding:'0px 0px 0px 10px', marginTop: '0px', fontSize: '75%'}} href={"/posts/" + notification.post}>{notification.from} replied to your comment!   
-                                <small style={{fontSize:'75%', padding:'5px'}}>{notification.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
+                            <Dropdown.Item className={this.props.classes.dropdownItem} href={"/posts/" + notification.post}>{notification.from} replied to your comment!   
+                                <small className={this.props.classes.dropdownTimeStamp}>{notification.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
                             </Dropdown.Item>
                             )
                         }
-                        <Button style={{marginBottom:'-5px', width:'5%', height:'75%'}} onClick={(e) => this.removeNotification(e, notification.id)}><ClearIcon style={{width:'35%'}}/></Button>
+                        <Button className={this.props.classes.dropdownDeleteItem} onClick={(e) => this.removeNotification(e, notification.id)}><ClearIcon style={{width:'35%'}}/></Button>
                         <hr style={{marginBottom:'-5px'}}/>
                     </div>
                 ))}
@@ -172,7 +203,7 @@ class NavWithNotifications extends Component {
             ) :
             (
             <Dropdown.Menu>
-                <Dropdown.Item style={{padding:'10px', marginTop: '0px', fontSize: '75%'}} >You have no notifications, you absolute loser</Dropdown.Item>
+                <Dropdown.Item className={this.props.classes.dropdownItem} style={{padding:'10px'}} >You have no notifications, you absolute loser</Dropdown.Item>
             </Dropdown.Menu>
             )
             }

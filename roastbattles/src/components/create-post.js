@@ -111,7 +111,11 @@ class CreatePost extends Component {
                 if (e.target.files[i].name.slice(-4) !== '.png' && e.target.files[i].name.slice(-4) !== '.jpg' && e.target.files[i].name.slice(-5) !== '.jpeg') {
                     errorToast('Please only upload .png or .jpg files!');
                     continue;
-                }        
+                }
+                if (e.target.files[i].size / 1024 / 1024 > 2) { // in MiB
+                    errorToast('Files must be less than 2MiB!');
+                    continue;
+                }
                 fileNames.push(e.target.files[i].name);
                 fileList.push(e.target.files[i]);
             }
@@ -119,7 +123,6 @@ class CreatePost extends Component {
         }
         else{
             errorToast('You cannot upload more than 5 images! Please delete images before trying again');
-            
             e.target.value = null;
         }
       }
@@ -237,7 +240,9 @@ class CreatePost extends Component {
             selfRating: this.state.selfRating,
             guiltyPleasure: this.state.guiltyPleasure,
             otherInfo: this.state.otherInfo,
-            fileURLS: fileURLS})
+            fileURLS: fileURLS,
+            approved: true,
+        })
         .then(() => {
             //change user's created post attribute to true
             firebase.firestore().collection("users").doc(user.uid.toString()).update({
@@ -267,7 +272,7 @@ class CreatePost extends Component {
     render () {
         const { classes } = this.props;
         return (
-            <div className={classes.mainDiv} style={{padding: '50px 125px 250px 125px'}}>
+            <div className={classes.mainDiv} style={{padding: '50px 75px 250px 75px'}}>
                 {this.state.loading ? (<Loading/>) : (
                 <div>
                     <Nav/>
