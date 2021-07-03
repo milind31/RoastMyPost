@@ -50,7 +50,7 @@ const styles = ((theme) => ({
         marginTop: '5%',
         paddingLeft: '20px',
     },
-    replyModeForm: {
+    form: {
         backgroundColor: '#333131',
         borderRadius: '5px',
         width: "25%",
@@ -64,6 +64,10 @@ const styles = ((theme) => ({
     comments: {
         paddingTop: '50px',
         backgroundColor: '#333131',
+    },
+    textBody: {
+        fontSize: '125%', 
+        wordWrap:'break-word'
     },
     scoringButtons: {
         float:'right', 
@@ -129,6 +133,12 @@ const styles = ((theme) => ({
         color: '#5c5c5c', 
         backgroundColor:'#5c5c5c'
     },
+    characterCounter: {
+        marginTop: '-20px', 
+        paddingRight: '35px', 
+        float:'right', 
+        color: 'white'
+    },
     backdrop: {
         zIndex: theme.zIndex.drawer + 1, 
         color: '#fff',
@@ -143,6 +153,7 @@ class Comments extends Component {
 
         this.state = {
             //User info
+            userLoggedIn: false,
             usersPost: true,
             uid: '',
             postSaved: '',
@@ -197,12 +208,12 @@ class Comments extends Component {
             if (this.props.username === '') {
                 window.location = '/set-username';
             }
-            this.setState({uid: user.uid});
-            this.getCommentsAndSort();
+            this.setState({uid: user.uid, userLoggedIn: true});
         } else {
             //user is not logged in
-            window.location = '/signin';
+            //window.location = '/signin';
         }
+        this.getCommentsAndSort();
     }
 
     //FETCH DATA
@@ -231,21 +242,23 @@ class Comments extends Component {
             return comments
         })
         .then(async (comments) => {
-            for (let i = 0; i < comments.length; i++) {
-                firebase.firestore().collection("scores").where("comment", "==", comments[i].id).where("user", "==", user.uid).limit(1).get()
-                .then((data) => {
-                    if (data.size > 0){
-                        let score = 0;
-                        data.forEach((doc) => {
-                            score = doc.data().score;
-                        });
-                        return score;
-                    }
-                    else {
-                        return 0;
-                    }
-                })
-                .then((score) => {comments[i].userScore = score;})
+            if (this.state.userLoggedIn) {
+                for (let i = 0; i < comments.length; i++) {
+                    firebase.firestore().collection("scores").where("comment", "==", comments[i].id).where("user", "==", user.uid).limit(1).get()
+                    .then((data) => {
+                        if (data.size > 0){
+                            let score = 0;
+                            data.forEach((doc) => {
+                                score = doc.data().score;
+                            });
+                            return score;
+                        }
+                        else {
+                            return 0;
+                        }
+                    })
+                    .then((score) => {comments[i].userScore = score;})
+                }
             }
             return comments;
         })
@@ -273,6 +286,11 @@ class Comments extends Component {
         //comments are being added too quickly
         if (this.state.newCommentsAdded.length >= 5) {
             errorToast("Comments are being added too quickly! Please try again in a bit");
+            return;
+        }
+
+        if (this.state.commentLeft.length >= 300) {
+            errorToast("Comments must be under 300 characters!");
             return;
         }
 
@@ -438,6 +456,11 @@ class Comments extends Component {
     submitReply(e, id, ownerID) {
         e.preventDefault();
 
+        if (this.state.reply.length >= 300) {
+            errorToast("Replies must be under 300 characters!");
+            return;
+        }
+
         var user = firebase.auth().currentUser;
         var time = Date.now();
         var timeStamp = new Date(time);
@@ -560,7 +583,7 @@ class Comments extends Component {
                 {(props.comment.commenterID === props.comment.postOwner) && <WhatshotIcon/>}
 
                 {/* Flag */}
-                {(props.comment.commenterID !== this.state.uid) && 
+                {this.state.userLoggedIn && (props.comment.commenterID !== this.state.uid) && 
                 <Tooltip message="Mark user/post for harassment">
                     <Button size="small" className={props.classes.flagPostButton} onClick={() => this.setState({markAsHarassmentMode: true, commentIDToFlag: props.comment.id, commenterToFlag:props.comment.commenterID})}>
                         <MoreVertIcon className={props.classes.flagPostIcon}/>
@@ -572,13 +595,14 @@ class Comments extends Component {
             </p>
 
             {/* Comment Body */}
-            <p style={{fontSize: '125%'}}>{props.comment.commentBody}</p>
+            <p className={props.classes.textBody}>{props.comment.commentBody}</p>
 
             <div className={props.classes.belowCommentBar}>
                 {/* Timestamp */}
                 <small className={props.classes.belowCommentTimestamp}>{props.comment.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
 
                 {/* Delete & Reply Buttons */}
+                {this.state.userLoggedIn &&
                 <div className={props.classes.belowCommentButtons}>
                     {this.state.uid === props.comment.commenterID &&
                     <Tooltip message="Delete Comment">
@@ -592,10 +616,10 @@ class Comments extends Component {
                             <ReplyIcon/>
                         </Button>
                     </Tooltip>
-                </div>
+                </div>}
 
                 {/* Score Bar */}
-                {(props.comment.commenterID !== this.state.uid) && (<div className={props.classes.scoringButtons}>
+                {this.state.userLoggedIn && (props.comment.commenterID !== this.state.uid) && (<div className={props.classes.scoringButtons}>
                                                                             <Button 
                                                                                 onClick={(e) => {this.scoreComment(e, 1, props.comment.id, props.comment.userScore)}} 
                                                                                 color={props.comment.userScore === 0 ? "secondary" : "primary"}
@@ -640,13 +664,13 @@ class Comments extends Component {
                     </p>
 
                     {/* Reply Body */}
-                    <p style={{fontSize: '125%'}}>{reply.body}</p>
+                    <p className={props.classes.textBody}>{reply.body}</p>
 
                     {/* Timestamp */}
                     <small>{reply.timeStamp}</small>
 
                     {/* Delete Button */}
-                    {this.state.uid === reply.replyUserID &&
+                    {this.state.userLoggedIn && this.state.uid === reply.replyUserID &&
                     <Tooltip message={"Delete Reply"}>
                             <Button color="primary" className={props.classes.belowReplyButton} onClick={() => this.setState({deleteReplyMode: true, commentIDToDeleteReply: props.comment.id, replyToDelete: reply})}>
                                 <DeleteIcon/>
@@ -674,7 +698,7 @@ class Comments extends Component {
                     {/* Reply Popup */}
                     {this.state.replyMode &&
                         <Backdrop open={this.state.replyMode} className={classes.backdrop}>
-                            <Form className={classes.replyModeForm} onSubmit={(e) => {this.submitReply(e, this.state.replyID, this.state.replyCommentOwnerID);}}>
+                            <Form className={classes.form} onSubmit={(e) => {this.submitReply(e, this.state.replyID, this.state.replyCommentOwnerID);}}>
                                 <Form.Group className={classes.container} controlId="exampleForm.ControlTextarea1">
                                     <Form.Control 
                                     onChange={this.onChangeReply}
@@ -682,6 +706,7 @@ class Comments extends Component {
                                     size="sm" as="textarea" rows={3}
                                     placeholder="Leave response here..." />
                                 </Form.Group>
+                                <Form.Text className={classes.characterCounter}>{this.state.reply.length}/300</Form.Text>
                                 <SubmitButton variant="primary" className={classes.popupButton} type="submit">Reply</SubmitButton>
                                 <SubmitButton variant="secondary" className={classes.popupButton} type="submit" onClick={this.handleCancelReply}>Cancel</SubmitButton>
                             </Form>
@@ -738,7 +763,7 @@ class Comments extends Component {
                         
                         {/* Comments */}
                         <div className={classes.comments}>
-                            {this.state.comments.length === 0 && <div className={classes.container}><p>No comments yet :(</p><br/><p>Be the first to leave one below!</p></div>}
+                            {this.state.comments.length === 0 && this.state.newCommentsAdded.length === 0 && <div className={classes.container}><p>No comments yet :(</p><br/><p>Be the first to leave one below!</p></div>}
                             {this.state.comments.slice(0, this.state.numberOfCommentsToShow).map((comment, index) => (
                                 <this.Comment key={index} comment={comment} classes={classes}></this.Comment>
                             ))}
@@ -748,6 +773,7 @@ class Comments extends Component {
                         </div>
 
                         {/* Submit Comment */}
+                        { this.state.userLoggedIn ? 
                         <Form onSubmit={this.onPostComment}>
                             <Form.Group className={classes.container} controlId="exampleForm.ControlTextarea1">
                                 <Form.Control 
@@ -757,8 +783,12 @@ class Comments extends Component {
                                 as="textarea" rows={3}
                                 placeholder="Leave comment here..." />
                             </Form.Group>
+                            <Form.Text className={classes.characterCounter}>{this.state.commentLeft.length}/300</Form.Text>
                             <SubmitButton variant="primary" type="submit">Post Comment</SubmitButton>
-                        </Form>
+                        </Form> 
+                        :
+                        <Button color="primary" onClick={() => window.location = '/signin'}>Sign In To Post A Comment</Button>
+                        }
 
                     </Paper>
                 </div>

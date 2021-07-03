@@ -117,13 +117,14 @@ class NavWithNotifications extends Component {
             })
         } else {
             //user is not logged in
-            window.location = '/signin';
+            //window.location = '/signin';
         }
     }
 
     onSignOut() {
         this.props.userLoggedOut();
         firebase.auth().signOut();
+        window.location = '/';
     }
 
     removeNotification(e, id) {

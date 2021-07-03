@@ -5,6 +5,7 @@ import Loading from './loading';
 import PostNotFound from './post-not-found';
 import Comments from './comments';
 import Profile from './profile';
+import NavLoggedOut from './navbar-loggedout';
 
 //Firebase
 import firebase from 'firebase/app';
@@ -16,7 +17,7 @@ class ViewPost extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {contentLoading: true, postNotFound: false, docSnapshot: null}
+        this.state = {contentLoading: true, postNotFound: false, docSnapshot: null, userLoggedIn: false}
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
     };
@@ -27,23 +28,21 @@ class ViewPost extends Component {
 
     handleAuthChange(user) {
         if (user) {
-            if (this.props.username === '') {
-                window.location = '/set-username';
-            }
-            firebase.firestore().collection('posts').doc(this.props.match.params.id).get()
-            .then((docSnapshot) => {
-                if (!docSnapshot.exists) {
-                    this.setState({postNotFound: true})
-                }
-                else {
-                    this.setState({docSnapshot: docSnapshot})
-                }
-            })
-            this.setState({contentLoading: false});
-        } else {
+            this.setState({userLoggedIn: true})
+        } 
+        else {
             //user is not logged in
-            window.location = '/signin';
         }
+        firebase.firestore().collection('posts').doc(this.props.match.params.id).get()
+        .then((docSnapshot) => {
+            if (!docSnapshot.exists) {
+                this.setState({postNotFound: true})
+            }
+            else {
+                this.setState({docSnapshot: docSnapshot})
+            }
+        })
+        .then(() => this.setState({contentLoading: false}))
     }
 
     render () {
@@ -51,7 +50,7 @@ class ViewPost extends Component {
            <div ref={this.wrapper}>
                 {this.state.postNotFound ? (<PostNotFound/>) : (this.state.contentLoading ? (<Loading/>) : (
                 <div>
-                    <Nav/>
+                    {this.state.userLoggedIn ? <Nav/> : <NavLoggedOut/>}
     
                     {this.state.docSnapshot && 
                     <div style={{padding: '75px 75px 250px 75px'}}>

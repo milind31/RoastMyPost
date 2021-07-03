@@ -59,6 +59,7 @@ class Profile extends Component {
             files: [],
             
             //User info
+            userLoggedIn: false,
             usersPost: false,
             uid: '',
             postSaved: false,
@@ -82,9 +83,13 @@ class Profile extends Component {
     handleAuthChange(user) {
         if (user) {
             //user is logged in
-            this.setState({uid: user.uid});
+            this.setState({uid: user.uid, userLoggedIn: true});
             this.getPostInfo(user);
             this.getSavedStatus();
+            this.setState({contentLoading: false});
+        }
+        else {
+            this.getPostInfo(null);
             this.setState({contentLoading: false});
         }
     }
@@ -102,7 +107,7 @@ class Profile extends Component {
             otherInfo: this.props.docData.data().otherInfo,
             files: this.props.docData.data().fileURLS,
         });
-        if (this.props.url === user.uid) {
+        if (this.state.userLoggedIn && this.props.url === user.uid) {
             this.setState({usersPost: true})
         }
     }
@@ -127,8 +132,17 @@ class Profile extends Component {
         var db = firebase.firestore();
         var posts = db.collection("posts");
         var key = posts.doc().id;
+        var query;        
 
-        posts.where(firebase.firestore.FieldPath.documentId(), '>=', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
+        if (this.state.userLoggedIn) {
+            query = posts.where(firebase.firestore.FieldPath.documentId(), '>=', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1);
+        }
+        else {
+            query = posts.where(firebase.firestore.FieldPath.documentId(), '>=', key).limit(1);
+        }
+
+        //try to get post above key
+        query.get()
         .then(snapshot => {
             if(snapshot.size > 0) {
                 snapshot.forEach(doc => {
@@ -141,24 +155,30 @@ class Profile extends Component {
                 });
             }
             else {
-                posts.where(firebase.firestore.FieldPath.documentId(), '<', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
+                //no post above key, get one below key
+                query.get()
                 .then(snapshot => {
-                    snapshot.forEach(doc => {
-                        if (doc.id === this.props.url){
-                            errorToast("Woah, we randomly ended back up at this post. Please try again!")
-                        }
-                        else {
-                            window.location = '/posts/' + doc.id;
-                        }
-                    });
+                    if(snapshot.size > 0) {
+                        snapshot.forEach(doc => {
+                            if (doc.id === this.props.url){
+                                errorToast("Woah, we randomly ended back up at this post. Please try again!")
+                            }
+                            else {
+                                window.location = '/posts/' + doc.id;
+                            }
+                        });
+                    }
+                    else {
+                        errorToast("Couldn't find any posts!")
+                    }
                 })
                 .catch(() => {
-                    errorToast("Couldn't get new post, please try again later!")
+                    errorToast("There was an error! Please try again later")
                 });
             }
         })
         .catch(() => {
-            errorToast("Couldn't get new post, please try again later!")
+            errorToast("There was an error! Please try again later")
         });
     }
 
@@ -221,7 +241,7 @@ class Profile extends Component {
                     <h1 className={classes.header}>{this.state.username}</h1>
 
                     {/* Save & Unsave Post */}
-                    {!this.state.usersPost && (this.state.postSaved ? <Button color="primary" style={{float: 'right', marginTop:'25px'}} onClick={this.unsavePost}>
+                    {!this.state.usersPost && this.state.userLoggedIn && (this.state.postSaved ? <Button color="primary" style={{float: 'right', marginTop:'25px'}} onClick={this.unsavePost}>
                                                                         <BookmarkBorderIcon/>
                                                                         </Button>
                                                                         : 
@@ -249,7 +269,7 @@ class Profile extends Component {
                     </div>
 
                     {/* Edit & Find New Post */}
-                    { this.state.usersPost && <Button color="primary" onClick={() => window.location = `/posts/${this.props.url}/edit`}>Edit</Button>}
+                    { this.state.userLoggedIn && this.state.usersPost && <Button color="primary" onClick={() => window.location = `/posts/${this.props.url}/edit`}>Edit</Button>}
                     { !!!this.state.usersPost && <Button style={{marginTop: '50px'}} color="primary" onClick={this.getNewPost}>Find New Post</Button>}
                 </Paper>
             </div>

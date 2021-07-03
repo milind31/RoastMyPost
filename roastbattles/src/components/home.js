@@ -1,6 +1,8 @@
 //React
 import React, { Component } from 'react';
 import NavWithNotifications from './navbar-with-notifications';
+import NavLoggedOut from './navbar-loggedout';
+import { errorToast } from './utils/toast';
 
 //Material UI
 import Button from '@material-ui/core/Button';
@@ -15,7 +17,6 @@ import "firebase/auth";
 
 //Redux
 import { connect } from 'react-redux';
-import { errorToast } from './utils/toast';
 
 const styles = {
     header: {
@@ -40,10 +41,11 @@ class Home extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {createdPost: false, uid: '', loading: true};
+        this.state = {createdPost: false, uid: '', loading: true, userLoggedIn: true};
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
         this.getNewPost = this.getNewPost.bind(this);
+        this.signInWithGoogle = this.signInWithGoogle.bind(this);
     }
 
     componentDidMount = () => {
@@ -60,9 +62,45 @@ class Home extends Component {
             this.setState({uid: user.uid, loading: false})
         } else {
             //user is not logged in
-            window.location = '/signin';
+            //window.location = '/signin';
+            this.setState({userLoggedIn: false})
         }
     }
+
+    signInWithGoogle() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider)
+          .then((result) => {
+            var user = result.user;
+            if (result.additionalUserInfo.isNewUser) {
+              //register user in firestore
+              firebase.firestore().collection("users").doc(user.uid.toString()).set({
+                username: '',
+                banned: false,
+                likes : 0,
+                createdPost: false,
+                email: user.email
+              })
+              .then(() => {this.props.setUID(user.uid)})
+              .then(() => {window.location = '/set-username'})
+              .catch((err) => {console.log("document not added (error)", err)})
+            }
+            else {
+                firebase.firestore().collection('users').doc(user.uid).get()
+                  .then((docData) => {
+                    this.props.setUID(user.uid);
+                    this.props.setUsername(docData.data().username)
+                    if (docData.data().createdPost === true){
+                      this.props.userCreatedPost();
+                    }
+                    else{
+                      this.props.userHasNoPost();
+                    }
+                  })
+                  .then(() => {window.location= '/';})
+            }
+          })
+      }
 
     getNewPost(e) {
         e.preventDefault();
@@ -73,35 +111,68 @@ class Home extends Component {
         var key = posts.doc().id;
 
         console.log("key", key);
-        //try to get post above key
-        posts.where(firebase.firestore.FieldPath.documentId(), '>=', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
-        .then(snapshot => {
-            if(snapshot.size > 0) {
-                snapshot.forEach(doc => {
-                    window.location = '/posts/' + doc.id;
-                });
-            }
-            else {
-                //no post above key, get one below key
-                posts.where(firebase.firestore.FieldPath.documentId(), '<', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
-                .then(snapshot => {
-                    if(snapshot.size > 0) {
-                        snapshot.forEach(doc => {
-                            window.location = '/posts/' + doc.id;
-                        });
-                    }
-                    else {
-                        errorToast("Couldn't find any posts!")
-                    }
-                })
-                .catch(() => {
-                    errorToast("There was an error! Please try again later")
-                });
-            }
-        })
-        .catch(() => {
-            errorToast("There was an error! Please try again later")
-        });
+        if (this.state.userLoggedIn) {
+            //try to get post above key
+            posts.where(firebase.firestore.FieldPath.documentId(), '>=', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
+            .then(snapshot => {
+                if(snapshot.size > 0) {
+                    snapshot.forEach(doc => {
+                        window.location = '/posts/' + doc.id;
+                    });
+                }
+                else {
+                    //no post above key, get one below key
+                    posts.where(firebase.firestore.FieldPath.documentId(), '<', key).where(firebase.firestore.FieldPath.documentId(), '!=', this.state.uid).limit(1).get()
+                    .then(snapshot => {
+                        if(snapshot.size > 0) {
+                            snapshot.forEach(doc => {
+                                window.location = '/posts/' + doc.id;
+                            });
+                        }
+                        else {
+                            errorToast("Couldn't find any posts!")
+                        }
+                    })
+                    .catch(() => {
+                        errorToast("There was an error! Please try again later")
+                    });
+                }
+            })
+            .catch(() => {
+                errorToast("There was an error! Please try again later")
+            });
+        }
+        else {
+            //try to get post above key
+            posts.where(firebase.firestore.FieldPath.documentId(), '>=', key).limit(1).get()
+            .then(snapshot => {
+                if(snapshot.size > 0) {
+                    snapshot.forEach(doc => {
+                        window.location = '/posts/' + doc.id;
+                    });
+                }
+                else {
+                    //no post above key, get one below key
+                    posts.where(firebase.firestore.FieldPath.documentId(), '<', key).limit(1).get()
+                    .then(snapshot => {
+                        if(snapshot.size > 0) {
+                            snapshot.forEach(doc => {
+                                window.location = '/posts/' + doc.id;
+                            });
+                        }
+                        else {
+                            errorToast("Couldn't find any posts!")
+                        }
+                    })
+                    .catch(() => {
+                        errorToast("There was an error! Please try again later")
+                    });
+                }
+            })
+            .catch(() => {
+                errorToast("There was an error! Please try again later")
+            });
+        }
     }
 
 
@@ -110,10 +181,10 @@ class Home extends Component {
 
         return (
             <div>
-                <NavWithNotifications/>
+                {this.state.userLoggedIn ? <NavWithNotifications/> : <NavLoggedOut/>}
                 <div className={classes.header}>
                 <h1>Welcome!</h1>
-                {
+                {   this.state.userLoggedIn ? (
                     this.props.createdPost ? 
                     <Button 
                         onClick={() => window.location = `/posts/${this.state.uid}` } 
@@ -126,14 +197,20 @@ class Home extends Component {
                         variant="outlined" color="secondary"
                         >Create My Post
                     </Button>
+                    ):
+                    <Button 
+                        onClick={() => window.location = '/signin' }
+                        variant="outlined" color="secondary"
+                        >Sign In / Register
+                    </Button>
                 }
-                <Button 
-                    onClick={this.getNewPost} 
-                    className={classes.button} 
-                    variant="outlined" 
-                    color="primary"
-                    >Find Random Post
-                </Button>
+                    <Button 
+                        onClick={this.getNewPost} 
+                        className={classes.button} 
+                        variant="outlined" 
+                        color="primary"
+                        >Find Random Post
+                    </Button>
                 </div>
             </div>
         )

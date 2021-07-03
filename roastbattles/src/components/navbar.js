@@ -54,13 +54,14 @@ class Nav extends Component {
             //user hasn't created username yet
         } else {
             //user is not logged in
-            window.location = '/signin';
+            //window.location = '/signin';
         }
     }
 
     onSignOut() {
         firebase.auth().signOut();
         this.props.userLoggedOut();
+        window.location = '/';
     }
 
     render() {

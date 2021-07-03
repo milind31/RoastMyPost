@@ -130,32 +130,6 @@ class EditPost extends Component {
         firebase.auth().onAuthStateChanged(this.handleAuthChange);
     }
 
-    handleFileChange(e) {
-        let numFiles = this.state.numberOfFiles + e.target.files.length;
-
-        if (numFiles <= 5){
-            let newFileNames = this.state.newFileNames;
-            let newFiles = this.state.newFiles;
-            for (let i = 0; i < e.target.files.length; i++){
-                if (e.target.files[i].name.slice(-4) !== '.png' && e.target.files[i].name.slice(-4) !== '.jpg' && e.target.files[i].name.slice(-5) !== '.jpeg') {
-                    errorToast('Please only upload .png or .jpg files!');
-                    continue;
-                }
-                if (e.target.files[i].size / 1024 / 1024 > 2) { // in MiB
-                    errorToast('Files must be less than 2MiB!');
-                    continue;
-                }
-                newFileNames.push(e.target.files[i].name);
-                newFiles.push(e.target.files[i]);
-            }
-            this.setState({newFiles: newFiles, newFileNames: newFileNames, numberOfFiles: numFiles});
-        }
-        else{
-            errorToast('You cannot upload more than 5 images! Please delete images before trying again');
-            e.target.value = null;
-        }
-    }
-
     handleAuthChange(user) {
         if (user) {
             //user is logged in
@@ -187,6 +161,32 @@ class EditPost extends Component {
         } else {
             //user is not logged in
             window.location = '/signin';
+        }
+    }
+
+    handleFileChange(e) {
+        let numFiles = this.state.numberOfFiles + e.target.files.length;
+
+        if (numFiles <= 5){
+            let newFileNames = this.state.newFileNames;
+            let newFiles = this.state.newFiles;
+            for (let i = 0; i < e.target.files.length; i++){
+                if (e.target.files[i].name.slice(-4) !== '.png' && e.target.files[i].name.slice(-4) !== '.jpg' && e.target.files[i].name.slice(-5) !== '.jpeg') {
+                    errorToast('Please only upload .png or .jpg files!');
+                    continue;
+                }
+                if (e.target.files[i].size / 1024 / 1024 > 2) { // in MiB
+                    errorToast('Files must be less than 2MiB!');
+                    continue;
+                }
+                newFileNames.push(e.target.files[i].name);
+                newFiles.push(e.target.files[i]);
+            }
+            this.setState({newFiles: newFiles, newFileNames: newFileNames, numberOfFiles: numFiles});
+        }
+        else{
+            errorToast('You cannot upload more than 5 images! Please delete images before trying again');
+            e.target.value = null;
         }
     }
 

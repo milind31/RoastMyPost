@@ -101,6 +101,23 @@ class CreatePost extends Component {
         firebase.auth().onAuthStateChanged(this.handleAuthChange);
     }
 
+    handleAuthChange(user) {
+        if (user) {
+            //user hasn't created username yet
+            if (this.props.username === '') {
+                window.location = '/set-username';
+            }
+
+            if (this.props.createdPost){
+                window.location = '/posts/' + user.uid;
+            }
+            this.setState({loading: false, uid: user.uid})
+        } else {
+            //user is not logged in
+            window.location = '/signin';
+        }
+    }
+
     handleFileChange(e) {
         let numFiles = this.state.numberOfFiles + e.target.files.length;
         console.log(this.state.files);
@@ -135,23 +152,6 @@ class CreatePost extends Component {
         var newNumberOfFiles  = this.state.numberOfFiles - 1;
 
         this.setState({fileNames: newFileNames, fileList: newFileList, numberOfFiles: newNumberOfFiles});
-    }
-
-    handleAuthChange(user) {
-        if (user) {
-            //user hasn't created username yet
-            if (this.props.username === '') {
-                window.location = '/set-username';
-            }
-
-            if (this.props.createdPost){
-                window.location = '/posts/' + user.uid;
-            }
-            this.setState({loading: false, uid: user.uid})
-        } else {
-            //user is not logged in
-            window.location = '/signin';
-        }
     }
 
     onChangeMusic(e) {

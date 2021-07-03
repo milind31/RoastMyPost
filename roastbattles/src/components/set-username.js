@@ -51,9 +51,10 @@ class SetUsername extends Component {
         super(props);
 
         this.onChangeUsername = this.onChangeUsername.bind(this);
+        this.handleAuthChange = this.handleAuthChange.bind(this);
         this.setUsername = this.setUsername.bind(this);
     
-        this.state = {username: ''};
+        this.state = {usernameEntered: ''};
     }
 
     componentDidMount = () => {
@@ -63,6 +64,10 @@ class SetUsername extends Component {
     handleAuthChange(user) {
         if (user) {
             //user is logged in
+            if (this.props.username !== '') {
+                window.location = '/';
+            }
+            console.log(this.props.username);
         } else {
             //user is not logged in
             window.location = '/signin';
@@ -82,7 +87,7 @@ class SetUsername extends Component {
 
     setUsername() {
         let uid = this.props.uid;
-        let enteredUsername = this.state.username;
+        let enteredUsername = this.state.usernameEntered;
         var t = this;
 
         var filter = new Filter();
@@ -130,7 +135,7 @@ class SetUsername extends Component {
                         <Form.Group className={classes.form} controlId="exampleForm.ControlTextarea1">
                             <Form.Control 
                             onChange={this.onChangeUsername}
-                            value={this.state.username} 
+                            value={this.state.usernameEntered} 
                             size="sm" as="textarea" rows={1}
                             placeholder="Username..." />
                         </Form.Group>
@@ -151,8 +156,9 @@ SetUsername.propTypes = {
 }
 
 const mapStateToProps = (state) => ({
-    uid: state.uid
-})
+    uid: state.uid,
+    username: state.username
+});
 
 const mapActionsToProps = { setUsername };
 
