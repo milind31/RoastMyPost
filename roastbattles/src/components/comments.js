@@ -289,8 +289,15 @@ class Comments extends Component {
             return;
         }
 
+        //check comment length
         if (this.state.commentLeft.length >= 300) {
             errorToast("Comments must be under 300 characters!");
+            return;
+        }
+
+        //make sure comments have text
+        if (this.state.commentLeft.replace(/^\s+/, '').replace(/\s+$/, '')  === '') {
+            errorToast("Comments must contain text!");
             return;
         }
 
