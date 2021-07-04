@@ -175,8 +175,8 @@ class EditPost extends Component {
                     errorToast('Please only upload .png or .jpg files!');
                     continue;
                 }
-                if (e.target.files[i].size / 1024 / 1024 > 2) { // in MiB
-                    errorToast('Files must be less than 2MiB!');
+                if (e.target.files[i].size / 1024 / 1024 > 4) { // in MiB
+                    errorToast('Files must be less than 4MiB!');
                     continue;
                 }
                 newFileNames.push(e.target.files[i].name);

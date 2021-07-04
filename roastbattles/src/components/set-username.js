@@ -81,7 +81,7 @@ class SetUsername extends Component {
         }
     
         this.setState({
-            username: e.target.value
+            usernameEntered: e.target.value
         });
     }
 
