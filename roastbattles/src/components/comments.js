@@ -196,6 +196,8 @@ class Comments extends Component {
         this.onDeleteComment = this.onDeleteComment.bind(this);
         this.onDeleteReply = this.onDeleteReply.bind(this);
         this.onShowMoreReplies = this.onShowMoreReplies.bind(this);
+        this.handleFlagAsHarassment = this.handleFlagAsHarassment.bind(this);
+        this.handleClickDeleteComment = this.handleClickDeleteComment.bind(this);
         this.Comment = this.Comment.bind(this);
     };
 
@@ -233,7 +235,7 @@ class Comments extends Component {
                     id: doc.id,
                     totalScore: doc.data().totalScore,
                     numScores: doc.data().numScores,
-                    userScore: -1,
+                    userScore: 0,
                     replies: doc.data().replies,
                     numRepliesToShow: INITIAL_NUMBER_OF_REPLIES
                 };
@@ -348,6 +350,16 @@ class Comments extends Component {
         });
     }
 
+    handleClickDeleteComment(e, commentID) {
+        e.preventDefault();
+        if (this.state.userLoggedIn) {
+            this.setState({deleteCommentMode: true, commentIDToDelete: commentID})
+        }
+        else {
+            window.location = '/signin';
+        }
+    }
+
     onDeleteComment(e, id) {
         e.preventDefault();
 
@@ -382,6 +394,11 @@ class Comments extends Component {
 
     scoreComment(e, score, id, userScore) {
         e.preventDefault();
+
+        if (!this.state.userLoggedIn) {
+            window.location = '/signin';
+        }
+
         if (userScore === 0) {
             var user = firebase.auth().currentUser;
 
@@ -443,11 +460,17 @@ class Comments extends Component {
 
     handleClickReply(e, id, ownerID) {
         e.preventDefault();
-        this.setState({
-            replyMode: true,
-            replyID: id,
-            replyCommentOwnerID: ownerID
-        });
+
+        if (this.state.userLoggedIn) {
+            this.setState({
+                replyMode: true,
+                replyID: id,
+                replyCommentOwnerID: ownerID
+            });
+        }
+        else {
+            window.location = '/signin';
+        }
     }
 
     handleCancelReply(e) {
@@ -576,7 +599,16 @@ class Comments extends Component {
             this.setState({markAsHarassmentMode: false, commentIDToFlag: '', commenterToFlag: ''});
         })
         .catch((err) => {errorToast("Error flagging post", err)});
+    }
 
+    handleFlagAsHarassment(e, commentID, commenterID) {
+        e.preventDefault();
+        if (this.state.userLoggedIn) {
+            this.setState({markAsHarassmentMode: true, commentIDToFlag: commentID, commenterToFlag: commenterID});
+        }
+        else {
+            window.location = '/signin';
+        }
     }
 
     Comment = props => (
@@ -590,9 +622,9 @@ class Comments extends Component {
                 {(props.comment.commenterID === props.comment.postOwner) && <WhatshotIcon/>}
 
                 {/* Flag */}
-                {this.state.userLoggedIn && (props.comment.commenterID !== this.state.uid) && 
+                {(props.comment.commenterID !== this.state.uid) && 
                 <Tooltip message="Mark user/post for harassment">
-                    <Button size="small" className={props.classes.flagPostButton} onClick={() => this.setState({markAsHarassmentMode: true, commentIDToFlag: props.comment.id, commenterToFlag:props.comment.commenterID})}>
+                    <Button size="small" className={props.classes.flagPostButton} onClick={(e) => this.handleFlagAsHarassment(e, props.comment.id, props.comment.commenterID)}>
                         <MoreVertIcon className={props.classes.flagPostIcon}/>
                     </Button>
                 </Tooltip>}
@@ -609,11 +641,10 @@ class Comments extends Component {
                 <small className={props.classes.belowCommentTimestamp}>{props.comment.timeStamp.toString().replace( /\d{2}:.*/,"")}</small>
 
                 {/* Delete & Reply Buttons */}
-                {this.state.userLoggedIn &&
                 <div className={props.classes.belowCommentButtons}>
                     {this.state.uid === props.comment.commenterID &&
                     <Tooltip message="Delete Comment">
-                        <Button color="primary" className={props.classes.belowCommentButton} onClick={() => {this.setState({deleteCommentMode: true, commentIDToDelete:props.comment.id})}}>
+                        <Button color="primary" className={props.classes.belowCommentButton} onClick={(e) => this.handleClickDeleteComment(e, props.comment.id)}>
                             <DeleteIcon/>
                         </Button>
                     </Tooltip>}
@@ -623,10 +654,10 @@ class Comments extends Component {
                             <ReplyIcon/>
                         </Button>
                     </Tooltip>
-                </div>}
+                </div>
 
                 {/* Score Bar */}
-                {this.state.userLoggedIn && (props.comment.commenterID !== this.state.uid) && (<div className={props.classes.scoringButtons}>
+                {(props.comment.commenterID !== this.state.uid) && (<div className={props.classes.scoringButtons}>
                                                                             <Button 
                                                                                 onClick={(e) => {this.scoreComment(e, 1, props.comment.id, props.comment.userScore)}} 
                                                                                 color={props.comment.userScore === 0 ? "secondary" : "primary"}
@@ -780,7 +811,6 @@ class Comments extends Component {
                         </div>
 
                         {/* Submit Comment */}
-                        { this.state.userLoggedIn ? 
                         <Form onSubmit={this.onPostComment}>
                             <Form.Group className={classes.container} controlId="exampleForm.ControlTextarea1">
                                 <Form.Control 
@@ -791,11 +821,12 @@ class Comments extends Component {
                                 placeholder="Leave comment here..." />
                             </Form.Group>
                             <Form.Text className={classes.characterCounter}>{this.state.commentLeft.length}/300</Form.Text>
+                            { this.state.userLoggedIn ? 
                             <SubmitButton variant="primary" type="submit">Post Comment</SubmitButton>
+                            :
+                            <SubmitButton onClick={() => window.location= '/signin'}>Post Comment</SubmitButton>
+                            }
                         </Form> 
-                        :
-                        <Button color="primary" onClick={() => window.location = '/signin'}>Sign In To Post A Comment</Button>
-                        }
 
                     </Paper>
                 </div>

@@ -184,6 +184,11 @@ class Profile extends Component {
 
     savePost(e){
         e.preventDefault();
+
+        if (!this.state.userLoggedIn) {
+            window.location = '/signin';
+        }
+
         var user = firebase.auth().currentUser;
 
         //add document to firestore
@@ -213,6 +218,11 @@ class Profile extends Component {
 
     unsavePost(e){
         e.preventDefault();
+
+        if (!this.state.userLoggedIn) {
+            window.location = '/signin';
+        }
+
         var user = firebase.auth().currentUser;
 
         //delete document from firestore
@@ -241,7 +251,7 @@ class Profile extends Component {
                     <h1 className={classes.header}>{this.state.username}</h1>
 
                     {/* Save & Unsave Post */}
-                    {!this.state.usersPost && this.state.userLoggedIn && (this.state.postSaved ? <Button color="primary" style={{float: 'right', marginTop:'25px'}} onClick={this.unsavePost}>
+                    {!this.state.usersPost && (this.state.postSaved ? <Button color="primary" style={{float: 'right', marginTop:'25px'}} onClick={this.unsavePost}>
                                                                         <BookmarkBorderIcon/>
                                                                         </Button>
                                                                         : 

@@ -105,7 +105,9 @@ class Home extends Component {
     getNewPost(e) {
         e.preventDefault();
 
-        var db = firebase.firestore();
+        window.location = '/posts/PGt9k7d0fxStT53oaZStEXrXDqZ2';
+
+        /*var db = firebase.firestore();
         var posts = db.collection("posts");
 
         var key = posts.doc().id;
@@ -172,7 +174,7 @@ class Home extends Component {
             .catch(() => {
                 errorToast("There was an error! Please try again later")
             });
-        }
+        } */
     }
 
 
