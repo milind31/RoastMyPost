@@ -211,9 +211,6 @@ class Comments extends Component {
                 window.location = '/set-username';
             }
             this.setState({uid: user.uid, userLoggedIn: true});
-        } else {
-            //user is not logged in
-            //window.location = '/signin';
         }
         this.getCommentsAndSort();
     }
@@ -277,9 +274,7 @@ class Comments extends Component {
 
     //COMMENTS
     onChangeComment(e) {
-        this.setState({
-            commentLeft: e.target.value,
-        });
+        this.setState({commentLeft: e.target.value});
     }
 
     onPostComment(e) {
@@ -290,13 +285,11 @@ class Comments extends Component {
             errorToast("Comments are being added too quickly! Please try again in a bit");
             return;
         }
-
         //check comment length
         if (this.state.commentLeft.length >= 300) {
             errorToast("Comments must be under 300 characters!");
             return;
         }
-
         //make sure comments have text
         if (this.state.commentLeft.replace(/^\s+/, '').replace(/\s+$/, '')  === '') {
             errorToast("Comments must contain text!");
@@ -333,11 +326,8 @@ class Comments extends Component {
             };
 
             let newCommentsAdded = this.state.newCommentsAdded;
-
             newCommentsAdded.push(comment);
-
             this.setState({commentLeft: '', commentPostedToast: true, newCommentsAdded: newCommentsAdded});
-
             successToast('Comment Posted!');
 
             //send notification
@@ -388,7 +378,6 @@ class Comments extends Component {
         });
 
         this.setState({comments: comments, newCommentsAdded: newComments, deleteCommentMode: false, commentIDToDelete: ''});
-
         successToast('Comment Deleted!');
     }
 
@@ -446,9 +435,7 @@ class Comments extends Component {
 
     onChangeNumberOfComments(e) {
         e.preventDefault();
-        this.setState({
-            numberOfCommentsToShow: e.target.value
-        });
+        this.setState({numberOfCommentsToShow: e.target.value});
     }
     //END COMMENTS
 
@@ -462,11 +449,7 @@ class Comments extends Component {
         e.preventDefault();
 
         if (this.state.userLoggedIn) {
-            this.setState({
-                replyMode: true,
-                replyID: id,
-                replyCommentOwnerID: ownerID
-            });
+            this.setState({replyMode: true, replyID: id, replyCommentOwnerID: ownerID});
         }
         else {
             window.location = '/signin';
@@ -475,12 +458,7 @@ class Comments extends Component {
 
     handleCancelReply(e) {
         e.preventDefault();
-        this.setState({
-            replyMode: false,
-            replyID: '',
-            replyCommentOwnerID: '',
-            reply: ''
-        });
+        this.setState({replyMode: false, replyID: '', replyCommentOwnerID: '', reply: ''});
     }
 
     submitReply(e, id, ownerID) {
@@ -544,8 +522,6 @@ class Comments extends Component {
 
     onDeleteReply(e, commentID, reply) {
         e.preventDefault();
-
-        console.log(reply);
 
         firebase.firestore().collection("comments").doc(commentID).update({
             replies: firebase.firestore.FieldValue.arrayRemove(reply)
@@ -658,30 +634,14 @@ class Comments extends Component {
 
                 {/* Score Bar */}
                 {(props.comment.commenterID !== this.state.uid) && (<div className={props.classes.scoringButtons}>
-                                                                            <Button 
-                                                                                onClick={(e) => {this.scoreComment(e, 1, props.comment.id, props.comment.userScore)}} 
-                                                                                color={props.comment.userScore === 0 ? "secondary" : "primary"}
-                                                                                disabled={props.comment.userScore !== 0 && props.comment.userScore !== 1}
-                                                                                >1
-                                                                            </Button>
-                                                                            <Button 
-                                                                                onClick={(e) => {this.scoreComment(e, 2, props.comment.id, props.comment.userScore)}} 
-                                                                                color={props.comment.userScore === 0 ? "secondary" : "primary"}
-                                                                                disabled={props.comment.userScore !== 0 && props.comment.userScore !== 2}
-                                                                                >2
-                                                                            </Button>
-                                                                            <Button 
-                                                                                onClick={(e) => {this.scoreComment(e, 3, props.comment.id, props.comment.userScore)}} 
-                                                                                color={props.comment.userScore === 0 ? "secondary" : "primary"}
-                                                                                disabled={props.comment.userScore !== 0 && props.comment.userScore !== 3}
-                                                                                >3
-                                                                            </Button>
-                                                                            <Button                      
-                                                                                onClick={(e) => {this.scoreComment(e, 4, props.comment.id, props.comment.userScore)}} 
-                                                                                color={props.comment.userScore === 0 ? "secondary" : "primary"}
-                                                                                disabled={props.comment.userScore !== 0 && props.comment.userScore !== 4}
-                                                                                >4
-                                                                            </Button> 
+                                                                            {[1,2,3,4].map((score) => (
+                                                                                <Button 
+                                                                                    onClick={(e) => {this.scoreComment(e, score, props.comment.id, props.comment.userScore)}} 
+                                                                                    color={props.comment.userScore === 0 ? "secondary" : "primary"}
+                                                                                    disabled={props.comment.userScore !== 0 && props.comment.userScore !== score}
+                                                                                    >{score}
+                                                                                </Button>
+                                                                            ))}
                                                                     </div>
                 )} 
             </div>
@@ -732,7 +692,6 @@ class Comments extends Component {
            <div>
                 {this.state.contentLoading ? <CircularProgress/> : (
                 <div>
-
                     {/* Reply Popup */}
                     {this.state.replyMode &&
                         <Backdrop open={this.state.replyMode} className={classes.backdrop}>
@@ -827,7 +786,6 @@ class Comments extends Component {
                             <SubmitButton onClick={() => window.location= '/signin'}>Post Comment</SubmitButton>
                             }
                         </Form> 
-
                     </Paper>
                 </div>
                 )}

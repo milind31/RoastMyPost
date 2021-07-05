@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import NavWithNotifications from './navbar-with-notifications';
 import NavLoggedOut from './navbar-loggedout';
-import { errorToast } from './utils/toast';
+//import { errorToast } from './utils/toast';
 
 //Material UI
 import Button from '@material-ui/core/Button';
