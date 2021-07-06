@@ -1,10 +1,6 @@
 //React
 import React, { Component } from 'react';
 
-//Firebase
-import firebase from 'firebase/app';
-import "firebase/auth";
-
 //Material UI
 import withStyles from '@material-ui/core/styles/withStyles';
 
@@ -17,25 +13,6 @@ const styles = {
 }
 
 class NavLoggedOut extends Component {
-    constructor(props) {
-        super(props);
-
-        this.handleAuthChange = this.handleAuthChange.bind(this);
-    }
-
-    componentDidMount = () => {
-        firebase.auth().onAuthStateChanged(this.handleAuthChange);
-    }
-
-    handleAuthChange(user) {
-        if (user) {
-            //user hasn't created username yet
-        } else {
-            //user is not logged in
-        }
-    }
-
-
     render() {
         const { classes } = this.props;
         return (

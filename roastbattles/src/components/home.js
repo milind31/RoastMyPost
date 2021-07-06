@@ -105,6 +105,7 @@ class Home extends Component {
     getNewPost(e) {
         e.preventDefault();
 
+        //TEMPORARY FOR DEMONSTRATION PURPOSES
         window.location = '/posts/PGt9k7d0fxStT53oaZStEXrXDqZ2';
 
         /*var db = firebase.firestore();

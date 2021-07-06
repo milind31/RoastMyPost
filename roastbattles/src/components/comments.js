@@ -32,121 +32,15 @@ import "firebase/auth";
 //Toasts
 import { errorToast, successToast } from './utils/toast';
 
+//Styling
+import { styles } from './styles/comments-styles';
+
 //Global Definitions
 const INITIAL_NUMBER_OF_REPLIES = 5;
 const NUMBER_OF_REPLIES_TO_ADD  = 5;
 const POST_COMMENT              = 'POST_COMMENT';
 const COMMENT_REPLY             = 'COMMENT_REPLY';
 
-//Styling
-const styles = ((theme) => ({
-    container: {
-        background: "#333131",
-        padding: '15px 30px 15px 30px'
-    },
-    commentHeader: {
-        float: 'left',
-        fontSize: '200%',
-        marginTop: '5%',
-        paddingLeft: '20px',
-    },
-    form: {
-        backgroundColor: '#333131',
-        borderRadius: '5px',
-        width: "25%",
-        padding: '10px'
-    },
-    commentSection: {
-        textAlign: 'left',
-        backgroundColor: '#333131',
-        color: 'white'
-    },
-    comments: {
-        paddingTop: '50px',
-        backgroundColor: '#333131',
-    },
-    textBody: {
-        fontSize: '125%', 
-        wordWrap:'break-word'
-    },
-    scoringButtons: {
-        float:'right', 
-        marginTop: '-5px'
-    },
-    commentFilterBox: {
-        float:'left', 
-        marginTop:'-10px', 
-        marginLeft:'10px'
-    },
-    flagPostButton: {
-        float:'right', 
-        padding:'0px', 
-        marginLeft:'-35px', 
-        marginRight:'-25px'
-    },
-    flagPostIcon: {
-        color:'#525252', 
-        height:'90%', 
-        float:'right'
-    },
-    scoreDisplay: {
-        float:'right',
-        paddingRight: '20px'
-    },
-    belowCommentBar: {
-        marginTop:'0px', 
-        paddingTop:'15px', 
-        paddingBottom:'25px'
-    },
-    belowCommentButton: {
-        backgroundColor:'transparent', 
-        marginLeft:'-15px', 
-        marginRight:'-5px'
-    },
-    belowReplyButton: {
-        backgroundColor:'transparent', 
-        marginLeft:'-5px', 
-        marginTop:'-5px'
-    },
-    belowCommentButtons: {
-        float:'left', 
-        marginTop:'-10px', 
-        paddingTop:'0px'
-    },
-    belowCommentTimestamp: {
-        paddingRight: '10px', 
-        float:'left', 
-        textAlign:'left'
-    },
-    popupMainText: {
-        marginTop: '10px'
-    },
-    popupSubText: {
-        fontSize:'90%', 
-        marginBottom:'20px'
-    },
-    popupButton: {
-        float: "right", 
-        margin: "5px"
-    },
-    lineBreak: {
-        color: '#5c5c5c', 
-        backgroundColor:'#5c5c5c'
-    },
-    characterCounter: {
-        marginTop: '-20px', 
-        paddingRight: '35px', 
-        float:'right', 
-        color: 'white'
-    },
-    backdrop: {
-        zIndex: theme.zIndex.drawer + 1, 
-        color: '#fff',
-        marginTop: '-50px'
-    },
-}));
-
-//homepage
 class Comments extends Component {
     constructor(props) {
         super(props);
@@ -215,7 +109,6 @@ class Comments extends Component {
         this.getCommentsAndSort();
     }
 
-    //FETCH DATA
     //query for comments on this post from firestore
     getCommentsAndSort = async () => {
         var user = firebase.auth().currentUser;
@@ -267,10 +160,8 @@ class Comments extends Component {
     }
 
     sortComments(comments) {
-        //sort comments by score and finish loading
         this.setState({comments: comments.sort((a, b) => ((a.numScores > 0 ? (a.totalScore/a.numScores) : 0) > (b.numScores > 0 ? (b.totalScore/b.numScores) : 0)) ? -1 : 1), contentLoading: false})
     }
-    //END FETCH DATA
 
     //COMMENTS
     onChangeComment(e) {
@@ -296,9 +187,8 @@ class Comments extends Component {
             return;
         }
 
-        var user = firebase.auth().currentUser;
-
         //add document to firestore
+        var user = firebase.auth().currentUser;
         firebase.firestore().collection("comments").add({
             commentBody: this.state.commentLeft,
             postOwner: this.props.url,
@@ -342,12 +232,7 @@ class Comments extends Component {
 
     handleClickDeleteComment(e, commentID) {
         e.preventDefault();
-        if (this.state.userLoggedIn) {
-            this.setState({deleteCommentMode: true, commentIDToDelete: commentID})
-        }
-        else {
-            window.location = '/signin';
-        }
+        this.state.userLoggedIn ? this.setState({deleteCommentMode: true, commentIDToDelete: commentID}) : window.location = '/signin';
     }
 
     onDeleteComment(e, id) {
@@ -371,7 +256,6 @@ class Comments extends Component {
         newComments = newComments.filter(function( obj ) {
             return obj.id !== id;
         });
-
         let comments = this.state.comments;
         comments = comments.filter(function( obj ) {
             return obj.id !== id;
@@ -390,7 +274,6 @@ class Comments extends Component {
 
         if (userScore === 0) {
             var user = firebase.auth().currentUser;
-
             let comments = this.state.comments;
             let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === id));
 
@@ -415,20 +298,16 @@ class Comments extends Component {
 
     onShowMoreReplies(e, commentID) {
         e.preventDefault();
-
         let comments = this.state.comments;
         let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === commentID));
-
         comments[index].numRepliesToShow += NUMBER_OF_REPLIES_TO_ADD;
         this.setState(this.state);
     }
 
     onHideReplies(e, commentID) {
         e.preventDefault();
-
         let comments = this.state.comments;
         let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === commentID));
-
         comments[index].numRepliesToShow = INITIAL_NUMBER_OF_REPLIES;
         this.setState(this.state);
     }
@@ -437,7 +316,6 @@ class Comments extends Component {
         e.preventDefault();
         this.setState({numberOfCommentsToShow: e.target.value});
     }
-    //END COMMENTS
 
     //REPLIES
     onChangeReply(e) {
@@ -447,13 +325,7 @@ class Comments extends Component {
 
     handleClickReply(e, id, ownerID) {
         e.preventDefault();
-
-        if (this.state.userLoggedIn) {
-            this.setState({replyMode: true, replyID: id, replyCommentOwnerID: ownerID});
-        }
-        else {
-            window.location = '/signin';
-        }
+        this.state.userLoggedIn ? this.setState({replyMode: true, replyID: id, replyCommentOwnerID: ownerID}) : window.location = '/signin';
     }
 
     handleCancelReply(e) {
@@ -472,7 +344,6 @@ class Comments extends Component {
         var user = firebase.auth().currentUser;
         var time = Date.now();
         var timeStamp = new Date(time);
-
         const reply = {
             body: this.state.reply.toString(),
             replyUserID: this.state.uid.toString(),
@@ -512,9 +383,8 @@ class Comments extends Component {
                 comments: comments
             });
         }
-        
         successToast('Reply Posted!');
-
+        
         if (user.uid !== ownerID){
             this.sendNotification(COMMENT_REPLY, ownerID, this.props.username);
         }
@@ -531,19 +401,14 @@ class Comments extends Component {
             let newComments = this.state.newCommentsAdded;
             let index = comments.slice(0, this.state.numberOfCommentsToShow).findIndex((comment => comment.id === commentID));
             if (index >= 0) {
-                comments[index].replies = comments[index].replies.filter(function( r ) {
-                    return r !== reply;
-                });
+                comments[index].replies = comments[index].replies.filter(function( r ) {return r !== reply;});
             }
             else {
                 //comment was newly added
                 let index = newComments.findIndex((comment => comment.id === commentID));
-                newComments[index].replies = newComments[index].replies.filter(function( r ) {
-                    return r !== reply;
-                });
+                newComments[index].replies = newComments[index].replies.filter(function( r ) {return r !== reply;});
             }
             this.setState({comments: comments, newCommentsAdded: newComments, deleteReplyMode: false, commentIDToDeleteReply:'', replyToDelete: ''});
-
             successToast('Reply Deleted!');
             return comments;
         })
@@ -579,12 +444,7 @@ class Comments extends Component {
 
     handleFlagAsHarassment(e, commentID, commenterID) {
         e.preventDefault();
-        if (this.state.userLoggedIn) {
-            this.setState({markAsHarassmentMode: true, commentIDToFlag: commentID, commenterToFlag: commenterID});
-        }
-        else {
-            window.location = '/signin';
-        }
+        this.state.userLoggedIn ? this.setState({markAsHarassmentMode: true, commentIDToFlag: commentID, commenterToFlag: commenterID}) :window.location = '/signin';
     }
 
     Comment = props => (
@@ -633,16 +493,17 @@ class Comments extends Component {
                 </div>
 
                 {/* Score Bar */}
-                {(props.comment.commenterID !== this.state.uid) && (<div className={props.classes.scoringButtons}>
-                                                                            {[1,2,3,4].map((score) => (
-                                                                                <Button 
-                                                                                    onClick={(e) => {this.scoreComment(e, score, props.comment.id, props.comment.userScore)}} 
-                                                                                    color={props.comment.userScore === 0 ? "secondary" : "primary"}
-                                                                                    disabled={props.comment.userScore !== 0 && props.comment.userScore !== score}
-                                                                                    >{score}
-                                                                                </Button>
-                                                                            ))}
-                                                                    </div>
+                {(props.comment.commenterID !== this.state.uid) &&
+                 (<div className={props.classes.scoringButtons}>
+                    {[1,2,3,4].map((score) => (
+                        <Button 
+                            onClick={(e) => {this.scoreComment(e, score, props.comment.id, props.comment.userScore)}} 
+                            color={props.comment.userScore === 0 ? "secondary" : "primary"}
+                            disabled={props.comment.userScore !== 0 && props.comment.userScore !== score}
+                            >{score}
+                        </Button>
+                    ))}
+            </div>
                 )} 
             </div>
 
@@ -681,8 +542,10 @@ class Comments extends Component {
             ))}
             
             {/* Show more and hide replies buttons */}
-            {props.comment.replies.length > 0 && props.comment.numRepliesToShow < props.comment.replies.length && <Button style={{margin: '0 auto', display: "flex"}} color="primary" onClick={(e) => {this.onShowMoreReplies(e, props.comment.id)}}>Show more replies</Button>}
-            {props.comment.replies.length > INITIAL_NUMBER_OF_REPLIES && props.comment.numRepliesToShow >= props.comment.replies.length && <Button style={{margin: '0 auto', display: "flex"}} color="primary" onClick={(e) => {this.onHideReplies(e, props.comment.id)}}>Hide replies</Button>}
+            {props.comment.replies.length > 0 && props.comment.numRepliesToShow < props.comment.replies.length && 
+                <Button style={{margin: '0 auto', display: "flex"}} color="primary" onClick={(e) => {this.onShowMoreReplies(e, props.comment.id)}}>Show more replies</Button>}
+            {props.comment.replies.length > INITIAL_NUMBER_OF_REPLIES && props.comment.numRepliesToShow >= props.comment.replies.length && 
+                <Button style={{margin: '0 auto', display: "flex"}} color="primary" onClick={(e) => {this.onHideReplies(e, props.comment.id)}}>Hide replies</Button>}
         </div>
     )
 
@@ -760,7 +623,12 @@ class Comments extends Component {
                         
                         {/* Comments */}
                         <div className={classes.comments}>
-                            {this.state.comments.length === 0 && this.state.newCommentsAdded.length === 0 && <div className={classes.container}><p>No comments yet :(</p><br/><p>Be the first to leave one below!</p></div>}
+                            {this.state.comments.length === 0 && this.state.newCommentsAdded.length === 0 && 
+                            <div className={classes.container}>
+                                <p>No comments yet :(</p>
+                                <br/>
+                                <p>Be the first to leave one below!</p>
+                            </div>}
                             {this.state.comments.slice(0, this.state.numberOfCommentsToShow).map((comment, index) => (
                                 <this.Comment key={index} comment={comment} classes={classes}></this.Comment>
                             ))}

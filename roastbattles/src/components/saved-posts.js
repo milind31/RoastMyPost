@@ -45,12 +45,11 @@ class SavedPosts extends Component {
 
     handleAuthChange(user) {
         if (user) {
+            //user is logged in
             //user hasn't created username yet
             if (this.props.username === '') {
                 window.location = '/set-username';
             }
-
-            //user is logged in
             if (this.props.saves.fetchedSaves === false){
                 this.getSaves(user.uid);
             }

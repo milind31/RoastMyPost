@@ -41,21 +41,7 @@ class Nav extends Component {
     constructor(props) {
         super(props);
 
-        this.handleAuthChange = this.handleAuthChange.bind(this);
         this.onSignOut = this.onSignOut.bind(this);
-    }
-
-    componentDidMount = () => {
-        firebase.auth().onAuthStateChanged(this.handleAuthChange);
-    }
-
-    handleAuthChange(user) {
-        if (user) {
-            //user hasn't created username yet
-        } else {
-            //user is not logged in
-            //window.location = '/signin';
-        }
     }
 
     onSignOut() {

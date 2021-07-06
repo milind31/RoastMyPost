@@ -79,10 +79,7 @@ class SetUsername extends Component {
         if (e.target.value.slice(-1) === ' ') {
             return
         }
-    
-        this.setState({
-            usernameEntered: e.target.value
-        });
+        this.setState({usernameEntered: e.target.value});
     }
 
     setUsername() {
