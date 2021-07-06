@@ -11,7 +11,6 @@ import PropTypes from 'prop-types';
 import Button from '@material-ui/core/Button';
 import BookmarksIcon from '@material-ui/icons/Bookmarks';
 
-
 //Redux
 import { userLoggedOut } from './actions/index';
 import { connect } from 'react-redux';
