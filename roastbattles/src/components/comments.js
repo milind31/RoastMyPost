@@ -578,23 +578,23 @@ class Comments extends Component {
                     <Popup open={this.state.deleteCommentMode} classes={classes}
                             onSubmit={(e) => {this.onDeleteComment(e, this.state.commentIDToDelete)}}
                             onCancel={() => this.setState({deleteCommentMode: false, commentIDToDelete: ''})}>
-                            <h3 className={classes.popupMainText}>Are you sure you want to delete this comment?</h3>
-                            <p className={classes.popupSubText}>This action cannot be undone...</p>
+                        <h3 className={classes.popupMainText}>Are you sure you want to delete this comment?</h3>
+                        <p className={classes.popupSubText}>This action cannot be undone...</p>
                     </Popup>
 
                     {/* Flag Popup */}
                     <Popup open={this.state.markAsHarassmentMode} classes={classes} 
                             onSubmit={(e) => this.markAsHarassment(e, this.state.commentIDToFlag, this.state.commenterToFlag)}
                             onCancel={() => this.setState({markAsHarassmentMode: false, commentIDToFlag:'', commenterToFlag: ''})}>
-                            <h3 className={classes.popupMainText}>Are you sure you want to flag this post and or user for harassment?</h3>
+                        <h3 className={classes.popupMainText}>Are you sure you want to flag this post and or user for harassment?</h3>
                     </Popup>
 
                     {/* Delete Reply Popup */}
                     <Popup open={this.state.deleteReplyMode} classes={classes} 
                             onSubmit={(e) => {this.onDeleteReply(e, this.state.commentIDToDeleteReply, this.state.replyToDelete)}} 
                             onCancel={() => this.setState({deleteReplyMode: false, commentIDToDeleteReply:'', replyToDelete: ''})}>
-                            <h3 className={classes.popupMainText}>Are you sure you want to delete this reply?</h3>
-                            <p className={classes.popupSubText}>This action cannot be undone...</p>
+                        <h3 className={classes.popupMainText}>Are you sure you want to delete this reply?</h3>
+                        <p className={classes.popupSubText}>This action cannot be undone...</p>
                     </Popup>
 
                     {/* Comment Section */}
