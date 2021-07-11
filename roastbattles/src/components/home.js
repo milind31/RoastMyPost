@@ -2,7 +2,6 @@
 import React, { Component } from 'react';
 import NavWithNotifications from './navbar-with-notifications';
 import NavLoggedOut from './navbar-loggedout';
-//import { errorToast } from './utils/toast';
 
 //Material UI
 import Button from '@material-ui/core/Button';
@@ -33,7 +32,6 @@ const styles = {
         top: "20px",
         right: "20px"
     },
-
 }
 
 //homepage
@@ -45,7 +43,6 @@ class Home extends Component {
 
         this.handleAuthChange = this.handleAuthChange.bind(this);
         this.getNewPost = this.getNewPost.bind(this);
-        this.signInWithGoogle = this.signInWithGoogle.bind(this);
     }
 
     componentDidMount = () => {
@@ -66,41 +63,6 @@ class Home extends Component {
             this.setState({userLoggedIn: false})
         }
     }
-
-    signInWithGoogle() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        firebase.auth().signInWithPopup(provider)
-          .then((result) => {
-            var user = result.user;
-            if (result.additionalUserInfo.isNewUser) {
-              //register user in firestore
-              firebase.firestore().collection("users").doc(user.uid.toString()).set({
-                username: '',
-                banned: false,
-                likes : 0,
-                createdPost: false,
-                email: user.email
-              })
-              .then(() => {this.props.setUID(user.uid)})
-              .then(() => {window.location = '/set-username'})
-              .catch((err) => {console.log("document not added (error)", err)})
-            }
-            else {
-                firebase.firestore().collection('users').doc(user.uid).get()
-                  .then((docData) => {
-                    this.props.setUID(user.uid);
-                    this.props.setUsername(docData.data().username)
-                    if (docData.data().createdPost === true){
-                      this.props.userCreatedPost();
-                    }
-                    else{
-                      this.props.userHasNoPost();
-                    }
-                  })
-                  .then(() => {window.location= '/';})
-            }
-          })
-      }
 
     getNewPost(e) {
         e.preventDefault();

@@ -1,6 +1,6 @@
 //React
 import React, { Component } from 'react';
-import Tooltip from './utils/tooltip';
+import TooltipButton from './utils/tooltip-button';
 import Popup from './utils/popup';
 import { connect } from 'react-redux';
 import { savePost, unsavePost } from './actions/index';
@@ -160,7 +160,10 @@ class Comments extends Component {
     }
 
     sortComments(comments) {
-        this.setState({comments: comments.sort((a, b) => ((a.numScores > 0 ? (a.totalScore/a.numScores) : 0) > (b.numScores > 0 ? (b.totalScore/b.numScores) : 0)) ? -1 : 1), contentLoading: false})
+        this.setState({
+            comments: comments.sort((a, b) => ((a.numScores > 0 ? (a.totalScore/a.numScores) : 0) > (b.numScores > 0 ? (b.totalScore/b.numScores) : 0)) ? -1 : 1),
+            contentLoading: false
+        })
     }
 
     //COMMENTS
@@ -413,7 +416,6 @@ class Comments extends Component {
             return comments;
         })
     }
-    //END REPLIES
 
     sendNotification(type, to, from) {
         firebase.firestore().collection("notifications").add({
@@ -459,11 +461,11 @@ class Comments extends Component {
 
                 {/* Flag */}
                 {(props.comment.commenterID !== this.state.uid) && 
-                <Tooltip message="Mark user/post for harassment">
-                    <Button size="small" className={props.classes.flagPostButton} onClick={(e) => this.handleFlagAsHarassment(e, props.comment.id, props.comment.commenterID)}>
+                <TooltipButton message="Mark user/post for harassment"
+                               classes={props.classes} buttonClassName={props.classes.flagPostButton}
+                               onClick={(e) => this.handleFlagAsHarassment(e, props.comment.id, props.comment.commenterID)}>
                         <MoreVertIcon className={props.classes.flagPostIcon}/>
-                    </Button>
-                </Tooltip>}
+                </TooltipButton>}
 
                 {/* Score */}
                 <strong className={props.classes.scoreDisplay}>Score: {isNaN(props.comment.totalScore / props.comment.numScores) ? "-" : (props.comment.totalScore / props.comment.numScores).toFixed(2)}</strong>
@@ -479,17 +481,18 @@ class Comments extends Component {
                 {/* Delete & Reply Buttons */}
                 <div className={props.classes.belowCommentButtons}>
                     {this.state.uid === props.comment.commenterID &&
-                    <Tooltip message="Delete Comment">
-                        <Button color="primary" className={props.classes.belowCommentButton} onClick={(e) => this.handleClickDeleteComment(e, props.comment.id)}>
+                    <TooltipButton message="Delete Comment"
+                                   color="primary" classes={props.classes} buttonClassName={props.classes.belowCommentButton}
+                                   onClick={(e) => this.handleClickDeleteComment(e, props.comment.id)}>
                             <DeleteIcon/>
-                        </Button>
-                    </Tooltip>}
+                    </TooltipButton>}
 
-                    <Tooltip message="Reply">
-                        <Button color="primary" className={props.classes.belowCommentButton} onClick={(e) => {this.handleClickReply(e, props.comment.id, props.comment.commenterID)}}>
+                    <TooltipButton message="Reply"
+                                   color="primary" classes={props.classes} buttonClassName={props.classes.belowCommentButton}
+                                   className={props.classes.belowCommentButton}
+                                   onClick={(e) => {this.handleClickReply(e, props.comment.id, props.comment.commenterID)}}>
                             <ReplyIcon/>
-                        </Button>
-                    </Tooltip>
+                    </TooltipButton>
                 </div>
 
                 {/* Score Bar */}
@@ -530,11 +533,11 @@ class Comments extends Component {
 
                     {/* Delete Button */}
                     {this.state.userLoggedIn && this.state.uid === reply.replyUserID &&
-                    <Tooltip message={"Delete Reply"}>
-                            <Button color="primary" className={props.classes.belowReplyButton} onClick={() => this.setState({deleteReplyMode: true, commentIDToDeleteReply: props.comment.id, replyToDelete: reply})}>
+                    <TooltipButton message={"Delete Reply"}
+                                   color="primary" classes={props.classes} buttonClassName={props.classes.belowReplyButton}
+                                   onClick={() => this.setState({deleteReplyMode: true, commentIDToDeleteReply: props.comment.id, replyToDelete: reply})}>
                                 <DeleteIcon/>
-                            </Button>
-                    </Tooltip>}
+                    </TooltipButton>}
 
                     {/* Linebreak */}
                     <hr className={props.classes.lineBreak}></hr>
@@ -556,51 +559,43 @@ class Comments extends Component {
                 {this.state.contentLoading ? <CircularProgress/> : (
                 <div>
                     {/* Reply Popup */}
-                    {this.state.replyMode &&
-                        <Backdrop open={this.state.replyMode} className={classes.backdrop}>
-                            <Form className={classes.form} onSubmit={(e) => {this.submitReply(e, this.state.replyID, this.state.replyCommentOwnerID);}}>
-                                <Form.Group className={classes.container} controlId="exampleForm.ControlTextarea1">
-                                    <Form.Control 
+                    <Backdrop open={this.state.replyMode} className={classes.backdrop}>
+                        <Form className={classes.form} onSubmit={(e) => {this.submitReply(e, this.state.replyID, this.state.replyCommentOwnerID);}}>
+                            <Form.Group className={classes.container} controlId="exampleForm.ControlTextarea1">
+                                <Form.Control 
                                     onChange={this.onChangeReply}
                                     value={this.state.reply} 
                                     size="sm" as="textarea" rows={3}
                                     placeholder="Leave response here..." />
-                                </Form.Group>
-                                <Form.Text className={classes.characterCounter}>{this.state.reply.length}/300</Form.Text>
-                                <SubmitButton variant="primary" className={classes.popupButton} type="submit">Reply</SubmitButton>
-                                <SubmitButton variant="secondary" className={classes.popupButton} type="submit" onClick={this.handleCancelReply}>Cancel</SubmitButton>
-                            </Form>
-                        </Backdrop>
-                    }
+                            </Form.Group>
+                            <Form.Text className={classes.characterCounter}>{this.state.reply.length}/300</Form.Text>
+                            <SubmitButton variant="primary" className={classes.popupButton} type="submit">Reply</SubmitButton>
+                            <SubmitButton variant="secondary" className={classes.popupButton} type="submit" onClick={this.handleCancelReply}>Cancel</SubmitButton>
+                        </Form>
+                    </Backdrop>
 
                     {/* Delete Comment Popup */}
-                    {this.state.deleteCommentMode && 
-                        <Popup open={this.state.deleteCommentMode} classes={classes}>
-                                <h3 className={classes.popupMainText}>Are you sure you want to delete this comment?</h3>
-                                <p className={classes.popupSubText}>This action cannot be undone...</p>
-                                <SubmitButton variant="primary" className={classes.popupButton} type="submit" onClick={(e) => {this.onDeleteComment(e, this.state.commentIDToDelete)}}>Yes</SubmitButton>
-                                <SubmitButton variant="secondary" className={classes.popupButton} type="submit" onClick={() => this.setState({deleteCommentMode: false, commentIDToDelete: ''})}>Cancel</SubmitButton>
-                        </Popup>
-                    }
+                    <Popup open={this.state.deleteCommentMode} classes={classes}
+                            onSubmit={(e) => {this.onDeleteComment(e, this.state.commentIDToDelete)}}
+                            onCancel={() => this.setState({deleteCommentMode: false, commentIDToDelete: ''})}>
+                            <h3 className={classes.popupMainText}>Are you sure you want to delete this comment?</h3>
+                            <p className={classes.popupSubText}>This action cannot be undone...</p>
+                    </Popup>
 
                     {/* Flag Popup */}
-                    {this.state.markAsHarassmentMode && 
-                        <Popup open={this.state.markAsHarassmentMode} classes={classes}>
-                                <h3 className={classes.popupMainText}>Are you sure you want to flag this post and or user for harassment?</h3>
-                                <SubmitButton variant="primary" className={classes.popupButton} type="submit" onClick={(e) => this.markAsHarassment(e, this.state.commentIDToFlag, this.state.commenterToFlag)}>Yes</SubmitButton>
-                                <SubmitButton variant="secondary" className={classes.popupButton} type="submit" onClick={() => this.setState({markAsHarassmentMode: false, commentIDToFlag:'', commenterToFlag: ''})}>Cancel</SubmitButton>
-                        </Popup>
-                    }
+                    <Popup open={this.state.markAsHarassmentMode} classes={classes} 
+                            onSubmit={(e) => this.markAsHarassment(e, this.state.commentIDToFlag, this.state.commenterToFlag)}
+                            onCancel={() => this.setState({markAsHarassmentMode: false, commentIDToFlag:'', commenterToFlag: ''})}>
+                            <h3 className={classes.popupMainText}>Are you sure you want to flag this post and or user for harassment?</h3>
+                    </Popup>
 
                     {/* Delete Reply Popup */}
-                    {this.state.deleteReplyMode && 
-                        <Popup open={this.state.deleteReplyMode} classes={classes}>
-                                <h3 className={classes.popupMainText}>Are you sure you want to delete this reply?</h3>
-                                <p className={classes.popupSubText}>This action cannot be undone...</p>
-                                <SubmitButton variant="primary" className={classes.popupButton} onClick={(e) => {this.onDeleteReply(e, this.state.commentIDToDeleteReply, this.state.replyToDelete)}}>Yes</SubmitButton>
-                                <SubmitButton variant="secondary" className={classes.popupButton} onClick={() => this.setState({deleteReplyMode: false, commentIDToDeleteReply:'', replyToDelete: ''})}>Cancel</SubmitButton>
-                        </Popup>
-                    }
+                    <Popup open={this.state.deleteReplyMode} classes={classes} 
+                            onSubmit={(e) => {this.onDeleteReply(e, this.state.commentIDToDeleteReply, this.state.replyToDelete)}} 
+                            onCancel={() => this.setState({deleteReplyMode: false, commentIDToDeleteReply:'', replyToDelete: ''})}>
+                            <h3 className={classes.popupMainText}>Are you sure you want to delete this reply?</h3>
+                            <p className={classes.popupSubText}>This action cannot be undone...</p>
+                    </Popup>
 
                     {/* Comment Section */}
                     <Paper className={classes.container}>

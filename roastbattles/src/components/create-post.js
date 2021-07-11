@@ -1,8 +1,9 @@
 //React
 import React, { Component } from 'react';
 import Nav from './navbar';
-import Tooltip from './utils/tooltip';
+import TooltipButton from './utils/tooltip-button';
 import Loading from './loading';
+import FormField from './utils/form-field';
 
 //React Bootstrap
 import SubmitButton from 'react-bootstrap/Button';
@@ -16,7 +17,6 @@ import { userCreatedPost } from './actions/index';
 import Paper from '@material-ui/core/Paper';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import Button from '@material-ui/core/Button';
 import { withStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
 
@@ -131,51 +131,35 @@ class CreatePost extends Component {
     }
 
     onChangeMusic(e) {
-        this.setState({
-            music: e.target.value
-        });
+        this.setState({music: e.target.value});
     }
 
     onChangeAge(e) {
-        this.setState({
-            age: e.target.value
-        });
+        this.setState({age: e.target.value});
     }
 
     onChangeDayAsOtherPerson(e) {
-        this.setState({
-            dayAsOtherPerson: e.target.value
-        });
+        this.setState({dayAsOtherPerson: e.target.value});
     }
 
     onChangeHobbies(e) {
-        this.setState({
-            hobbies: e.target.value
-        });
+        this.setState({hobbies: e.target.value});
     }
 
     onChangePeeves(e) {
-        this.setState({
-            peeves: e.target.value
-        });
+        this.setState({peeves: e.target.value});
     }
 
     onChangeSelfRating(e) {
-        this.setState({
-            selfRating: e.target.value
-        });
+        this.setState({selfRating: e.target.value});
     }
 
     onChangeGuiltyPleasure(e) {
-        this.setState({
-            guiltyPleasure: e.target.value
-        });
+        this.setState({guiltyPleasure: e.target.value});
     }
 
     onChangeOtherInfo(e) {
-        this.setState({
-            otherInfo: e.target.value
-        });
+        this.setState({otherInfo: e.target.value});
     }
 
     onSubmit = async (e) =>{
@@ -243,8 +227,6 @@ class CreatePost extends Component {
         return uploadTask.ref.getDownloadURL().then((fileURL) => fileURL);
     }
     
-
-
     render () {
         const { classes } = this.props;
         return (
@@ -259,7 +241,7 @@ class CreatePost extends Component {
                         { /* file upload */ }
                         <Form.Group>
                             <Form.Label>Upload images of yourself</Form.Label>
-                            <p style={{marginTop: '-50px'}}>     </p>
+                            <p style={{marginTop:'-50px'}}>     </p>
                             <div className={classes.fileName}>
                             <Form.File 
                                 onChange={this.handleFileChange} 
@@ -279,9 +261,11 @@ class CreatePost extends Component {
                             {this.state.fileNames.map((fileName) => 
                                 <div>
                                 <p className={classes.fileName}>{fileName}</p>
-                                <Tooltip message="Delete Image">
-                                    <Button color="secondary" onClick={(e) => this.onDeleteFile(e, fileName)}><DeleteForeverIcon></DeleteForeverIcon></Button>
-                                </Tooltip>
+                                <TooltipButton message="Delete Image"
+                                               color="secondary"
+                                               onClick={(e) => this.onDeleteFile(e, fileName)}>
+                                        <DeleteForeverIcon/>
+                                </TooltipButton>
                                 </div>
                             )}
                             </div>
@@ -294,106 +278,69 @@ class CreatePost extends Component {
                         </strong>
 
                         { /* music */ }
-                        <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label className={classes.formLabel}>
-                                What music do you currently have on rotation?
-                            </Form.Label>
-                            <Form.Control 
-                            onChange={this.onChangeMusic} 
+                        <FormField 
+                            classes={classes} 
+                            label={"What music do you currently have on rotation?"}
+                            onChange={this.onChangeMusic}
                             value={this.state.music} 
-                            as="textarea" 
-                            rows={1} 
-                            placeholder="" />
-                        </Form.Group>
+                            rows={1}/>
 
                         { /* age */ }
-                        <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label className={classes.formLabel}>
-                                How old are you?
-                            </Form.Label>
-                            <Form.Control 
-                            onChange={this.onChangeAge} 
+                        <FormField 
+                            classes={classes} 
+                            label={"How old are you?"}
+                            onChange={this.onChangeAge}
                             value={this.state.age} 
-                            as="textarea" rows={1} 
-                            placeholder="" />
-                        </Form.Group>
+                            rows={1}/>
 
                         { /* day as other person */ }
-                        <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label className={classes.formLabel}>
-                                If you could spend a day as anyone, dead or alive, who would it be?
-                            </Form.Label>
-                            <Form.Control 
-                            onChange={this.onChangeDayAsOtherPerson} 
+                        <FormField 
+                            classes={classes} 
+                            label={"If you could spend a day as anyone, dead or alive, who would it be?"}
+                            onChange={this.onChangeDayAsOtherPerson}
                             value={this.state.dayAsOtherPerson} 
-                            as="textarea" rows={1} 
-                            placeholder="" />
-                        </Form.Group>
+                            rows={1}/>
+
 
                         { /* hobbies */ }
-                        <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label className={classes.formLabel}>
-                                What do you enjoy doing in your spare time?
-                            </Form.Label>
-                            <Form.Control 
-                            onChange={this.onChangeHobbies} 
+                        <FormField 
+                            classes={classes} 
+                            label={"What do you enjoy doing in your spare time?"}
+                            onChange={this.onChangeHobbies}
                             value={this.state.hobbies} 
-                            as="textarea" 
-                            rows={1} 
-                            placeholder="" />
-                        </Form.Group>
+                            rows={1}/>
 
                         { /* peeves */ }
-                        <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label className={classes.formLabel}>
-                                What pisses you off the most?
-                            </Form.Label>
-                            <Form.Control 
+                        <FormField 
+                            classes={classes} 
+                            label={"What pisses you off the most?"}
                             onChange={this.onChangePeeves}
                             value={this.state.peeves} 
-                            as="textarea" 
-                            rows={1} 
-                            placeholder="" />
-                        </Form.Group>
+                            rows={1}/>
 
                         { /* self rating */ }
-                        <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label className={classes.formLabel}>
-                                Rate your looks on a scale from 1-10
-                            </Form.Label>
-                            <Form.Control 
-                            onChange={this.onChangeSelfRating} 
+                        <FormField 
+                            classes={classes} 
+                            label={"Rate your looks on a scale from 1-10"}
+                            onChange={this.onChangeSelfRating}
                             value={this.state.selfRating} 
-                            as="textarea" 
-                            rows={1} 
-                            placeholder="" />
-                        </Form.Group>
+                            rows={1}/>
 
                         { /* guilty pleasure */ }
-                        <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label className={classes.formLabel}>
-                                What is you guilty pleasure?
-                            </Form.Label>
-                            <Form.Control 
-                            onChange={this.onChangeGuiltyPleasure} 
+                        <FormField 
+                            classes={classes} 
+                            label={"What is your guilty pleasure"}
+                            onChange={this.onChangeGuiltyPleasure}
                             value={this.state.guiltyPleasure} 
-                            as="textarea" 
-                            rows={1} 
-                            placeholder="" />
-                        </Form.Group>
+                            rows={1}/>
 
                         { /* additional info */ }
-                        <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label className={classes.formLabel}>
-                                Anything else you want to let people know...
-                            </Form.Label>
-                            <Form.Control 
+                        <FormField 
+                            classes={classes} 
+                            label={"Anything else you want to let people know..."}
                             onChange={this.onChangeOtherInfo}
-                            value={this.state.otherInfo}  
-                            as="textarea" 
-                            rows={3} 
-                            placeholder="" />
-                        </Form.Group>
+                            value={this.state.otherInfo} 
+                            rows={3}/>
                         
                         { /* submit */ }
                         {this.state.loading ? (<CircularProgress/>) : (

@@ -1,8 +1,8 @@
 //React
 import React, { Component } from 'react';
 import Nav from './navbar';
-import Tooltip from './utils/tooltip';
-import Popup from './utils/popup';
+import TooltipButton from './utils/tooltip-button';
+import FormField from './utils/form-field';
 
 //Redux
 import { connect } from 'react-redux';
@@ -23,6 +23,7 @@ import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import Button from '@material-ui/core/Button';
 import { withStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
+import Backdrop from '@material-ui/core/Backdrop';
 
 //Firebase
 import firebase from 'firebase/app';
@@ -148,51 +149,35 @@ class EditPost extends Component {
     }
 
     onChangeMusic(e) {
-        this.setState({
-            music: e.target.value
-        });
+        this.setState({music: e.target.value});
     }
 
     onChangeAge(e) {
-        this.setState({
-            age: e.target.value
-        });
+        this.setState({age: e.target.value});
     }
 
     onChangeDayAsOtherPerson(e) {
-        this.setState({
-            dayAsOtherPerson: e.target.value
-        });
+        this.setState({dayAsOtherPerson: e.target.value});
     }
 
     onChangeHobbies(e) {
-        this.setState({
-            hobbies: e.target.value
-        });
+        this.setState({hobbies: e.target.value});
     }
 
     onChangePeeves(e) {
-        this.setState({
-            peeves: e.target.value
-        });
+        this.setState({peeves: e.target.value});
     }
 
     onChangeSelfRating(e) {
-        this.setState({
-            selfRating: e.target.value
-        });
+        this.setState({selfRating: e.target.value});
     }
 
     onChangeGuiltyPleasure(e) {
-        this.setState({
-            guiltyPleasure: e.target.value
-        });
+        this.setState({guiltyPleasure: e.target.value});
     }
 
     onChangeOtherInfo(e) {
-        this.setState({
-            otherInfo: e.target.value
-        });
+        this.setState({otherInfo: e.target.value});
     }
 
     onSubmit = async (e) =>{
@@ -262,11 +247,9 @@ class EditPost extends Component {
         var idx = fileURLS.findIndex(item => item===url);
         fileURLS.splice(idx,1);   
 
-        var newNumberOfFiles = this.state.numberOfFiles - 1;
-
-        infoToast('Image temporarily deleted! Click submit below to save this change')
-
         //save to state
+        infoToast('Image temporarily deleted! Click submit below to save this change')
+        var newNumberOfFiles = this.state.numberOfFiles - 1;
         this.setState({fileURLS: fileURLS, numberOfFiles: newNumberOfFiles});
     }
 
@@ -279,10 +262,8 @@ class EditPost extends Component {
 
         var idx = newFileNames.findIndex(item => item===fileName);
         newFileNames.splice(idx,1);   
-
         idx = newFiles.findIndex(item => item.name===fileName);
         newFiles.splice(idx,1);   
-
         var newNumberOfFiles  = this.state.numberOfFiles - 1;
 
         this.setState({newFileNames: newFileNames, newFiles: newFiles, numberOfFiles: newNumberOfFiles});
@@ -364,19 +345,21 @@ class EditPost extends Component {
 
     imageThumbnails = () => (
         <div style={{marginTop:'-75px'}}>
-                    <Container>
-                    <Row>
-                        {this.state.fileURLS.length !== 0 && this.state.fileURLS.map((url, index) => (
-                            <Col xs={6} md={4}>
-                                <Image thumbnail width="200px" src={url}></Image>
-                                <Tooltip message="Delete Image" location="bottom">
-                                    <Button color="primary"onClick={(e) => {this.onDeleteFileFromThumbnail(e, url)}}><DeleteForeverIcon/></Button>
-                                </Tooltip>
-                            </Col>
-                        ))}
-                    </Row>
-                    </Container>
-                </div>
+            <Container>
+            <Row>
+                {this.state.fileURLS.length !== 0 && this.state.fileURLS.map((url, index) => (
+                    <Col xs={6} md={4}>
+                        <Image thumbnail width="200px" src={url}></Image>
+                        <TooltipButton message="Delete Image" location="bottom"
+                                        color="primary"
+                                        onClick={(e) => {this.onDeleteFileFromThumbnail(e, url)}}>
+                            <DeleteForeverIcon/>
+                        </TooltipButton>
+                    </Col>
+                ))}
+            </Row>
+            </Container>
+        </div>
     )
 
     render () {
@@ -384,16 +367,16 @@ class EditPost extends Component {
         return (
             <div>
                 {/* delete post popup */}
-                {this.state.deletePostMode && 
-                    <Popup open={this.state.deletePostMode} classes={classes}>
-                        <h3 className={classes.popupMainText}>Are you sure you want to delete this post?</h3>
-                        <p className={classes.popupSubText}>This action cannot be undone...</p>
-                        {this.state.loadingDelete ? <CircularProgress/> : (<div>
-                            <SubmitButton variant="primary" className={classes.popupButton} onClick={() => {this.deletePost()}}>Yes</SubmitButton>
-                            <SubmitButton variant="secondary" className={classes.popupButton} onClick={() => this.setState({deletePostMode: false})}>Cancel</SubmitButton>
-                        </div>)}
-                    </Popup>
-                }
+                <Backdrop open={this.state.deletePostMode} className={classes.backdrop}>
+                    <Form className={classes.form} style={{ borderRadius: '5px', width: "25%", padding: '10px'}}>
+                    <h3 className={classes.popupMainText}>Are you sure you want to delete this post?</h3>
+                    <p className={classes.popupSubText}>This action cannot be undone...</p>
+                    {this.state.loadingDelete ? <CircularProgress/> : (<div>
+                        <SubmitButton variant="primary" className={classes.popupButton} onClick={() => {this.deletePost()}}>Yes</SubmitButton>
+                        <SubmitButton variant="secondary" className={classes.popupButton} onClick={() => this.setState({deletePostMode: false})}>Cancel</SubmitButton>
+                    </div>)}
+                    </Form>
+                </Backdrop>
 
                 <div className={classes.mainDiv} style={{padding: '50px 75px 250px 75px'}}>
                     <Nav/>
@@ -435,9 +418,11 @@ class EditPost extends Component {
                             {this.state.newFileNames.map((fileName) => 
                                 <div>
                                 <p className={classes.fileName}>{fileName}</p>
-                                <Tooltip message="Delete Image">
-                                    <Button color="secondary" onClick={(e) => this.onDeleteNewFile(e, fileName)}><DeleteForeverIcon></DeleteForeverIcon></Button>
-                                </Tooltip>
+                                <TooltipButton message="Delete Image"
+                                               color="secondary"
+                                               onClick={(e) => this.onDeleteNewFile(e, fileName)}>
+                                    <DeleteForeverIcon/>
+                                </TooltipButton>
                                 </div>
                             )}
                             </div>
@@ -447,107 +432,69 @@ class EditPost extends Component {
                         <br/>
                         <div></div>
 
-                        {/* music */}
-                        <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label className={classes.formLabel}>
-                                What music do you currently have on rotation?
-                            </Form.Label>
-                            <Form.Control 
-                            onChange={this.onChangeMusic} 
+                        { /* music */ }
+                        <FormField 
+                            classes={classes} 
+                            label={"What music do you currently have on rotation?"}
+                            onChange={this.onChangeMusic}
                             value={this.state.music} 
-                            as="textarea" 
-                            rows={1} 
-                            placeholder="" />
-                        </Form.Group>
+                            rows={1}/>
 
-                        {/* age */}
-                        <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label className={classes.formLabel}>
-                                How old are you?
-                            </Form.Label>
-                            <Form.Control 
-                            onChange={this.onChangeAge} 
+                        { /* age */ }
+                        <FormField 
+                            classes={classes} 
+                            label={"How old are you?"}
+                            onChange={this.onChangeAge}
                             value={this.state.age} 
-                            as="textarea" rows={1} 
-                            placeholder="" />
-                        </Form.Group>
+                            rows={1}/>
 
-                        {/* day as other person */}
-                        <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label className={classes.formLabel}>
-                                If you could spend a day as anyone, dead or alive, who would it be?
-                            </Form.Label>
-                            <Form.Control 
-                            onChange={this.onChangeDayAsOtherPerson} 
+                        { /* day as other person */ }
+                        <FormField 
+                            classes={classes} 
+                            label={"If you could spend a day as anyone, dead or alive, who would it be?"}
+                            onChange={this.onChangeDayAsOtherPerson}
                             value={this.state.dayAsOtherPerson} 
-                            as="textarea" rows={1} 
-                            placeholder="" />
-                        </Form.Group>
+                            rows={1}/>
 
-                        {/* hobbies */}
-                        <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label className={classes.formLabel}>
-                                What do you enjoy doing in your spare time?
-                            </Form.Label>
-                            <Form.Control 
-                            onChange={this.onChangeHobbies} 
+                        { /* hobbies */ }
+                        <FormField 
+                            classes={classes} 
+                            label={"What do you enjoy doing in your spare time?"}
+                            onChange={this.onChangeHobbies}
                             value={this.state.hobbies} 
-                            as="textarea" 
-                            rows={1} 
-                            placeholder="" />
-                        </Form.Group>
+                            rows={1}/>
 
-                        {/* peeves */}
-                        <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label className={classes.formLabel}>
-                                What pisses you off the most?
-                            </Form.Label>
-                            <Form.Control 
+                        { /* peeves */ }
+                        <FormField 
+                            classes={classes} 
+                            label={"What pisses you off the most?"}
                             onChange={this.onChangePeeves}
                             value={this.state.peeves} 
-                            as="textarea" 
-                            rows={1} 
-                            placeholder="" />
-                        </Form.Group>
+                            rows={1}/>
 
-                        {/* self rating */}
-                        <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label className={classes.formLabel}>
-                                Rate your looks on a scale from 1-10
-                            </Form.Label>
-                            <Form.Control 
-                            onChange={this.onChangeSelfRating} 
+                        { /* self rating */ }
+                        <FormField 
+                            classes={classes} 
+                            label={"Rate your looks on a scale from 1-10"}
+                            onChange={this.onChangeSelfRating}
                             value={this.state.selfRating} 
-                            as="textarea" 
-                            rows={1} 
-                            placeholder="" />
-                        </Form.Group>
+                            rows={1}/>
 
-                        {/* guilty pleasure */}
-                        <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label className={classes.formLabel}>
-                                What is you guilty pleasure?
-                            </Form.Label>
-                            <Form.Control 
-                            onChange={this.onChangeGuiltyPleasure} 
+                        { /* guilty pleasure */ }
+                        <FormField 
+                            classes={classes} 
+                            label={"What is your guilty pleasure"}
+                            onChange={this.onChangeGuiltyPleasure}
                             value={this.state.guiltyPleasure} 
-                            as="textarea" 
-                            rows={1} 
-                            placeholder="" />
-                        </Form.Group>
+                            rows={1}/>
 
-                        {/* additional info */}
-                        <Form.Group controlId="exampleForm.ControlTextarea1">
-                            <Form.Label className={classes.formLabel}>
-                                Anything else you want to let people know...
-                            </Form.Label>
-                            <Form.Control 
+                        { /* additional info */ }
+                        <FormField 
+                            classes={classes} 
+                            label={"Anything else you want to let people know..."}
                             onChange={this.onChangeOtherInfo}
-                            value={this.state.otherInfo}  
-                            as="textarea" 
-                            rows={3} 
-                            placeholder="" />
-                        </Form.Group>
+                            value={this.state.otherInfo} 
+                            rows={3}/>
                         
                         {/* submit */}
                         {this.state.loadingSubmit ? <CircularProgress/> : (
@@ -559,7 +506,6 @@ class EditPost extends Component {
                     </Form>
                 </Paper>
                 <Button color="primary" style={{marginTop: '125px'}} onClick={() => this.setState({deletePostMode: true})}>Delete Post</Button>
-
                 </div>
             </div>
         )
