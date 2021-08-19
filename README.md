@@ -1,4 +1,6 @@
 # RoastMyPost
+Note: This project is still a work in progress. I'm currently working on converting class based components to functional components!
+
 Check out the website in action at roastmypost.io!
 
 Otherwise, check out some cool screenshots showcasing some features of the app!
